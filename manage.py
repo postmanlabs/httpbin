@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
+from flask import Flask
 from flaskext.script import Manager, Command
 
 app = Flask(__name__)
