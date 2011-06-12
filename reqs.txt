@@ -1,0 +1,8 @@
+Fabric==1.0.1
+Flask==0.6.1
+Flask-Script==0.3.1
+Jinja2==2.5.5
+Werkzeug==0.6.2
+argparse==1.2.1
+distribute==0.6.15
+wsgiref==0.1.2
