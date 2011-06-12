@@ -22,6 +22,7 @@ def _path_to(*loc):
 def docs():
     os.chdir(_path_to('docs'))
     os.system('make')
+    os.chdir(_path_to('.'))
 
 
 def prod():
