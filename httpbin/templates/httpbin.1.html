@@ -41,6 +41,12 @@
   ol.man-decor li.tc {text-align:center;letter-spacing:4px}
   ol.man-decor li.tr {text-align:right;float:right}
   </style>
+  <style type='text/css' media='all'>
+  /* style: toc */
+  .man-navigation {display:block !important;position:fixed;top:0;left:113ex;height:100%;width:100%;padding:48px 0 0 0;border-left:1px solid #dbdbdb;background:#eee}
+  .man-navigation a,.man-navigation a:hover,.man-navigation a:link,.man-navigation a:visited {display:block;margin:0;padding:5px 2px 5px 30px;color:#999;text-decoration:none}
+  .man-navigation a:hover {color:#111;text-decoration:underline}
+  </style>
 </head>
 <!--
   The following styles are deprecated and will be removed at some point:
@@ -55,9 +61,8 @@
   <div class='man-navigation' style='display:none'>
     <a href="#SYNOPSIS">SYNOPSIS</a>
     <a href="#DESCRIPTION">DESCRIPTION</a>
-    <a href="#CONFIGURATION">CONFIGURATION</a>
     <a href="#EXAMPLES">EXAMPLES</a>
-    <a href="#AUTHORS">AUTHORS</a>
+    <a href="#AUTHOR">AUTHOR</a>
     <a href="#SEE-ALSO">SEE ALSO</a>
   </div>
 
@@ -70,15 +75,35 @@
   <h1>httpbin(1): HTTP Client Testing Service</h1>
 <h2 id="SYNOPSIS">SYNOPSIS</h2>
 
+<p><code>/</code> This page.<br />
+<code>/user-agent</code> Returns user-agent string.<br />
+<code>/headers</code> Returns header dict.<br />
+<code>/get</code> Returns GET data.<br />
+<code>/post</code> Returns POST data.<br />
+<code>/put</code> Returns PUT data.<br />
+<code>/delete</code> Returns DELETE data.</p>
+
 <h2 id="DESCRIPTION">DESCRIPTION</h2>
 
-<h2 id="CONFIGURATION">CONFIGURATION</h2>
+<p>Testing an HTTP Library can become difficult sometimes. PostBin is fantastic
+for testing POST requests, but not much else. This will cover everything.</p>
+
+<p>Plans at the moment are to return JSON for all responses. Request storage
+/ aggregation may or may not exist. We'll see.</p>
 
 <h2 id="EXAMPLES">EXAMPLES</h2>
 
-<h2 id="AUTHORS">AUTHORS</h2>
+<pre><code>$ curl http://httpbin.com/useragent
+</code></pre>
+
+<h2 id="AUTHOR">AUTHOR</h2>
+
+<p>A <a href="http://kennethreitz.com/pages/open-projects.html">Kenneth Reitz</a>
+Project.</p>
 
 <h2 id="SEE-ALSO">SEE ALSO</h2>
+
+<p><a href="http://python-requests.org" data-bare-link="true">http://python-requests.org</a>, <a href="http://postbin.org" data-bare-link="true">http://postbin.org</a>, <a href="https://github.com/tml/postbin" data-bare-link="true">https://github.com/tml/postbin</a></p>
 
 
   <ol class='man-decor man-foot man foot'>
