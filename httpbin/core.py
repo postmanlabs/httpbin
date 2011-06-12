@@ -20,8 +20,6 @@ def to_json(*args, **kwargs):
     return json.dumps(data)
 
 
-
-
 @app.route('/')
 def hello():
     return to_json(hello='world')
