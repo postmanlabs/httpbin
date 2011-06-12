@@ -9,8 +9,10 @@ This module provides the core HttpBin experience.
 
 import json
 
+from flask import Flask, request, render_template
 
-from flask import Flask, request
+
+
 app = Flask(__name__)
 
 
@@ -19,9 +21,16 @@ def to_json(*args, **kwargs):
     data = dict(*args, **kwargs)
     return json.dumps(data)
 
+
+
+# ------
+# Routes
+# ------
+
+
 @app.route('/')
 def view_help():
-    render_template('httpbin.1.html')
+    return render_template('httpbin.1.html')
 
 
 @app.route('/headers')
