@@ -34,6 +34,7 @@ def prod():
 def deploy():
     """Deploys the application"""
 
+    docs()
     prod()
     local('epio upload')
 
