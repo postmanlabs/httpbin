@@ -1,5 +1,5 @@
-Panbin: PostBin++
-=================
+HttpBin: PostBin++
+==================
 
 Testing an HTTP Library can become difficult sometimes. PostBin is fantastic
 for testing POST requests, but not much else. This will cover everything.
