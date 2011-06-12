@@ -6,8 +6,7 @@ for testing POST requests, but not much else. This will cover everything.
 
 I would have simply forked PostBin, but it's hosted on GAE. No.
 
-Plans at the moment are to return JSON for all responses. Request aggregation
-may or may not
+Plans at the moment are to return JSON for all responses. Request storage / aggregation may or may not exist. We'll see.
 
 
 
