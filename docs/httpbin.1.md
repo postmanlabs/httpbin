@@ -4,7 +4,8 @@ httpbin(1): HTTP Client Testing Service
 ## SYNOPSIS
 
 `/` This page.  
-`/user-agent` Returns user-agent string.  
+`/ip` Returns Origin IP.  
+`/user-agent` Returns user-agent.  
 `/headers` Returns header dict.  
 `/get` Returns GET data.  
 `/post` Returns POST data.  
