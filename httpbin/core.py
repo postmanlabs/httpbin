@@ -29,7 +29,7 @@ def to_json(*args, **kwargs):
 
 
 @app.route('/')
-def view_help():
+def view_landing_page():
     return render_template('httpbin.1.html')
 
 
