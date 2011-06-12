@@ -27,7 +27,6 @@ def hello():
 
 @app.route('/headers')
 def view_headers():
-
     return to_json(headers='headers')
 
 
