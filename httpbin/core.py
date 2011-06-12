@@ -19,10 +19,9 @@ def to_json(*args, **kwargs):
     data = dict(*args, **kwargs)
     return json.dumps(data)
 
-
 @app.route('/')
-def hello():
-    return to_json(hello='world')
+def view_help():
+    render_template('httpbin.1.html')
 
 
 @app.route('/headers')
