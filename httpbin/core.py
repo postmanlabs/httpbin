@@ -12,6 +12,7 @@ import json
 from decorator import decorator
 from flask import Flask, request, render_template
 
+from .structures import CaseInsensitiveDict
 
 
 app = Flask(__name__)
@@ -28,17 +29,6 @@ def json_resource(f, *args, **kwargs):
 
     return r
 
-
-
-def get_headers():
-    """Returns headers dictionary."""
-
-    headers = dict()
-
-    for k, v in request.headers.items():
-        headers[k] = v
-
-    return headers
 
 # ------
 # Routes
@@ -73,7 +63,10 @@ def view_headers():
 def view_user_agent():
     """Returns User-Agent."""
 
-    return dict(useragent=request.headers.get('User-Agent', None))
+    headers = CaseInsensitiveDict(request.headers.items())
+
+    return dict(useragent=headers['user-agent'])
+
 
 
 @app.route('/get')
