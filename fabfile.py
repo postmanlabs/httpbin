@@ -23,5 +23,4 @@ def deploy():
 
     prod()
     local('epio upload')
-    migrate()
 
