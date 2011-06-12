@@ -8,6 +8,8 @@ This module provides the core HttpBin experience.
 """
 
 import json
+from time import time as now
+from decimal import Decimal
 
 from decorator import decorator
 from flask import Flask, request, render_template
@@ -18,14 +20,17 @@ from .structures import CaseInsensitiveDict
 app = Flask(__name__)
 
 @decorator
-def json_resource(f, *args, **kwargs):
+def json_resource(f, runtime=True, *args, **kwargs):
 
+    _t0 = now()
     _dict = f(*args, **kwargs)
+    _t1 = now()
 
     dump = json.dumps(_dict)
 
     r = app.make_response(dump)
     r.headers['Content-Type'] = 'application/json'
+    r.headers['X-Runtime'] = '{0}s'.format(Decimal(str(_t1-_t0)))
 
     return r
 
@@ -54,7 +59,9 @@ def view_origin():
 def view_headers():
     """Returns HTTP HEADERS."""
 
-    return dict(headers=get_headers())
+    headers = CaseInsensitiveDict(request.headers.items())
+
+    return dict(headers=headers)
 
 
 
