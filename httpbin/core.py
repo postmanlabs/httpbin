@@ -183,17 +183,17 @@ def view_status_code(code):
 def view_cookies():
     """Returns cookie data."""
 
-    return request.cookies
+    return dict(cookies=request.cookies)
 
 
-@app.route('/set-cookie/<name>/<value>')
+@app.route('/cookies/set/<name>/<value>')
 def set_cookie(name, value):
     """Sets a cookie and redirects to cookie list."""
 
-    response = app.make_response(redirect('/cookies'))
-    response.set_cookie(key=name, value=value)
+    r = app.make_response(redirect('/cookies'))
+    r.set_cookie(key=name, value=value)
 
-    return response
+    return r
 
 
 @app.route('/basic-auth')
