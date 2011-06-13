@@ -13,7 +13,7 @@ from flask import request, make_response
 from .structures import CaseInsensitiveDict
 
 
-ASCII_ART = r"""
+ASCII_ART = """
     -=[ teapot ]=-
 
        _...._
