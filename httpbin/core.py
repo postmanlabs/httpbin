@@ -151,9 +151,7 @@ def view_post():
 def view_post():
     """Returns DETLETE Data."""
 
-    return get_dict(
-        'url', 'args', 'form', 'data', 'origin', 'headers', 'files'
-    )
+    return get_dict('url', 'args', 'form', 'data', 'origin', 'headers')
 
 
 @app.route('/gzip')
