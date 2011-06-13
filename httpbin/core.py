@@ -186,7 +186,7 @@ def view_cookies():
     return request.cookies
 
 
-@app.route('/set-cookie/<name>/<value>')
+@app.route('/cookies/set/<name>/<value>')
 def set_cookie(name, value):
     """Sets a cookie and redirects to cookie list."""
 

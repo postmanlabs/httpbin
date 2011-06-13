@@ -15,13 +15,13 @@ httpbin(1): HTTP Client Testing Service
 `/status/:code` Returns given HTTP Status code.  
 `/redirect/:n` 302 Redirects *n* times.  
 `/cookies` Returns cookie data.  
-`/set-cookie/:name/:value` Sets a simple cookie.  
+`/cookies/set/:name/:value` Sets a simple cookie.  
 
 
 ## DESCRIPTION
 
 Testing an HTTP Library can become difficult sometimes. PostBin.org is fantastic
-for testing POST requests, but not much else. This exists to cover all kinds of HTTP 
+for testing POST requests, but not much else. This exists to cover all kinds of HTTP
 scenarios. Additional endpoints are being considered: `/basic-auth`, `/deflate`, *&c*.
 
 All endpoint responses are JSON-encoded.
