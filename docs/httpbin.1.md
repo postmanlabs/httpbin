@@ -24,7 +24,7 @@ Plans at the moment are to return JSON for all responses. Request storage
 
 ## EXAMPLES
 
-    $ curl http://httpbin.com/user-agent
+    $ curl http://httpbin.org/ip
 
 
 ## AUTHOR
