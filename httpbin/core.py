@@ -7,80 +7,12 @@ httpbin.core
 This module provides the core HttpBin experience.
 """
 
+from flask import Flask, Response, request, render_template, redirect, make_response, g
 
-import json
-import gzip
-import os
-from cStringIO import StringIO
-from decimal import Decimal
-from time import time as now
-
-from decorator import decorator
-from flask import Flask, Response, request, render_template, redirect, g
-
-from .helpers import get_files, get_headers, status_code, get_dict, check_basic_authorization
-
+from . import filters
+from .helpers import get_files, get_headers, status_code, get_dict, check_basic_auth
 
 app = Flask(__name__)
-
-
-# --------------
-# Output Filters
-# --------------
-
-
-@decorator
-def json_resource(f, runtime=True, *args, **kwargs):
-
-    _t0 = now()
-    data = f(*args, **kwargs)
-    _t1 = now()
-
-    # we already have a formatted response, move along
-    if isinstance(data, Response):
-        return data
-
-    dump = json.dumps(data, sort_keys=True, indent=3)
-
-    r = app.make_response(dump)
-    r.headers['Content-Type'] = 'application/json'
-    r.headers['X-Runtime'] = '{0}s'.format(Decimal(str(_t1-_t0)))
-
-    return r
-
-
-
-@decorator
-def gzip_response(f, *args, **kwargs):
-
-    data = f(*args, **kwargs)
-
-    if isinstance(data, Response):
-        content = data.data
-    else:
-        content = data
-
-    gzip_buffer = StringIO()
-    gzip_file = gzip.GzipFile(
-        mode='wb',
-        compresslevel=4,
-        fileobj=gzip_buffer
-    )
-    gzip_file.write(content)
-    gzip_file.close()
-
-    gzip_data = gzip_buffer.getvalue()
-
-    if isinstance(data, Response):
-        data.data = gzip_data
-        data.headers['Content-Encoding'] = 'gzip'
-        data.headers['Content-Length'] = str(len(data.data))
-
-        return data
-
-    return gzip_data
-
-
 
 
 
@@ -92,11 +24,12 @@ def gzip_response(f, *args, **kwargs):
 @app.route('/')
 def view_landing_page():
     """Generates Landing Page."""
+
     return render_template('index.html')
 
 
 @app.route('/ip')
-@json_resource
+@filters.json
 def view_origin():
     """Returns Origin IP."""
 
@@ -104,7 +37,7 @@ def view_origin():
 
 
 @app.route('/headers')
-@json_resource
+@filters.json
 def view_headers():
     """Returns HTTP HEADERS."""
 
@@ -112,7 +45,7 @@ def view_headers():
 
 
 @app.route('/user-agent')
-@json_resource
+@filters.json
 def view_user_agent():
     """Returns User-Agent."""
 
@@ -122,7 +55,7 @@ def view_user_agent():
 
 
 @app.route('/get', methods=('GET',))
-@json_resource
+@filters.json
 def view_get():
     """Returns GET Data."""
 
@@ -131,7 +64,7 @@ def view_get():
 
 
 @app.route('/post', methods=('POST',))
-@json_resource
+@filters.json
 def view_post():
     """Returns POST Data."""
 
@@ -139,7 +72,7 @@ def view_post():
 
 
 @app.route('/put', methods=('PUT',))
-@json_resource
+@filters.json
 def view_post():
     """Returns PUT Data."""
 
@@ -147,7 +80,7 @@ def view_post():
 
 
 @app.route('/delete', methods=('DELETE',))
-@json_resource
+@filters.json
 def view_post():
     """Returns DETLETE Data."""
 
@@ -155,8 +88,8 @@ def view_post():
 
 
 @app.route('/gzip')
-@gzip_response
-@json_resource
+@filters.gzip
+@filters.json
 def view_gzip_encoded_content():
     """Returns GZip-Encoded Data."""
 
@@ -183,7 +116,7 @@ def view_status_code(code):
 
 
 @app.route('/cookies')
-@json_resource
+@filters.json
 def view_cookies():
     """Returns cookie data."""
 
@@ -200,14 +133,15 @@ def set_cookie(name, value):
     return r
 
 
-@app.route('/basic-auth')
-@json_resource
-def basic_auth():
+@app.route('/basic-auth/<user>/<passwd>')
+@filters.json
+def basic_auth(user='user', passwd='passwd'):
     """Prompts the user for authorization using HTTP Basic Auth."""
 
-    if not check_basic_authorization():
+    if not check_basic_auth(user, passwd):
         return status_code(401)
-    return dict(authenticated=True)
+    return dict(authenticated=True, user=user)
+
 
 
 if __name__ == '__main__':
