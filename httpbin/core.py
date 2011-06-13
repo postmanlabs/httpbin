@@ -88,7 +88,7 @@ def gzip_response(f, *args, **kwargs):
 @app.route('/')
 def view_landing_page():
     """Generates Landing Page."""
-    return render_template('httpbin.1.html')
+    return render_template('index.html')
 
 
 @app.route('/ip')
