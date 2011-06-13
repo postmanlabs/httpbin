@@ -11,7 +11,9 @@ httpbin(1): HTTP Client Testing Service
 `/post` Returns POST data.  
 `/put` Returns PUT data.  
 `/delete` Returns DELETE data.  
-`/gzip` Returns GZip-encoded data.
+`/gzip` Returns GZip-encoded data.  
+`/status/<code>` Returns given HTTP Status code.  
+`/redirect/<number>` 301 Redirect loop *n* times.  
 
 
 ## DESCRIPTION
@@ -35,4 +37,4 @@ Project.
 
 ## SEE ALSO
 
-<http://python-requests.org>, <http://postbin.org>
+<https://github.com/kennethreitz/httpbin>, <http://python-requests.org>, <http://postbin.org>
