@@ -20,7 +20,7 @@ from decorator import decorator
 from flask import Flask, Response, request, render_template, redirect, g
 
 from .db import redis_connect
-from .helpers import get_files, get_headers
+from .helpers import get_files, get_headers, status_code
 
 
 app = Flask(__name__)
@@ -261,6 +261,13 @@ def redirect_n_times(n):
         return redirect('/')
 
     return redirect('/redirect/{0}'.format(n))
+
+
+@app.route('/status/<int:code>')
+def view_status_code(code):
+    """Returns given status code."""
+
+    return status_code(code)
 
 
 if __name__ == '__main__':
