@@ -31,7 +31,7 @@ def prod():
     CMD_TEMPLATE = 'epio run_command {0}'
 
 
-def deploy():
+def push():
     """Deploys the application"""
 
     docs()
