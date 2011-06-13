@@ -111,8 +111,8 @@ def status_code(code):
     return r
 
 
-def check_basic_authorization():
+def check_basic_auth(user, passwd):
     """Checks user authentication using HTTP Basic Auth."""
 
     auth = request.authorization
-    return auth and auth.username == "httpbin" and auth.password == "secret"
+    return auth and auth.username == user and auth.password == passwd
