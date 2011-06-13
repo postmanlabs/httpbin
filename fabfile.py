@@ -20,9 +20,8 @@ def _path_to(*loc):
 
 
 def docs():
-    os.chdir(_path_to('docs'))
-    os.system('make')
     os.chdir(_path_to('.'))
+    os.system('ronn -5 README.md --style toc --pipe > ./httpbin/templates/httpbin.1.html')
 
 
 def prod():
