@@ -1,7 +1,7 @@
 httpbin(1): HTTP Client Testing Service
 =======================================
 
-## SYNOPSIS
+## ENDPOINTS
 
 `/` This page.  
 `/ip` Returns Origin IP.  
