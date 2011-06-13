@@ -131,9 +131,7 @@ def view_get():
 def view_post():
     """Returns POST Data."""
 
-    return get_dict(
-        'url', 'args', 'form', 'data', 'origin', 'headers', 'files'
-    )
+    return get_dict('url', 'args', 'form', 'data', 'origin', 'headers', 'files')
 
 
 @app.route('/put', methods=('PUT',))
@@ -141,9 +139,7 @@ def view_post():
 def view_post():
     """Returns PUT Data."""
 
-    return get_dict(
-        'url', 'args', 'form', 'data', 'origin', 'headers', 'files'
-    )
+    return get_dict('url', 'args', 'form', 'data', 'origin', 'headers', 'files')
 
 
 @app.route('/delete', methods=('DELETE',))
