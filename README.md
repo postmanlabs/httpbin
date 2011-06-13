@@ -3,19 +3,19 @@ httpbin(1): HTTP Client Testing Service
 
 ## ENDPOINTS
 
-`/` This page.  
-`/ip` Returns Origin IP.  
-`/user-agent` Returns user-agent.  
-`/headers` Returns header dict.  
-`/get` Returns GET data.  
-`/post` Returns POST data.  
-`/put` Returns PUT data.  
-`/delete` Returns DELETE data.  
-`/gzip` Returns gzip-encoded data.  
-`/status/:code` Returns given HTTP Status code.  
-`/redirect/:n` 302 Redirects *n* times.  
-`/cookies` Returns cookie data.  
-`/cookies/set/:name/:value` Sets a simple cookie.  
+- [`/`](http://httpbin.org) This page.
+- [`/ip`](http://httpbin.org/ip) Returns Origin IP.
+- [`/user-agent`](http://httpbin.org/user-agent) Returns user-agent.
+- [`/headers`](http://httpbin.org/hearders) Returns header dict.
+- [`/get`](http://httpbin.org/get) Returns GET data.
+- `/post` Returns POST data.
+- `/put` Returns PUT data.
+- `/delete` Returns DELETE data
+- [`/gzip`](http://httpbin.org/gzip) Returns gzip-encoded data.
+- [`/status/:code`](http://httpbin.org/status/418) Returns given HTTP Status code.
+- [`/redirect/:n`](http://httpbin.org/redirect/6) 302 Redirects *n* times.
+- [`/cookies`](http://httpbin.org/cookies) Returns cookie data.
+- [`/cookies/set/:name/:value`](http://httpbin.org/cookies/set/key/value) Sets a simple cookie.
 
 
 ## DESCRIPTION
@@ -55,7 +55,7 @@ All endpoint responses are JSON-encoded.
        "url": "http://httpbin.org/get"
     }
 
-### $ curl -I http://httpbin.org/status/418``
+### $ curl -I http://httpbin.org/status/418
 
     HTTP/1.1 418 I'M A TEAPOT
     Server: nginx/0.7.67
