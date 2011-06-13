@@ -16,7 +16,7 @@ httpbin(1): HTTP Client Testing Service
 - [`/redirect/:n`](http://httpbin.org/redirect/6) 302 Redirects *n* times.
 - [`/cookies`](http://httpbin.org/cookies) Returns cookie data.
 - [`/cookies/set/:name/:value`](http://httpbin.org/cookies/set/key/value) Sets a simple cookie.
-- [`/basic-auth/:user/:passwd`](http://httpbin.org/basic-auth) Challenges HTTPBasic Auth.
+- [`/basic-auth/:user/:passwd`](http://httpbin.org/basic-auth/user/passwd) Challenges HTTPBasic Auth.
 
 
 ## DESCRIPTION
