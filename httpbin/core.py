@@ -178,5 +178,23 @@ def view_status_code(code):
     return status_code(code)
 
 
+@app.route('/cookies')
+@json_resource
+def view_cookies():
+    """Returns cookie data."""
+
+    return request.cookies
+
+
+@app.route('/set-cookie/<name>/<value>')
+def set_cookie(name, value):
+    """Sets a cookie and redirects to cookie list."""
+
+    response = app.make_response(redirect('/cookies'))
+    response.set_cookie(key=name, value=value)
+
+    return response
+
+
 if __name__ == '__main__':
     app.run()
