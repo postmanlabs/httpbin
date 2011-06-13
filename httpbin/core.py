@@ -17,7 +17,7 @@ from decimal import Decimal
 
 import redi
 from decorator import decorator
-from flask import Flask, Response, request, render_template, g
+from flask import Flask, Response, request, render_template, redirect, g
 
 from .db import redis_connect
 from .helpers import get_files, get_headers
@@ -235,6 +235,7 @@ def view_post():
         files=get_files()
     )
 
+
 @app.route('/gzip')
 @gzip_response
 @json_resource
@@ -250,6 +251,16 @@ def view_gzip_encoded_content():
     )
 
 
+@app.route('/redirect/<int:n>')
+def redirect_n_times(n):
+    """301 Redirects n times."""
+
+    n += -1
+
+    if (n == 0):
+        return redirect('/')
+
+    return redirect('/redirect/{0}'.format(n))
 
 
 if __name__ == '__main__':

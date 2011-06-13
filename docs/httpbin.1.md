@@ -13,7 +13,7 @@ httpbin(1): HTTP Client Testing Service
 `/delete` Returns DELETE data.  
 `/gzip` Returns GZip-encoded data.  
 `/status/<code>` Returns given HTTP Status code.  
-`/redirect/<number>` 301 Redirect loop *n* times.  
+`/redirect/<n>` 302 Redirect loop *n* times.  
 
 
 ## DESCRIPTION
