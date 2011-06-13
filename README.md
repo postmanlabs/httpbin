@@ -18,11 +18,11 @@ httpbin(1): HTTP Client Testing Service
 
 ## DESCRIPTION
 
-Testing an HTTP Library can become difficult sometimes. PostBin is fantastic
-for testing POST requests, but not much else. This will cover everything.
+Testing an HTTP Library can become difficult sometimes. PostBin.org is fantastic
+for testing POST requests, but not much else. This exists to cover all kinds of HTTP 
+scenarios. Additional endpoints are being considered: `/basic-auth/`, `/deflate/`, *&c*.
 
-Plans at the moment are to return JSON for all responses. Request storage
-/ aggregation may or may not exist. We'll see.
+All endpoint responses are JSON-encoded.
 
 
 ## EXAMPLES
