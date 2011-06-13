@@ -25,6 +25,9 @@ ASCII_ART = r"""
         `\"\"\"`
 """
 
+REDIRECT_LOCATION = 'http://httpbin.org/redirect/1'
+
+
 
 def get_files():
     """Returns files dict from request context."""
@@ -47,15 +50,33 @@ def status_code(code):
     """Returns response object of given status code."""
 
     code_map = {
-        418: dict(data=ASCII_ART),
+        301: dict(headers=dict(location=REDIRECT_LOCATION)),
+        302: dict(headers=dict(location=REDIRECT_LOCATION)),
+        303: dict(headers=dict(location=REDIRECT_LOCATION)),
+        304: dict(data=''),
+        305: dict(headers=dict(location=REDIRECT_LOCATION)),
+        307: dict(headers=dict(location=REDIRECT_LOCATION)),
+        401: dict(headers={'WWW-Authenticate': 'Basic realm="Fake Realm"'}),
+        407: dict(headers={'Proxy-Authenticate': 'Basic realm="Fake Realm"'}),
+        418: dict(
+            data=ASCII_ART,
+            headers={
+                'x-more-info': 'http://tools.ietf.org/html/rfc2324'
+            }
+        ),
+
     }
 
     r = make_response()
     r.status_code = code
 
     if code in code_map:
-        if 'data' in code_map[code]:
-            r.data = code_map[code]['data']
 
-    print code_map.get(code)
+        m = code_map[code]
+
+        if 'data' in m:
+            r.data = m['data']
+        if 'headers' in m:
+            r.headers = m['headers']
+
     return r
