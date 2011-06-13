@@ -46,6 +46,33 @@ def get_headers():
     return CaseInsensitiveDict(request.headers.items())
 
 
+def get_dict(*keys, **extras):
+    """Returns request dict of given keys."""
+
+    _keys = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files')
+
+    assert all(map(_keys.__contains__, keys))
+
+    d = dict(
+        url=request.url,
+        args=request.args,
+        form=request.form,
+        data=request.data,
+        origin=request.remote_addr,
+        headers=get_headers(),
+        files=get_files()
+    )
+
+    out_d = dict()
+
+    for key in keys:
+        out_d[key] = d.get(key)
+
+    out_d.update(extras)
+
+    return out_d
+
+
 def status_code(code):
     """Returns response object of given status code."""
 
@@ -60,7 +87,7 @@ def status_code(code):
         307: redirect,
         401: dict(headers={'WWW-Authenticate': 'Basic realm="Fake Realm"'}),
         407: dict(headers={'Proxy-Authenticate': 'Basic realm="Fake Realm"'}),
-        418: dict(
+        418: dict( # I'm a teapot!
             data=ASCII_ART,
             headers={
                 'x-more-info': 'http://tools.ietf.org/html/rfc2324'

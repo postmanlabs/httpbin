@@ -18,7 +18,7 @@ from time import time as now
 from decorator import decorator
 from flask import Flask, Response, request, render_template, redirect, g
 
-from .helpers import get_files, get_headers, status_code
+from .helpers import get_files, get_headers, status_code, get_dict
 
 
 app = Flask(__name__)
@@ -78,6 +78,8 @@ def gzip_response(f, *args, **kwargs):
 
 
 
+
+
 # ------
 # Routes
 # ------
@@ -102,9 +104,7 @@ def view_origin():
 def view_headers():
     """Returns HTTP HEADERS."""
 
-    headers = get_headers()
-
-    return dict(headers=headers)
+    return get_dict('headers')
 
 
 @app.route('/user-agent')
@@ -114,7 +114,7 @@ def view_user_agent():
 
     headers = get_headers()
 
-    return dict(useragent=headers['user-agent'])
+    return {'user-agent': headers['user-agent']}
 
 
 @app.route('/get', methods=('GET',))
@@ -122,12 +122,7 @@ def view_user_agent():
 def view_get():
     """Returns GET Data."""
 
-    return dict(
-        url=request.url,
-        args=request.args,
-        headers=get_headers(),
-        origin=request.remote_addr
-    )
+    return get_dict('url', 'args', 'headers', 'origin')
 
 
 
@@ -136,14 +131,8 @@ def view_get():
 def view_post():
     """Returns POST Data."""
 
-    return dict(
-        url=request.url,
-        args=request.args,
-        form=request.form,
-        data=request.data,
-        origin=request.remote_addr,
-        headers=get_headers(),
-        files=get_files()
+    return get_dict(
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files'
     )
 
 
@@ -152,14 +141,8 @@ def view_post():
 def view_post():
     """Returns PUT Data."""
 
-    return dict(
-        url=request.url,
-        args=request.args,
-        form=request.form,
-        data=request.data,
-        origin=request.remote_addr,
-        headers=get_headers(),
-        files=get_files()
+    return get_dict(
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files'
     )
 
 
@@ -168,14 +151,8 @@ def view_post():
 def view_post():
     """Returns DETLETE Data."""
 
-    return dict(
-        url=request.url,
-        args=request.args,
-        form=request.form,
-        data=request.data,
-        origin=request.remote_addr,
-        headers=get_headers(),
-        files=get_files()
+    return get_dict(
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files'
     )
 
 
@@ -185,17 +162,14 @@ def view_post():
 def view_gzip_encoded_content():
     """Returns GZip-Encoded Data."""
 
-    return dict(
-        origin=request.remote_addr,
-        headers=get_headers(),
-        method=request.method,
-        gzipped=True
-    )
+    return get_dict('origin', 'headers', method=request.method, gzipped=True)
 
 
 @app.route('/redirect/<int:n>')
 def redirect_n_times(n):
     """301 Redirects n times."""
+
+    assert n > 0
 
     n += -1
 
