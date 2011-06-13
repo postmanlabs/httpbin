@@ -18,7 +18,7 @@ from time import time as now
 from decorator import decorator
 from flask import Flask, Response, request, render_template, redirect, g
 
-from .helpers import get_files, get_headers, status_code, get_dict
+from .helpers import get_files, get_headers, status_code, get_dict, check_basic_authorization
 
 
 app = Flask(__name__)
@@ -194,6 +194,15 @@ def set_cookie(name, value):
     response.set_cookie(key=name, value=value)
 
     return response
+
+
+@app.route('/basic-auth')
+def basic_auth():
+    """Prompts the user for authentication using HTTP Basic Auth."""
+
+    if not check_basic_authorization():
+        return status_code(401)
+    return app.make_response('auth ok')
 
 
 if __name__ == '__main__':
