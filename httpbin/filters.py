@@ -7,7 +7,7 @@ httpbin.filters
 This module provides response filter decorators.
 """
 
-import gzip
+import gzip as gzip2
 import json as simplejson
 
 from cStringIO import StringIO
@@ -66,7 +66,7 @@ def gzip(f, *args, **kwargs):
         content = data
 
     gzip_buffer = StringIO()
-    gzip_file = gzip.GzipFile(
+    gzip_file = gzip2.GzipFile(
         mode='wb',
         compresslevel=4,
         fileobj=gzip_buffer
