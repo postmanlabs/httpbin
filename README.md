@@ -12,8 +12,8 @@ httpbin(1): HTTP Client Testing Service
 `/put` Returns PUT data.  
 `/delete` Returns DELETE data.  
 `/gzip` Returns GZip-encoded data.  
-`/status/<code>` Returns given HTTP Status code.  
-`/redirect/<n>` 302 Redirect loop *n* times.  
+`/status/:code` Returns given HTTP Status code.  
+`/redirect/:n` 302 Redirect loop *n* times.  
 
 
 ## DESCRIPTION
