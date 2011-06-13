@@ -49,13 +49,15 @@ def get_headers():
 def status_code(code):
     """Returns response object of given status code."""
 
+    redirect = dict(headers=dict(location=REDIRECT_LOCATION))
+
     code_map = {
-        301: dict(headers=dict(location=REDIRECT_LOCATION)),
-        302: dict(headers=dict(location=REDIRECT_LOCATION)),
-        303: dict(headers=dict(location=REDIRECT_LOCATION)),
+        301: redirect,
+        302: redirect,
+        303: redirect,
         304: dict(data=''),
-        305: dict(headers=dict(location=REDIRECT_LOCATION)),
-        307: dict(headers=dict(location=REDIRECT_LOCATION)),
+        305: redirect,
+        307: redirect,
         401: dict(headers={'WWW-Authenticate': 'Basic realm="Fake Realm"'}),
         407: dict(headers={'Proxy-Authenticate': 'Basic realm="Fake Realm"'}),
         418: dict(
