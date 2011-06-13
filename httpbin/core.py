@@ -36,6 +36,10 @@ def json_resource(f, runtime=True, *args, **kwargs):
     data = f(*args, **kwargs)
     _t1 = now()
 
+    # we already have a formatted response, move along
+    if isinstance(data, Response):
+        return data
+
     dump = json.dumps(data, sort_keys=True, indent=3)
 
     r = app.make_response(dump)
@@ -197,12 +201,13 @@ def set_cookie(name, value):
 
 
 @app.route('/basic-auth')
+@json_resource
 def basic_auth():
-    """Prompts the user for authentication using HTTP Basic Auth."""
+    """Prompts the user for authorization using HTTP Basic Auth."""
 
     if not check_basic_authorization():
         return status_code(401)
-    return app.make_response('auth ok')
+    return dict(authenticated=True)
 
 
 if __name__ == '__main__':
