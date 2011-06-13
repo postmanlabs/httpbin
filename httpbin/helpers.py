@@ -8,6 +8,11 @@ This module provides helper functions for httpbin.
 """
 
 
+from flask import request
+
+from .structures import CaseInsensitiveDict
+
+
 
 def get_files():
     """Returns files dict from request context."""
