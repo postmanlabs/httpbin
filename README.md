@@ -6,7 +6,7 @@ httpbin(1): HTTP Client Testing Service
 - [`/`](http://httpbin.org) This page.
 - [`/ip`](http://httpbin.org/ip) Returns Origin IP.
 - [`/user-agent`](http://httpbin.org/user-agent) Returns user-agent.
-- [`/headers`](http://httpbin.org/hearders) Returns header dict.
+- [`/headers`](http://httpbin.org/headers) Returns header dict.
 - [`/get`](http://httpbin.org/get) Returns GET data.
 - `/post` Returns POST data.
 - `/put` Returns PUT data.
@@ -16,6 +16,7 @@ httpbin(1): HTTP Client Testing Service
 - [`/redirect/:n`](http://httpbin.org/redirect/6) 302 Redirects *n* times.
 - [`/cookies`](http://httpbin.org/cookies) Returns cookie data.
 - [`/cookies/set/:name/:value`](http://httpbin.org/cookies/set/key/value) Sets a simple cookie.
+- [`/basic-auth/:user/:passwd`](http://httpbin.org/basic-auth) Challenges HTTPBasic Auth (user:passwd).
 
 
 ## DESCRIPTION
