@@ -14,6 +14,8 @@ httpbin(1): HTTP Client Testing Service
 `/gzip` Returns gzip-encoded data.  
 `/status/:code` Returns given HTTP Status code.  
 `/redirect/:n` 302 Redirects *n* times.  
+`/cookies` Returns cookie data.  
+`/set-cookie/:name/:value` Sets a simple cookie.  
 
 
 ## DESCRIPTION
