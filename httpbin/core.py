@@ -165,12 +165,10 @@ def redirect_n_times(n):
 
     assert n > 0
 
-    n += -1
-
-    if (n == 0):
+    if (n == 1):
         return redirect('/')
 
-    return redirect('/redirect/{0}'.format(n))
+    return redirect('/redirect/{0}'.format(n-1))
 
 
 @app.route('/status/<int:code>')
