@@ -18,7 +18,7 @@ from time import time as now
 from decorator import decorator
 from flask import Flask, Response, request, render_template, redirect, g
 
-from .helpers import get_files, get_headers, status_code, get_dict
+from .helpers import get_files, get_headers, status_code, get_dict, check_basic_authorization
 
 
 app = Flask(__name__)
@@ -35,6 +35,10 @@ def json_resource(f, runtime=True, *args, **kwargs):
     _t0 = now()
     data = f(*args, **kwargs)
     _t1 = now()
+
+    # we already have a formatted response, move along
+    if isinstance(data, Response):
+        return data
 
     dump = json.dumps(data, sort_keys=True, indent=3)
 
@@ -194,6 +198,16 @@ def set_cookie(name, value):
     r.set_cookie(key=name, value=value)
 
     return r
+
+
+@app.route('/basic-auth')
+@json_resource
+def basic_auth():
+    """Prompts the user for authorization using HTTP Basic Auth."""
+
+    if not check_basic_authorization():
+        return status_code(401)
+    return dict(authenticated=True)
 
 
 if __name__ == '__main__':
