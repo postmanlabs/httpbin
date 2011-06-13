@@ -7,16 +7,17 @@ httpbin.core
 This module provides the core HttpBin experience.
 """
 
-import os
+
 import json
+import gzip
+import os
+from cStringIO import StringIO
 from time import time as now
 from decimal import Decimal
 
 import redi
-
 from decorator import decorator
-from flask import Flask, request, render_template, g
-
+from flask import Flask, Response, request, render_template, g
 
 from .db import redis_connect
 from .helpers import get_files, get_headers
@@ -72,6 +73,40 @@ def json_resource(f, runtime=True, *args, **kwargs):
     r.headers['X-Runtime'] = '{0}s'.format(Decimal(str(_t1-_t0)))
 
     return r
+
+
+
+@decorator
+def gzip_response(f, *args, **kwargs):
+
+    data = f(*args, **kwargs)
+
+    if isinstance(data, Response):
+        content = data.data
+    else:
+        content = data
+
+    gzip_buffer = StringIO()
+    gzip_file = gzip.GzipFile(
+        mode='wb',
+        compresslevel=4,
+        fileobj=gzip_buffer
+    )
+    gzip_file.write(content)
+    gzip_file.close()
+
+    gzip_data = gzip_buffer.getvalue()
+
+    if isinstance(data, Response):
+        data.data = gzip_data
+        data.headers['Content-Encoding'] = 'gzip'
+        data.headers['Content-Length'] = str(len(data.data))
+
+        return data
+
+    return gzip_data
+
+
 
 
 
@@ -199,6 +234,21 @@ def view_post():
         headers=get_headers(),
         files=get_files()
     )
+
+@app.route('/gzip')
+@gzip_response
+@json_resource
+@log_request(key='httpbin:gzip')
+def view_gzip_encoded_content():
+    """Returns GZip-Encoded Data."""
+
+    return dict(
+        origin=request.remote_addr,
+        headers=get_headers(),
+        method=request.method,
+        gzipped=True
+    )
+
 
 
 

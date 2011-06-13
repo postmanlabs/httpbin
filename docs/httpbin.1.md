@@ -11,6 +11,7 @@ httpbin(1): HTTP Client Testing Service
 `/post` Returns POST data.  
 `/put` Returns PUT data.  
 `/delete` Returns DELETE data.  
+`/gzip` Returns GZip-encoded data.
 
 
 ## DESCRIPTION
