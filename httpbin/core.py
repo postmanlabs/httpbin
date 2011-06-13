@@ -73,7 +73,7 @@ def view_post():
 
 @app.route('/put', methods=('PUT',))
 @filters.json
-def view_post():
+def view_put():
     """Returns PUT Data."""
 
     return get_dict('url', 'args', 'form', 'data', 'origin', 'headers', 'files')
@@ -81,10 +81,10 @@ def view_post():
 
 @app.route('/delete', methods=('DELETE',))
 @filters.json
-def view_post():
+def view_delete():
     """Returns DETLETE Data."""
 
-    return get_dict('url', 'args', 'form', 'data', 'origin', 'headers')
+    return get_dict('url', 'data', 'origin', 'headers')
 
 
 @app.route('/gzip')
