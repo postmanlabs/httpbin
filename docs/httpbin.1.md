@@ -24,7 +24,7 @@ Plans at the moment are to return JSON for all responses. Request storage
 
 ## EXAMPLES
 
-    $ curl http://httpbin.org/ip
+    $ curl http://httpbin.org/get
 
 
 ## AUTHOR
@@ -34,4 +34,4 @@ Project.
 
 ## SEE ALSO
 
-<http://python-requests.org>, <http://postbin.org>, <https://github.com/tml/postbin>
+<http://python-requests.org>, <http://postbin.org>
