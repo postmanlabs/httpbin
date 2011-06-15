@@ -5,7 +5,7 @@ Freely hosted in both [HTTP](http://httpbin.org) and [HTTPS](https://httpbin.ep.
 
 ## ENDPOINTS
 
-- [`/`](http://httpbin.org) This page.
+- [`/`](http://httpbin.org/) This page.
 - [`/ip`](http://httpbin.org/ip) Returns Origin IP.
 - [`/user-agent`](http://httpbin.org/user-agent) Returns user-agent.
 - [`/headers`](http://httpbin.org/headers) Returns header dict.
