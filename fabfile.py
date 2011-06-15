@@ -21,7 +21,7 @@ def _path_to(*loc):
 
 def docs():
     os.chdir(_path_to('.'))
-    os.system('ronn -5 -f README.md --style 80c --pipe > ./httpbin/templates/httpbin.1.html')
+    os.system("cat README.md|sed 's/(http:\/\/httpbin.org\//(\//'|ronn -5 -f --style 80c --pipe > ./httpbin/templates/httpbin.1.html")
 
 
 def prod():
