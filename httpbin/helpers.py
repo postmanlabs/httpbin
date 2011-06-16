@@ -56,7 +56,7 @@ def get_dict(*keys, **extras):
     form = request.form
 
     if len(form) == 1 and not data:
-         if not form.values.pop():
+         if not form.values().pop():
             data = form.keys().pop()
             form = None
 
