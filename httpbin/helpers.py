@@ -57,8 +57,8 @@ def get_dict(*keys, **extras):
 
     if len(form) == 1:
          if not form.values.pop():
-            form = None
             data = form.keys().pop()
+            form = None
 
     d = dict(
         url=request.url,
