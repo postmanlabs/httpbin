@@ -25,7 +25,7 @@ Freely hosted in both [HTTP](http://httpbin.org) and [HTTPS](https://httpbin.ep.
 
 Testing an HTTP Library can become difficult sometimes. PostBin.org is fantastic
 for testing POST requests, but not much else. This exists to cover all kinds of HTTP
-scenarios. Additional endpoints are being considered: `/basic-auth`, `/deflate`, *&c*.
+scenarios. Additional endpoints are being considered (e.g. `/deflate`).
 
 All endpoint responses are JSON-encoded.
 
