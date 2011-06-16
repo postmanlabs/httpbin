@@ -25,8 +25,8 @@ ASCII_ART = """
         `\"\"\"`
 """
 
-REDIRECT_LOCATION = 'http://httpbin.org/redirect/1'
-
+REDIRECT_LOCATION = '/redirect/1'
+# TODO: url_for.
 
 
 def get_files():
