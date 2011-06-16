@@ -26,7 +26,6 @@ ASCII_ART = """
 """
 
 REDIRECT_LOCATION = '/redirect/1'
-# TODO: url_for.
 
 
 def get_files():
