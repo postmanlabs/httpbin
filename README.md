@@ -1,5 +1,5 @@
-httpbin(1): HTTP Client Testing Service
-=======================================
+httpbin(1): HTTP Request & Response Service
+===========================================
 
 Freely hosted in both [HTTP](http://httpbin.org) and [HTTPS](https://httpbin.ep.io) flavors.
 
