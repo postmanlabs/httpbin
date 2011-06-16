@@ -25,8 +25,7 @@ ASCII_ART = """
         `\"\"\"`
 """
 
-REDIRECT_LOCATION = 'http://httpbin.org/redirect/1'
-
+REDIRECT_LOCATION = '/redirect/1'
 
 
 def get_files():
@@ -53,11 +52,19 @@ def get_dict(*keys, **extras):
 
     assert all(map(_keys.__contains__, keys))
 
+    data = request.data
+    form = request.form
+
+    if len(form) == 1 and not data:
+         if not form.values().pop():
+            data = form.keys().pop()
+            form = None
+
     d = dict(
         url=request.url,
         args=request.args,
-        form=request.form,
-        data=request.data,
+        form=form,
+        data=data,
         origin=request.remote_addr,
         headers=get_headers(),
         files=get_files()
