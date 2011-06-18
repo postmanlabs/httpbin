@@ -8,13 +8,12 @@ This module provides response filter decorators.
 """
 
 import gzip as gzip2
-import json as simplejson
 
 from cStringIO import StringIO
 from decimal import Decimal
 from time import time as now
 
-
+import omnijson
 from decorator import decorator
 from flask import Flask, Response
 
@@ -44,7 +43,7 @@ def json(f, *args, **kwargs):
     if isinstance(data, Response):
         return data
 
-    dump = simplejson.dumps(data, sort_keys=True, indent=3)
+    dump = omnijson.dumps(data, sort_keys=True, indent=3)
 
     r = app.make_response(dump)
     r.headers['Content-Type'] = 'application/json'
