@@ -43,11 +43,10 @@ def json(f, *args, **kwargs):
     if isinstance(data, Response):
         return data
 
-    dump = omnijson.dumps(data)
+    dump = omnijson.dumps(data, indent=3)
 
     r = app.make_response(dump)
     r.headers['Content-Type'] = 'application/json'
-
 
     return r
 
