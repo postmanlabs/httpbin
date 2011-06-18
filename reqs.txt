@@ -1,4 +1,4 @@
-Flask==0.6.1
+git+https://github.com/mitsuhiko/flask.git@blueprints#egg=flask
 Flask-Script==0.3.1
 Jinja2==2.5.5
 Werkzeug==0.6.2
