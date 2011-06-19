@@ -56,7 +56,7 @@ def get_dict(*keys, **extras):
     form = request.form
 
     if len(form) == 1 and not data:
-         if not form.values().pop():
+        if not form.values().pop():
             data = form.keys().pop()
             form = None
 
@@ -94,7 +94,7 @@ def status_code(code):
         307: redirect,
         401: dict(headers={'WWW-Authenticate': 'Basic realm="Fake Realm"'}),
         407: dict(headers={'Proxy-Authenticate': 'Basic realm="Fake Realm"'}),
-        418: dict( # I'm a teapot!
+        418: dict(  # I'm a teapot!
             data=ASCII_ART,
             headers={
                 'x-more-info': 'http://tools.ietf.org/html/rfc2324'
