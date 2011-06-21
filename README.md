@@ -12,6 +12,7 @@ Freely hosted in both [HTTP](http://httpbin.org) and [HTTPS](https://httpbin.ep.
 - [`/get`](http://httpbin.org/get) Returns GET data.
 - [`/post`](http://hurl.it/hurls/190ccaa90ee1ed35d34abfa4ac6ef088bc319402/d834bcdf7718c44c4184bf914ee473b6ebd8e566) Returns POST data.
 - [`/put`](http://hurl.it/hurls/18016368fa5e5eef80db935f5dae615d5858a4a4/a512d904f5da64df9627ee998c040f7874d6436a) Returns PUT data.
+- [`/patch`]() Returns PATCH data.
 - [`/delete`](http://hurl.it/hurls/6faafea5191f77172fca4cfe1505739230d5f769/bc255ffc69e04c2c8b968822c59544746bbb872c) Returns DELETE data
 - [`/gzip`](http://httpbin.org/gzip) Returns gzip-encoded data.
 - [`/status/:code`](http://httpbin.org/status/418) Returns given HTTP Status code.
