@@ -7,13 +7,13 @@ httpbin.core
 This module provides the core HttpBin experience.
 """
 
-from flask import Flask, Response, request, render_template, redirect, make_response, g
+from flask import Flask, request, render_template, redirect
 
 from . import filters
-from .helpers import get_files, get_headers, status_code, get_dict, check_basic_auth
+from .helpers import get_headers, status_code, get_dict, check_basic_auth
+
 
 app = Flask(__name__)
-
 
 
 # ------
@@ -77,6 +77,15 @@ def view_put():
     """Returns PUT Data."""
 
     return get_dict('url', 'args', 'form', 'data', 'origin', 'headers', 'files')
+
+
+@app.route('/put', methods=('PATCH',))
+@filters.json
+def view_put():
+    """Returns PATCH Data."""
+
+    return get_dict('url', 'args', 'form', 'data', 'origin', 'headers', 'files')
+
 
 
 @app.route('/delete', methods=('DELETE',))
