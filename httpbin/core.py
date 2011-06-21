@@ -79,9 +79,9 @@ def view_put():
     return get_dict('url', 'args', 'form', 'data', 'origin', 'headers', 'files')
 
 
-@app.route('/put', methods=('PATCH',))
+@app.route('/patch', methods=('PATCH',))
 @filters.json
-def view_put():
+def view_patch():
     """Returns PATCH Data."""
 
     return get_dict('url', 'args', 'form', 'data', 'origin', 'headers', 'files')
