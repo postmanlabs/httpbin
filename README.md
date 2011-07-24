@@ -20,6 +20,7 @@ Freely hosted in both [HTTP](http://httpbin.org) and [HTTPS](https://httpbin.ep.
 - [`/cookies`](http://httpbin.org/cookies) Returns cookie data.
 - [`/cookies/set/:name/:value`](http://httpbin.org/cookies/set/key/value) Sets a simple cookie.
 - [`/basic-auth/:user/:passwd`](http://httpbin.org/basic-auth/user/passwd) Challenges HTTPBasic Auth.
+- [`/hidden-basic-auth/:user/:passwd`](http://httpbin.org/hidden-basic-auth/user/passwd) 404's if not proper HTTPBasic Auth.
 
 
 ## DESCRIPTION
