@@ -152,6 +152,16 @@ def basic_auth(user='user', passwd='passwd'):
     return dict(authenticated=True, user=user)
 
 
+@app.route('/hidden-basic-auth/<user>/<passwd>')
+@filters.json
+def hidden_basic_auth(user='user', passwd='passwd'):
+    """Prompts the user for authorization using HTTP Basic Auth."""
+
+    if not check_basic_auth(user, passwd):
+        return status_code(404)
+    return dict(authenticated=True, user=user)
+
+
 
 if __name__ == '__main__':
     app.run()
