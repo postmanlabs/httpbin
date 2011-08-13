@@ -117,6 +117,23 @@ def redirect_n_times(n):
     return redirect('/redirect/{0}'.format(n-1))
 
 
+@app.route('/relative-redirect/<int:n>')
+def relative_redirect_n_times(n):
+    """301 Redirects n times."""
+
+    assert n > 0
+
+    response = app.make_response('')
+    response.status_code = 302
+
+    if (n == 1):
+        response.headers['Location'] = '/'
+        return response
+
+    response.headers['Location'] = '/relative-redirect/{0}'.format(n-1)
+    return response
+
+
 @app.route('/status/<int:code>')
 def view_status_code(code):
     """Returns given status code."""
