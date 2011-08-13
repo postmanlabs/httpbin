@@ -17,6 +17,7 @@ Freely hosted in both [HTTP](http://httpbin.org) and [HTTPS](https://httpbin.ep.
 - [`/gzip`](http://httpbin.org/gzip) Returns gzip-encoded data.
 - [`/status/:code`](http://httpbin.org/status/418) Returns given HTTP Status code.
 - [`/redirect/:n`](http://httpbin.org/redirect/6) 302 Redirects *n* times.
+- [`/relative-redirect/:n`](http://httpbin.org/relative-redirect/6) 302 Relative redirects *n* times.
 - [`/cookies`](http://httpbin.org/cookies) Returns cookie data.
 - [`/cookies/set/:name/:value`](http://httpbin.org/cookies/set/key/value) Sets a simple cookie.
 - [`/basic-auth/:user/:passwd`](http://httpbin.org/basic-auth/user/passwd) Challenges HTTPBasic Auth.
