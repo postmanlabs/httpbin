@@ -93,7 +93,7 @@ def view_patch():
 def view_delete():
     """Returns DETLETE Data."""
 
-    return get_dict('url', 'data', 'origin', 'headers')
+    return get_dict('url', 'args', 'data', 'origin', 'headers')
 
 
 @app.route('/gzip')
