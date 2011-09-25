@@ -55,6 +55,7 @@ def view_user_agent():
 
 
 @app.route('/get', methods=('GET',))
+@filters.x_runtime
 @filters.json
 def view_get():
     """Returns GET Data."""
