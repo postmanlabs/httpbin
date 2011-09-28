@@ -27,6 +27,18 @@ ASCII_ART = """
 
 REDIRECT_LOCATION = '/redirect/1'
 
+ENV_HEADERS = (
+    'X-Varnish',
+    'X-Request-Start',
+    'X-Heroku-Queue-Depth',
+    'X-Real-Ip',
+    'X-Forwarded-Proto',
+    'X-Heroku-Queue-Wait-Time',
+    'X-Forwarded-For',
+    'X-Heroku-Dynos-In-Use'
+)
+
+
 
 def get_files():
     """Returns files dict from request context."""
@@ -39,10 +51,19 @@ def get_files():
     return files
 
 
-def get_headers():
+def get_headers(hide_env=True):
     """Returns headers dict from request context."""
 
-    return CaseInsensitiveDict(request.headers.items())
+    headers = dict(request.headers.items())
+
+    if hide_env and ('show_env' not in request.args):
+        for key in ENV_HEADERS:
+            try:
+                del headers[key]
+            except KeyError:
+                pass
+
+    return CaseInsensitiveDict(headers.items())
 
 
 def get_dict(*keys, **extras):
@@ -55,7 +76,7 @@ def get_dict(*keys, **extras):
     data = request.data
     form = request.form
 
-    if len(form) == 1 and not data:
+    if (len(form) == 1) and (not data):
         if not form.values().pop():
             data = form.keys().pop()
             form = None

@@ -13,6 +13,17 @@ from . import filters
 from .helpers import get_headers, status_code, get_dict, check_basic_auth
 
 
+ENV_COOKIES = (
+    '_gauges_unique',
+    '_gauges_unique_year',
+    '_gauges_unique_month',
+    '_gauges_unique_day',
+    '_gauges_unique_hour',
+    '__utmz',
+    '__utma',
+    '__utmb'
+)
+
 app = Flask(__name__)
 
 
@@ -55,7 +66,6 @@ def view_user_agent():
 
 
 @app.route('/get', methods=('GET',))
-@filters.x_runtime
 @filters.json
 def view_get():
     """Returns GET Data."""
@@ -144,10 +154,19 @@ def view_status_code(code):
 
 @app.route('/cookies')
 @filters.json
-def view_cookies():
+def view_cookies(hide_env=True):
     """Returns cookie data."""
 
-    return dict(cookies=request.cookies)
+    cookies = dict(request.cookies.items())
+
+    if hide_env and ('show_env' not in request.args):
+        for key in ENV_COOKIES:
+            try:
+                del cookies[key]
+            except KeyError:
+                pass
+
+    return dict(cookies=cookies)
 
 
 @app.route('/cookies/set/<name>/<value>')
