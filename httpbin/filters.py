@@ -21,6 +21,7 @@ from flask import Flask, Response
 app = Flask(__name__)
 
 
+
 @decorator
 def x_runtime(f, *args, **kwargs):
     """X-Runtime Flask Response Decorator."""
@@ -31,7 +32,6 @@ def x_runtime(f, *args, **kwargs):
     r.headers['X-Runtime'] = '{0}s'.format(Decimal(str(_t1-_t0)))
 
     return r
-
 
 @decorator
 def json(f, *args, **kwargs):
