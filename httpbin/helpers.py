@@ -35,7 +35,9 @@ ENV_HEADERS = (
     'X-Forwarded-Proto',
     'X-Heroku-Queue-Wait-Time',
     'X-Forwarded-For',
-    'X-Heroku-Dynos-In-Use'
+    'X-Heroku-Dynos-In-Use',
+    'X-Forwarded-For',
+    'X-Forwarded-Protocol'
 )
 
 
