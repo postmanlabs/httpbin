@@ -18,7 +18,7 @@ if sys.argv[-1] == 'publish':
 setup(
     name='httpbin',
     version='110621',
-    install_requires=open('reqs.txt').readlines(),
+    install_requires=open('requirements.txt').readlines(),
     description='HTTP Request and Response Service.',
     long_description=open('README.md').read(),
     author='Kenneth Reitz',
