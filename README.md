@@ -1,7 +1,7 @@
 httpbin(1): HTTP Request & Response Service
 ===========================================
 
-Freely hosted in both [HTTP](http://httpbin.org) and [HTTPS](https://httpbin.ep.io) flavors by [ep.io](http://ep.io/).
+Freely hosted in [HTTP](http://httpbin.org) & [HTTPS](https://httpbin.ep.io) flavors by [Heroku](http://heroku.com/) & [ep.io](http://ep.io/).
 
 ## ENDPOINTS
 
@@ -78,4 +78,4 @@ Project.
 
 ## SEE ALSO
 
-<https://github.com/kennethreitz/httpbin>, <http://python-requests.org>, <http://postbin.org>
+<https://github.com/kennethreitz/httpbin>, <http://python-requests.org>
