@@ -37,7 +37,7 @@ All endpoint responses are JSON-encoded.
 
 ### $ curl http://httpbin.org/ip
 
-    {"origin": "::ffff:24.127.96.129"}
+    {"origin": "24.127.96.129"}
 
 ### $ curl http://httpbin.org/user-agent
 
@@ -53,9 +53,7 @@ All endpoint responses are JSON-encoded.
           "Content-Length": "",
           "Content-Type": "",
           "Host": "httpbin.org",
-          "User-Agent": "curl/7.19.7 (universal-apple-darwin10.0) libcurl/7.19.7 OpenSSL/0.9.8l zlib/1.2.3",
-          "X-Forwarded-For": "::ffff:24.127.96.129",
-          "X-Forwarded-Protocol": ""
+          "User-Agent": "curl/7.19.7 (universal-apple-darwin10.0) libcurl/7.19.7 OpenSSL/0.9.8l zlib/1.2.3"
        },
        "origin": "::ffff:24.127.96.129",
        "url": "http://httpbin.org/get"
