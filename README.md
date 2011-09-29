@@ -2,7 +2,7 @@ httpbin(1): HTTP Request & Response Service
 ===========================================
 
 Freely hosted in [HTTP](http://httpbin.org) &
-[HTTPS](https://httpbin.herokuapp.com/) flavors by
+[HTTPS](https://httpbin.herokuapp.com/) flavors, thanks to
 [Heroku](http://heroku.com/).
 
 ## ENDPOINTS
@@ -57,7 +57,7 @@ All endpoint responses are JSON-encoded.
           "Host": "httpbin.org",
           "User-Agent": "curl/7.19.7 (universal-apple-darwin10.0) libcurl/7.19.7 OpenSSL/0.9.8l zlib/1.2.3"
        },
-       "origin": "::ffff:24.127.96.129",
+       "origin": "24.127.96.129",
        "url": "http://httpbin.org/get"
     }
 
@@ -78,4 +78,4 @@ Project.
 
 ## SEE ALSO
 
-<https://github.com/kennethreitz/httpbin>, <http://python-requests.org>
+<http://python-requests.org>
