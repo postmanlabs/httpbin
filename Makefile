@@ -5,7 +5,7 @@ deploy:
 	git push heroku master
 
 stage:
-	git push heroku-staging master
+	git push heroku-staging master --force
 
 run: html
 	foreman start
