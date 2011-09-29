@@ -1,0 +1,84 @@
+<div class='mp'>
+<h1>httpbin(1): HTTP Request &amp; Response Service</h1>
+<p>Freely hosted in <a href="http://httpbin.org">HTTP</a> &amp; <a href="https://httpbin.ep.io">HTTPS</a> flavors by <a href="http://heroku.com/">Heroku</a> &amp; <a href="http://ep.io/">ep.io</a>.</p>
+
+<h2 id="ENDPOINTS">ENDPOINTS</h2>
+
+<ul>
+<li><a href="/" data-bare-link="true"><code>/</code></a> This page.</li>
+<li><a href="/ip" data-bare-link="true"><code>/ip</code></a> Returns Origin IP.</li>
+<li><a href="/user-agent" data-bare-link="true"><code>/user-agent</code></a> Returns user-agent.</li>
+<li><a href="/headers" data-bare-link="true"><code>/headers</code></a> Returns header dict.</li>
+<li><a href="/get" data-bare-link="true"><code>/get</code></a> Returns GET data.</li>
+<li><a href="http://hurl.it/hurls/190ccaa90ee1ed35d34abfa4ac6ef088bc319402/d834bcdf7718c44c4184bf914ee473b6ebd8e566"><code>/post</code></a> Returns POST data.</li>
+<li><a href="http://hurl.it/hurls/18016368fa5e5eef80db935f5dae615d5858a4a4/a512d904f5da64df9627ee998c040f7874d6436a"><code>/put</code></a> Returns PUT data.</li>
+<li><a href=""><code>/patch</code></a> Returns PATCH data.</li>
+<li><a href="http://hurl.it/hurls/6faafea5191f77172fca4cfe1505739230d5f769/bc255ffc69e04c2c8b968822c59544746bbb872c"><code>/delete</code></a> Returns DELETE data</li>
+<li><a href="/gzip" data-bare-link="true"><code>/gzip</code></a> Returns gzip-encoded data.</li>
+<li><a href="/status/418"><code>/status/:code</code></a> Returns given HTTP Status code.</li>
+<li><a href="/redirect/6"><code>/redirect/:n</code></a> 302 Redirects <em>n</em> times.</li>
+<li><a href="/relative-redirect/6"><code>/relative-redirect/:n</code></a> 302 Relative redirects <em>n</em> times.</li>
+<li><a href="/cookies" data-bare-link="true"><code>/cookies</code></a> Returns cookie data.</li>
+<li><a href="/cookies/set/key/value"><code>/cookies/set/:name/:value</code></a> Sets a simple cookie.</li>
+<li><a href="/basic-auth/user/passwd"><code>/basic-auth/:user/:passwd</code></a> Challenges HTTPBasic Auth.</li>
+<li><a href="/hidden-basic-auth/user/passwd"><code>/hidden-basic-auth/:user/:passwd</code></a> 404's if not proper HTTPBasic Auth.</li>
+</ul>
+
+
+<h2 id="DESCRIPTION">DESCRIPTION</h2>
+
+<p>Testing an HTTP Library can become difficult sometimes. PostBin.org is fantastic
+for testing POST requests, but not much else. This exists to cover all kinds of HTTP
+scenarios. Additional endpoints are being considered (e.g. <code>/deflate</code>).</p>
+
+<p>All endpoint responses are JSON-encoded.</p>
+
+<h2 id="EXAMPLES">EXAMPLES</h2>
+
+<h3 id="-curl-http-httpbin-org-ip">$ curl http://httpbin.org/ip</h3>
+
+<pre><code>{"origin": "24.127.96.129"}
+</code></pre>
+
+<h3 id="-curl-http-httpbin-org-user-agent">$ curl http://httpbin.org/user-agent</h3>
+
+<pre><code>{"user-agent": "curl/7.19.7 (universal-apple-darwin10.0) libcurl/7.19.7 OpenSSL/0.9.8l zlib/1.2.3"}
+</code></pre>
+
+<h3 id="-curl-http-httpbin-org-get">$ curl http://httpbin.org/get</h3>
+
+<pre><code>{
+   "args": {},
+   "headers": {
+      "Accept": "*/*",
+      "Connection": "close",
+      "Content-Length": "",
+      "Content-Type": "",
+      "Host": "httpbin.org",
+      "User-Agent": "curl/7.19.7 (universal-apple-darwin10.0) libcurl/7.19.7 OpenSSL/0.9.8l zlib/1.2.3"
+   },
+   "origin": "::ffff:24.127.96.129",
+   "url": "http://httpbin.org/get"
+}
+</code></pre>
+
+<h3 id="-curl-I-http-httpbin-org-status-418">$ curl -I http://httpbin.org/status/418</h3>
+
+<pre><code>HTTP/1.1 418 I'M A TEAPOT
+Server: nginx/0.7.67
+Date: Mon, 13 Jun 2011 04:25:38 GMT
+Connection: close
+x-more-info: http://tools.ietf.org/html/rfc2324
+Content-Length: 135
+</code></pre>
+
+<h2 id="AUTHOR">AUTHOR</h2>
+
+<p>A <a href="http://kennethreitz.com/pages/open-projects.html">Kenneth Reitz</a>
+Project.</p>
+
+<h2 id="SEE-ALSO">SEE ALSO</h2>
+
+<p><a href="https://github.com/kennethreitz/httpbin" data-bare-link="true">https://github.com/kennethreitz/httpbin</a>, <a href="http://python-requests.org" data-bare-link="true">http://python-requests.org</a></p>
+
+</div>
