@@ -7,4 +7,4 @@ distribute==0.6.15
 wsgiref==0.1.2
 decorator==3.3.1
 omnijson==0.1.2
-gunicorn
+gevent
