@@ -6,11 +6,14 @@ httpbin.core
 
 This module provides the core HttpBin experience.
 """
-
+import os
+import time
 from flask import Flask, request, render_template, redirect
+from werkzeug.datastructures import WWWAuthenticate
+
 
 from . import filters
-from .helpers import get_headers, status_code, get_dict, check_basic_auth
+from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H
 
 
 ENV_COOKIES = (
@@ -196,6 +199,31 @@ def hidden_basic_auth(user='user', passwd='passwd'):
 
     if not check_basic_auth(user, passwd):
         return status_code(404)
+    return dict(authenticated=True, user=user)
+
+
+@app.route('/digest-auth/<qop>/<user>/<passwd>')
+@filters.json
+def digest_auth(qop=None, user='user', passwd='passwd'):
+    """Prompts the user for authorization using HTTP Digest auth"""
+    if qop not in ('auth', 'auth-int'):
+        qop = None
+    if not request.headers.get('Authorization'):
+        response = app.make_response('')
+        response.status_code = 401
+
+        nonce = H("%s:%d:%s" % (request.remote_addr,
+                                  time.time(),
+                                  os.urandom(10)))
+        opaque = H(os.urandom(10))
+
+        auth = WWWAuthenticate("digest")
+        auth.set_digest('Fake Realm', nonce, opaque=opaque,
+                        qop=('auth', 'auth-int') if qop is None else (qop, ))
+        response.headers['WWW-Authenticate'] = auth.to_header()
+        return response
+    elif not check_digest_auth(user, passwd):
+        return status_code(403)
     return dict(authenticated=True, user=user)
 
 

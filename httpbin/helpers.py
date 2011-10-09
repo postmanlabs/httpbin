@@ -7,8 +7,11 @@ httpbin.helpers
 This module provides helper functions for httpbin.
 """
 
+from hashlib import md5
+from werkzeug.http import parse_authorization_header
 
 from flask import request, make_response
+
 
 from .structures import CaseInsensitiveDict
 
@@ -146,3 +149,90 @@ def check_basic_auth(user, passwd):
 
     auth = request.authorization
     return auth and auth.username == user and auth.password == passwd
+
+
+
+# Digest auth helpers
+# qop is a quality of protection
+
+def H(data):
+    return md5(data).hexdigest()
+
+
+def HA1(realm, username, password):
+    """Create HA1 hash by realm, username, password
+
+    HA1 = md5(A1) = MD5(username:realm:password)
+    """
+    return H("%s:%s:%s" % (username,
+                           realm,
+                           password))
+
+
+def HA2(credentails, request):
+    """Create HA2 md5 hash
+
+    If the qop directive's value is "auth" or is unspecified, then HA2:
+        HA2 = md5(A2) = MD5(method:digestURI)
+    If the qop directive's value is "auth-int" , then HA2 is
+        HA2 = md5(A2) = MD5(method:digestURI:MD5(entityBody))
+    """
+    if credentails.get("qop") == "auth" or credentails.get('qop') is None:
+        return H("%s:%s" % (request['method'], request['uri']))
+    elif credentails.get("qop") == "auth-int":
+        for k in 'method', 'uri', 'body':
+            if k not in request:
+                raise ValueError("%s required" % k)
+        return H("%s:%s:%s" % (request['method'],
+                               request['uri'],
+                               H(request['body'])))
+    raise ValueError
+
+
+def response(credentails, password, request):
+    """Compile digest auth response
+
+    If the qop directive's value is "auth" or "auth-int" , then compute the response as follows:
+       RESPONSE = MD5(HA1:nonce:nonceCount:clienNonce:qop:HA2)
+    Else if the qop directive is unspecified, then compute the response as follows:
+       RESPONSE = MD5(HA1:nonce:HA2)
+
+    Arguments:
+    - `credentails`: credentails dict
+    - `password`: request user password
+    - `request`: request dict
+    """
+    response = None
+    HA1_value = HA1(credentails.get('realm'), credentails.get('username'), password)
+    HA2_value = HA2(credentails, request)
+    if credentails.get('qop') is None:
+        response = H(":".join([HA1_value, credentails.get('nonce'), HA2_value]))
+    elif credentails.get('qop') == 'auth' or credentails.get('qop') == 'auth-int':
+        for k in 'nonce', 'nc', 'cnonce', 'qop':
+            if k not in credentails:
+                raise ValueError("%s required for response H" % k)
+        response = H(":".join([HA1_value,
+                               credentails.get('nonce'),
+                               credentails.get('nc'),
+                               credentails.get('cnonce'),
+                               credentails.get('qop'),
+                               HA2_value]))
+    else:
+        raise ValueError("qop value are wrong")
+
+    return response
+
+
+def check_digest_auth(user, passwd):
+    """Check user authentication using HTTP Digest auth"""
+
+    if request.headers.get('Authorization'):
+        credentails = parse_authorization_header(request.headers.get('Authorization'))
+        if not credentails:
+            return
+        response_hash = response(credentails, passwd, dict(uri=request.path,
+                                                           body=request.data,
+                                                           method=request.method))
+        if credentails['response'] == response_hash:
+            return True
+    return False
