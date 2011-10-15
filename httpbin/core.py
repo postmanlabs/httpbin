@@ -129,7 +129,7 @@ def redirect_n_times(n):
     assert n > 0
 
     if (n == 1):
-        return redirect('/')
+        return redirect('/get')
 
     return redirect('/redirect/{0}'.format(n-1))
 
@@ -144,7 +144,7 @@ def relative_redirect_n_times(n):
     response.status_code = 302
 
     if (n == 1):
-        response.headers['Location'] = '/'
+        response.headers['Location'] = '/get'
         return response
 
     response.headers['Location'] = '/relative-redirect/{0}'.format(n-1)
