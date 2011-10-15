@@ -34,6 +34,10 @@ app = Flask(__name__)
 # Routes
 # ------
 
+@app.errorhandler(500)
+@filters.json
+def page_not_found(e):
+    return {'error': True, 'why': str(e)}
 
 @app.route('/')
 def view_landing_page():
