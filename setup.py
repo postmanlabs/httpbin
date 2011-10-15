@@ -17,7 +17,7 @@ if sys.argv[-1] == 'publish':
 
 setup(
     name='httpbin',
-    version='0.0.3',
+    version='0.0.4',
     install_requires=open('requirements.txt').readlines(),
     description='HTTP Request and Response Service.',
     long_description=open('README.md').read(),
