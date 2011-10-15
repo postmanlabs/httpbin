@@ -1,2 +1,2 @@
-include reqs.txt README.md LICENSE AUTHORS
+include README.md LICENSE AUTHORS requirements.txt
 include httpbin/templates/*
