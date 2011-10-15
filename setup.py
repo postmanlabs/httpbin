@@ -15,12 +15,25 @@ if sys.argv[-1] == 'publish':
     sys.exit()
 
 
+deps = [
+    'Flask==0.8',
+    'Flask-Script==0.3.1',
+    'Jinja2==2.5.5',
+    'Werkzeug==0.8.1',
+    'argparse==1.2.1',
+    'distribute==0.6.15',
+    'wsgiref==0.1.2',
+    'decorator==3.3.2',
+    'omnijson==0.1.2',
+    'gevent'
+]
+
 setup(
     name='httpbin',
-    version='0.0.4',
-    install_requires=open('requirements.txt').readlines(),
+    version='0.0.5',
+    install_requires=deps,
     description='HTTP Request and Response Service.',
-    long_description=open('README.md').read(),
+    long_description='httpbin.org',
     author='Kenneth Reitz',
     author_email='me@kennethreitz.com',
     url='https://httpbin.org',
