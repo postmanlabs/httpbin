@@ -17,7 +17,7 @@ if sys.argv[-1] == 'publish':
 
 setup(
     name='httpbin',
-    version='111015',
+    version='0.0.1',
     install_requires=open('requirements.txt').readlines(),
     description='HTTP Request and Response Service.',
     long_description=open('README.md').read(),
@@ -39,4 +39,9 @@ setup(
         # 'Programming Language :: Python :: 3.1',
         # 'Programming Language :: Python :: 3.2',
     ),
+    entry_points={
+        'console_scripts': [
+            'httpbin = httpbin.runner:main',
+        ],
+    }
 )
