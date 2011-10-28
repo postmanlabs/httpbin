@@ -33,23 +33,6 @@ def x_runtime(f, *args, **kwargs):
 
     return r
 
-@decorator
-def json(f, *args, **kwargs):
-    """JSON Flask Response Decorator."""
-
-    data = f(*args, **kwargs)
-
-    # we already have a formatted response, move along
-    if isinstance(data, Response):
-        return data
-
-    dump = omnijson.dumps(data)
-
-    r = app.make_response(dump)
-    r.headers['Content-Type'] = 'application/json'
-
-    return r
-
 
 @decorator
 def gzip(f, *args, **kwargs):
