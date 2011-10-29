@@ -158,7 +158,6 @@ def stream_n_messages(n):
         for i in range(n):
             response["id"] = i
             yield json.dumps(response) + "\n"
-            time.sleep(0.1)
 
     return Response(generate_stream(), headers={
         "Transfer-Encoding": "chunked",
