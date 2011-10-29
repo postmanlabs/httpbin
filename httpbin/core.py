@@ -6,6 +6,7 @@ httpbin.core
 
 This module provides the core HttpBin experience.
 """
+import json
 import os
 import time
 from flask import Flask, Response, request, render_template, redirect, jsonify
@@ -147,15 +148,18 @@ def relative_redirect_n_times(n):
     return response
 
 
-@app.route('/streaming/<int:n>')
-def http_streaming(n):
-    """Stream n messages"""
-    def generate():
-        for row in xrange(n):
-            time.sleep(1)
-            yield str(row) + "\n"
+@app.route('/stream/<int:n>')
+def stream_n_messages(n):
+    """Stream n JSON messages"""
+    response = get_dict('url', 'args', 'headers', 'origin')
 
-    return Response(generate(), headers={
+    def generate_stream():
+        for i in xrange(n):
+            response["id"] = i
+            yield json.dumps(response) + "\n"
+            time.sleep(1)
+
+    return Response(generate_stream(), headers={
         "Transfer-Encoding": "chunked",
         "Content-Type": "application/json",
         })
