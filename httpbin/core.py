@@ -6,9 +6,10 @@ httpbin.core
 
 This module provides the core HttpBin experience.
 """
+import json
 import os
 import time
-from flask import Flask, request, render_template, redirect, jsonify
+from flask import Flask, Response, request, render_template, redirect, jsonify
 from werkzeug.datastructures import WWWAuthenticate
 
 
@@ -145,6 +146,23 @@ def relative_redirect_n_times(n):
 
     response.headers['Location'] = '/relative-redirect/{0}'.format(n-1)
     return response
+
+
+@app.route('/stream/<int:n>')
+def stream_n_messages(n):
+    """Stream n JSON messages"""
+    response = get_dict('url', 'args', 'headers', 'origin')
+
+    def generate_stream():
+        for i in xrange(n):
+            response["id"] = i
+            yield json.dumps(response) + "\n"
+            time.sleep(1)
+
+    return Response(generate_stream(), headers={
+        "Transfer-Encoding": "chunked",
+        "Content-Type": "application/json",
+        })
 
 
 @app.route('/status/<int:code>')
