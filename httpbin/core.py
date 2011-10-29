@@ -6,6 +6,7 @@ httpbin.core
 
 This module provides the core HttpBin experience.
 """
+
 import json
 import os
 import time
@@ -154,10 +155,10 @@ def stream_n_messages(n):
     response = get_dict('url', 'args', 'headers', 'origin')
 
     def generate_stream():
-        for i in xrange(n):
+        for i in range(n):
             response["id"] = i
             yield json.dumps(response) + "\n"
-            time.sleep(1)
+            time.sleep(0.1)
 
     return Response(generate_stream(), headers={
         "Transfer-Encoding": "chunked",
@@ -232,7 +233,7 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
         opaque = H(os.urandom(10))
 
         auth = WWWAuthenticate("digest")
-        auth.set_digest('Fake Realm', nonce, opaque=opaque,
+        auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
                         qop=('auth', 'auth-int') if qop is None else (qop, ))
         response.headers['WWW-Authenticate'] = auth.to_header()
         return response
