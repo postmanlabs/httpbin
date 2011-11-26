@@ -2,7 +2,7 @@ httpbin(1): HTTP Request & Response Service
 ===========================================
 
 Freely hosted in [HTTP](http://httpbin.org/) &
-[HTTPS](https://httpbin.ep.io/) flavors, thanks to
+[HTTPS](https://httpbin.herokuapp.com/) flavors, thanks to
 [heroku](http://heroku.com/).
 
 ## ENDPOINTS
