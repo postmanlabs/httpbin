@@ -1,8 +1,8 @@
 httpbin(1): HTTP Request & Response Service
 ===========================================
 
-Freely hosted in [HTTP](http://httpbin.org/) &
-[HTTPS](https://httpbin.org/) flavors.
+Freely hosted in [HTTP](http://httpbin.org) &
+[HTTPS](https://httpbin.org) flavors.
 
 ## ENDPOINTS
 
