@@ -85,6 +85,17 @@ def get_dict(*keys, **extras):
         if not form.values().pop():
             data = form.keys().pop()
             form = None
+    
+    # If a key in the form data has multiple values, convert to list
+    if form:
+        dict_with_lists = {}
+        for key in form:
+            values = form.getlist(key)
+            if len(values) == 1:
+                dict_with_lists[key] = values[0]
+            else:
+                dict_with_lists[key] = values
+        form = dict_with_lists
 
     d = dict(
         url=request.url,
