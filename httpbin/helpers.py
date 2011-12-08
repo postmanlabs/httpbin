@@ -85,6 +85,13 @@ def get_dict(*keys, **extras):
         if not form.values().pop():
             data = form.keys().pop()
             form = None
+    
+    if form:
+        nonflat_dict = form.to_dict(flat=False)
+        for k, v in nonflat_dict.items():
+            if len(v) == 1:
+                nonflat_dict[k] = v[0]
+        form = nonflat_dict
 
     d = dict(
         url=request.url,
