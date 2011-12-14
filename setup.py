@@ -30,7 +30,7 @@ deps = [
 
 setup(
     name='httpbin',
-    version='0.0.5',
+    version='0.0.6',
     install_requires=deps,
     description='HTTP Request and Response Service.',
     long_description='httpbin.org',
