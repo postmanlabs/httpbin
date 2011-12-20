@@ -7,6 +7,7 @@ httpbin.core
 This module provides the core HttpBin experience.
 """
 
+import base64
 import json
 import os
 import time
@@ -240,6 +241,12 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
         return status_code(403)
     return dict(authenticated=True, user=user)
 
+
+@app.route('/base64/<value>')
+def decode_base64(value):
+    """Decodes base64url-encoded string"""
+    encoded = value.encode('utf-8')
+    return base64.urlsafe_b64decode(encoded).decode('utf-8')
 
 
 if __name__ == '__main__':
