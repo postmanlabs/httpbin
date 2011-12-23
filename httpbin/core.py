@@ -17,6 +17,7 @@ from werkzeug.datastructures import WWWAuthenticate
 
 from . import filters
 from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H
+from .structures import CaseInsensitiveDict
 
 
 ENV_COOKIES = (
@@ -171,6 +172,21 @@ def view_status_code(code):
     """Returns given status code."""
 
     return status_code(code)
+
+
+@app.route('/response-headers')
+def response_headers():
+    """ Returns a set of response headers from the query string """
+    headers = CaseInsensitiveDict(request.args.items())
+    response = jsonify(headers.items())
+    while True:
+        content_len_shown = response.headers['Content-Length']
+        response = jsonify(response.headers.items())
+        for key, value in headers.items():
+            response.headers[key] = value
+        if response.headers['Content-Length'] == content_len_shown:
+            break
+    return response
 
 
 @app.route('/cookies')
