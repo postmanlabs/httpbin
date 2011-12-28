@@ -13,7 +13,6 @@ from cStringIO import StringIO
 from decimal import Decimal
 from time import time as now
 
-import omnijson
 from decorator import decorator
 from flask import Flask, Response
 
