@@ -17,7 +17,7 @@ from werkzeug.datastructures import WWWAuthenticate
 
 from . import filters
 from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H
-
+from .utils import weighted_choice
 
 ENV_COOKIES = (
     '_gauges_unique',
@@ -80,7 +80,6 @@ def view_get():
 
 
 @app.route('/post', methods=('POST',))
-
 def view_post():
     """Returns POST Data."""
 
@@ -169,6 +168,25 @@ def stream_n_messages(n):
 @app.route('/status/<int:code>')
 def view_status_code(code):
     """Returns given status code."""
+
+    return status_code(code)
+
+
+@app.route('/random-status/<codes>')
+def view_random_status_code(codes):
+    """Return random status code from given status codes."""
+
+    choices = []
+    for choice in codes.split(','):
+        if not ':' in choice:
+            code = choice
+            weight = 1
+        else:
+            code, weight = choice.split(':')
+
+        choices.append((int(code), float(weight)))
+
+    code = weighted_choice(choices)
 
     return status_code(code)
 
