@@ -165,16 +165,13 @@ def stream_n_messages(n):
         })
 
 
-@app.route('/status/<int:code>')
-def view_status_code(code):
-    """Returns given status code."""
+@app.route('/status/<codes>')
+def view_status_code(codes):
+    """Return status code or random status code if more than one are given"""
 
-    return status_code(code)
-
-
-@app.route('/random-status/<codes>')
-def view_random_status_code(codes):
-    """Return random status code from given status codes."""
+    if not ',' in codes:
+        code = int(codes)
+        return status_code(code)
 
     choices = []
     for choice in codes.split(','):
