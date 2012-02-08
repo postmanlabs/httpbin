@@ -257,6 +257,15 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
     return dict(authenticated=True, user=user)
 
 
+@app.route('/delay/<int:delay>')
+def delay_response(delay):
+    """Returns a delayed response"""
+    delay = min(delay, 30)
+    time.sleep(delay)
+
+    return jsonify(get_dict(
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
+
 @app.route('/base64/<value>')
 def decode_base64(value):
     """Decodes base64url-encoded string"""
