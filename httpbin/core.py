@@ -153,11 +153,12 @@ def relative_redirect_n_times(n):
 def stream_n_messages(n):
     """Stream n JSON messages"""
     response = get_dict('url', 'args', 'headers', 'origin')
+    n = min(n, 100)
 
     def generate_stream():
         for i in range(n):
-            response["id"] = i
-            yield json.dumps(response) + "\n"
+            response['id'] = i
+            yield json.dumps(response) + '\n'
 
     return Response(generate_stream(), headers={
         "Transfer-Encoding": "chunked",
@@ -190,9 +191,10 @@ def view_status_code(codes):
 
 @app.route('/response-headers')
 def response_headers():
-    """ Returns a set of response headers from the query string """
+    """Returns a set of response headers from the query string """
     headers = CaseInsensitiveDict(request.args.items())
     response = jsonify(headers.items())
+
     while True:
         content_len_shown = response.headers['Content-Length']
         response = jsonify(response.headers.items())
@@ -276,10 +278,12 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
 def delay_response(delay):
     """Returns a delayed response"""
     delay = min(delay, 10)
+
     time.sleep(delay)
 
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
+
 
 @app.route('/base64/<value>')
 def decode_base64(value):
