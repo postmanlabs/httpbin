@@ -40,7 +40,8 @@ ENV_HEADERS = (
     'X-Forwarded-For',
     'X-Heroku-Dynos-In-Use',
     'X-Forwarded-For',
-    'X-Forwarded-Protocol'
+    'X-Forwarded-Protocol',
+    'X-Forwarded-Port'
 )
 
 
@@ -85,7 +86,7 @@ def get_dict(*keys, **extras):
         if not form.values().pop():
             data = form.keys().pop()
             form = None
-    
+
     if form:
         nonflat_dict = form.to_dict(flat=False)
         for k, v in nonflat_dict.items():
