@@ -13,13 +13,11 @@ from cStringIO import StringIO
 from decimal import Decimal
 from time import time as now
 
-import omnijson
 from decorator import decorator
 from flask import Flask, Response
 
 
 app = Flask(__name__)
-
 
 
 @decorator
@@ -29,7 +27,7 @@ def x_runtime(f, *args, **kwargs):
     _t0 = now()
     r = f(*args, **kwargs)
     _t1 = now()
-    r.headers['X-Runtime'] = '{0}s'.format(Decimal(str(_t1-_t0)))
+    r.headers['X-Runtime'] = '{0}s'.format(Decimal(str(_t1 - _t0)))
 
     return r
 
@@ -37,7 +35,6 @@ def x_runtime(f, *args, **kwargs):
 @decorator
 def gzip(f, *args, **kwargs):
     """GZip Flask Response Decorator."""
-
 
     data = f(*args, **kwargs)
 

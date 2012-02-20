@@ -10,6 +10,7 @@ Utility functions.
 import random
 import bisect
 
+
 def weighted_choice(choices):
     """Returns a value from choices chosen by weighted random selection
 
