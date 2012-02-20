@@ -46,7 +46,7 @@ def page_not_found(e):
 def view_landing_page():
     """Generates Landing Page."""
 
-    return render_template('httpbin.1.html')
+    return render_template('index.html')
 
 
 @app.route('/ip')
