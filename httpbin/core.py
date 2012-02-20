@@ -8,7 +8,10 @@ This module provides the core HttpBin experience.
 """
 
 import base64
-import json
+try:
+    import omnijson as json
+except ImportError:
+    import json
 import os
 import time
 from flask import Flask, Response, request, render_template, redirect, jsonify
