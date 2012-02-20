@@ -229,7 +229,7 @@ def hidden_basic_auth(user='user', passwd='passwd'):
 
     if not check_basic_auth(user, passwd):
         return status_code(404)
-    return dict(authenticated=True, user=user)
+    return jsonify(authenticated=True, user=user)
 
 
 @app.route('/digest-auth/<qop>/<user>/<passwd>')
@@ -253,7 +253,7 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
         return response
     elif not check_digest_auth(user, passwd):
         return status_code(403)
-    return dict(authenticated=True, user=user)
+    return jsonify(authenticated=True, user=user)
 
 
 @app.route('/base64/<value>')
