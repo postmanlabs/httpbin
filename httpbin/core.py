@@ -41,11 +41,12 @@ app = Flask(__name__)
 def page_not_found(e):
     return ':(', 200
 
+
 @app.route('/')
 def view_landing_page():
     """Generates Landing Page."""
 
-    return render_template('index.html')
+    return render_template('httpbin.1.html')
 
 
 @app.route('/ip')
@@ -78,7 +79,6 @@ def view_get():
     return jsonify(get_dict('url', 'args', 'headers', 'origin'))
 
 
-
 @app.route('/post', methods=('POST',))
 def view_post():
     """Returns POST Data."""
@@ -101,7 +101,6 @@ def view_patch():
 
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
-
 
 
 @app.route('/delete', methods=('DELETE',))
@@ -129,7 +128,7 @@ def redirect_n_times(n):
     if (n == 1):
         return redirect('/get')
 
-    return redirect('/redirect/{0}'.format(n-1))
+    return redirect('/redirect/{0}'.format(n - 1))
 
 
 @app.route('/relative-redirect/<int:n>')
@@ -145,7 +144,7 @@ def relative_redirect_n_times(n):
         response.headers['Location'] = '/get'
         return response
 
-    response.headers['Location'] = '/relative-redirect/{0}'.format(n-1)
+    response.headers['Location'] = '/relative-redirect/{0}'.format(n - 1)
     return response
 
 
