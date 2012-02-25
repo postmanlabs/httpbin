@@ -75,7 +75,7 @@ def get_headers(hide_env=True):
 def get_dict(*keys, **extras):
     """Returns request dict of given keys."""
 
-    _keys = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files')
+    _keys = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json')
 
     assert all(map(_keys.__contains__, keys))
 
@@ -93,6 +93,12 @@ def get_dict(*keys, **extras):
             if len(v) == 1:
                 nonflat_dict[k] = v[0]
         form = nonflat_dict
+
+    try:
+        json = json.loads(request.data)
+    except ValueError:
+        json = None
+
 
     d = dict(
         url=request.url,

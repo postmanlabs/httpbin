@@ -85,7 +85,7 @@ def view_post():
     """Returns POST Data."""
 
     return jsonify(get_dict(
-        'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
 
 
 @app.route('/put', methods=('PUT',))
@@ -93,7 +93,7 @@ def view_put():
     """Returns PUT Data."""
 
     return jsonify(get_dict(
-        'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
 
 
 @app.route('/patch', methods=('PATCH',))
@@ -101,14 +101,14 @@ def view_patch():
     """Returns PATCH Data."""
 
     return jsonify(get_dict(
-        'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
 
 
 @app.route('/delete', methods=('DELETE',))
 def view_delete():
     """Returns DETLETE Data."""
 
-    return jsonify(get_dict('url', 'args', 'data', 'origin', 'headers'))
+    return jsonify(get_dict('url', 'args', 'data', 'origin', 'headers', 'json'))
 
 
 @app.route('/gzip')
