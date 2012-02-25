@@ -5,6 +5,8 @@ import httpbin
 import unittest
 import base64
 
+from flask import json
+
 
 def _string_to_base64(string):
     """Encodes string to utf-8 and then base64"""
@@ -25,6 +27,19 @@ class HttpbinTestCase(unittest.TestCase):
         content = response.data.decode('utf-8')
         self.assertEquals(greeting, content)
 
+    def test_post(self):
+        data = {'payload': u'Привет'}
+        json_data = json.dumps(data)
+
+        #returns data as string
+        response = self.app.post('/post', data=json_data)
+        content = json.loads(response.data.decode('utf-8'))
+        self.assertEquals(json_data, content['data'])
+
+        #returns data as JSON object
+        response = self.app.post('/post?json=1', data=json_data)
+        content = json.loads(response.data.decode('utf-8'))
+        self.assertEquals(data, content['data'])
 
 if __name__ == '__main__':
     unittest.main()
