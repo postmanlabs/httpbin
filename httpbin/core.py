@@ -11,7 +11,7 @@ import base64
 import json
 import os
 import time
-from flask import Flask, Response, request, render_template, redirect, jsonify
+from flask import Flask, Response, request, render_template, redirect, jsonify, json
 from werkzeug.datastructures import WWWAuthenticate
 
 
@@ -84,8 +84,13 @@ def view_get():
 def view_post():
     """Returns POST Data."""
 
-    return jsonify(get_dict(
-        'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
+    response = get_dict(
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files')
+
+    if request.args.get('json'):
+        response['data'] = json.loads(response['data'])
+
+    return jsonify(response)
 
 
 @app.route('/put', methods=('PUT',))
