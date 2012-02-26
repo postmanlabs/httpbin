@@ -8,7 +8,7 @@ from httpbin import app
 
 try:
     port = int(sys.argv[1])
-except (KeyError, ValueError):
+except (IndexError, ValueError):
     port = 5000
 
 print 'Starting httpbin on port {0}'.format(port)
