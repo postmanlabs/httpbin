@@ -167,7 +167,7 @@ def stream_n_messages(n):
 
 
 @app.route('/status/<codes>')
-def view_status_code(codes):
+def view_status_code(codes, methods=("GET", "POST", "PUT", "DELETE")):
     """Return status code or random status code if more than one are given"""
 
     if not ',' in codes:
