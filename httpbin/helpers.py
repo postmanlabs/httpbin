@@ -7,6 +7,7 @@ httpbin.helpers
 This module provides helper functions for httpbin.
 """
 
+import json
 from hashlib import md5
 from werkzeug.http import parse_authorization_header
 
@@ -95,9 +96,9 @@ def get_dict(*keys, **extras):
         form = nonflat_dict
 
     try:
-        json = json.loads(request.data)
+        json_input = json.loads(request.data)
     except ValueError:
-        json = None
+        json_input = None
 
 
     d = dict(
