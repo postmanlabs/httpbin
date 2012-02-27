@@ -6,7 +6,6 @@ httpbin.helpers
 
 This module provides helper functions for httpbin.
 """
-
 import json
 from hashlib import md5
 from werkzeug.http import parse_authorization_header
@@ -73,6 +72,11 @@ def get_headers(hide_env=True):
     return CaseInsensitiveDict(headers.items())
 
 
+def get_url():
+    scheme = request.headers.get("X-Forwarded-Proto", "http")
+    return request.url.replace("http", scheme)
+
+
 def get_dict(*keys, **extras):
     """Returns request dict of given keys."""
 
@@ -102,7 +106,7 @@ def get_dict(*keys, **extras):
 
 
     d = dict(
-        url=request.url,
+        url=get_url(),
         args=request.args,
         form=form,
         data=data,
