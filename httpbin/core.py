@@ -106,7 +106,7 @@ def view_patch():
 
 @app.route('/delete', methods=('DELETE',))
 def view_delete():
-    """Returns DETLETE Data."""
+    """Returns DELETE Data."""
 
     return jsonify(get_dict('url', 'args', 'data', 'origin', 'headers', 'json'))
 
