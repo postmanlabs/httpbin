@@ -148,6 +148,13 @@ def relative_redirect_n_times(n):
     response.headers['Location'] = '/relative-redirect/{0}'.format(n - 1)
     return response
 
+@app.route('/redirect-to/<path:url>')
+def redirect_to(url):
+    """ Redirect to the given URL. """
+    response = app.make_response('')
+    response.status_code = 302
+    response.headers['Location'] = url
+    return response
 
 @app.route('/stream/<int:n>')
 def stream_n_messages(n):
