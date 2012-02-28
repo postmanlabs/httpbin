@@ -106,7 +106,7 @@ def view_patch():
 
 @app.route('/delete', methods=('DELETE',))
 def view_delete():
-    """Returns DETLETE Data."""
+    """Returns DELETE Data."""
 
     return jsonify(get_dict('url', 'args', 'data', 'origin', 'headers', 'json'))
 
@@ -148,6 +148,15 @@ def relative_redirect_n_times(n):
     response.headers['Location'] = '/relative-redirect/{0}'.format(n - 1)
     return response
 
+
+@app.route('/redirect-to')
+def redirect_to():
+    """ Redirect to the given URL. """
+    url = request.args.get('url', '/')
+    response = app.make_response('')
+    response.status_code = 302
+    response.headers['Location'] = url.encode('utf-8')
+    return response
 
 @app.route('/stream/<int:n>')
 def stream_n_messages(n):
