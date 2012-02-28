@@ -148,9 +148,11 @@ def relative_redirect_n_times(n):
     response.headers['Location'] = '/relative-redirect/{0}'.format(n - 1)
     return response
 
-@app.route('/redirect-to/<path:url>')
-def redirect_to(url):
+
+@app.route('/redirect-to')
+def redirect_to():
     """ Redirect to the given URL. """
+    url = request.args.get('url', '/')
     response = app.make_response('')
     response.status_code = 302
     response.headers['Location'] = url

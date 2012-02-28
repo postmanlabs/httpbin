@@ -19,7 +19,7 @@
 <li><a href="/response-headers?Content-Type=text/plain;%20charset=UTF-8&amp;Server=httpbin"><code>/response-headers?key=val</code></a> Returns given response headers.</li>
 <li><a href="/redirect/6"><code>/redirect/:n</code></a> 302 Redirects <em>n</em> times.</li>
 <li><a href="/relative-redirect/6"><code>/relative-redirect/:n</code></a> 302 Relative redirects <em>n</em> times.</li>
-<li><a href="/redirect-to/http://www.google.com"><code>/redirect-to/:url</code></a> 302 Redirects to the given URL.</li>
+<li><a href="/redirect-to?url=http%3A%2F%2Fwww.google.com"><code>/redirect-to?url=some-url</code></a> 302 Redirects to the given URL.</li>
 <li><a href="/cookies" data-bare-link="true"><code>/cookies</code></a> Returns cookie data.</li>
 <li><a href="/cookies/set/key/value"><code>/cookies/set/:name/:value</code></a> Sets a simple cookie.</li>
 <li><a href="/basic-auth/user/passwd"><code>/basic-auth/:user/:passwd</code></a> Challenges HTTPBasic Auth.</li>
