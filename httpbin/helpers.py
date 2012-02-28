@@ -188,7 +188,7 @@ def HA1(realm, username, password):
                            password))
 
 
-def HA2(credentails, request):
+def HA2(credentials, request):
     """Create HA2 md5 hash
 
     If the qop directive's value is "auth" or is unspecified, then HA2:
@@ -196,9 +196,9 @@ def HA2(credentails, request):
     If the qop directive's value is "auth-int" , then HA2 is
         HA2 = md5(A2) = MD5(method:digestURI:MD5(entityBody))
     """
-    if credentails.get("qop") == "auth" or credentails.get('qop') is None:
+    if credentials.get("qop") == "auth" or credentials.get('qop') is None:
         return H("%s:%s" % (request['method'], request['uri']))
-    elif credentails.get("qop") == "auth-int":
+    elif credentials.get("qop") == "auth-int":
         for k in 'method', 'uri', 'body':
             if k not in request:
                 raise ValueError("%s required" % k)
@@ -208,7 +208,7 @@ def HA2(credentails, request):
     raise ValueError
 
 
-def response(credentails, password, request):
+def response(credentials, password, request):
     """Compile digest auth response
 
     If the qop directive's value is "auth" or "auth-int" , then compute the response as follows:
@@ -217,24 +217,24 @@ def response(credentails, password, request):
        RESPONSE = MD5(HA1:nonce:HA2)
 
     Arguments:
-    - `credentails`: credentails dict
+    - `credentials`: credentials dict
     - `password`: request user password
     - `request`: request dict
     """
     response = None
-    HA1_value = HA1(credentails.get('realm'), credentails.get('username'), password)
-    HA2_value = HA2(credentails, request)
-    if credentails.get('qop') is None:
-        response = H(":".join([HA1_value, credentails.get('nonce'), HA2_value]))
-    elif credentails.get('qop') == 'auth' or credentails.get('qop') == 'auth-int':
+    HA1_value = HA1(credentials.get('realm'), credentials.get('username'), password)
+    HA2_value = HA2(credentials, request)
+    if credentials.get('qop') is None:
+        response = H(":".join([HA1_value, credentials.get('nonce'), HA2_value]))
+    elif credentials.get('qop') == 'auth' or credentials.get('qop') == 'auth-int':
         for k in 'nonce', 'nc', 'cnonce', 'qop':
-            if k not in credentails:
+            if k not in credentials:
                 raise ValueError("%s required for response H" % k)
         response = H(":".join([HA1_value,
-                               credentails.get('nonce'),
-                               credentails.get('nc'),
-                               credentails.get('cnonce'),
-                               credentails.get('qop'),
+                               credentials.get('nonce'),
+                               credentials.get('nc'),
+                               credentials.get('cnonce'),
+                               credentials.get('qop'),
                                HA2_value]))
     else:
         raise ValueError("qop value are wrong")
@@ -246,12 +246,12 @@ def check_digest_auth(user, passwd):
     """Check user authentication using HTTP Digest auth"""
 
     if request.headers.get('Authorization'):
-        credentails = parse_authorization_header(request.headers.get('Authorization'))
-        if not credentails:
+        credentials = parse_authorization_header(request.headers.get('Authorization'))
+        if not credentials:
             return
-        response_hash = response(credentails, passwd, dict(uri=request.path,
+        response_hash = response(credentials, passwd, dict(uri=request.path,
                                                            body=request.data,
                                                            method=request.method))
-        if credentails['response'] == response_hash:
+        if credentials['response'] == response_hash:
             return True
     return False
