@@ -155,7 +155,7 @@ def redirect_to():
     url = request.args.get('url', '/')
     response = app.make_response('')
     response.status_code = 302
-    response.headers['Location'] = url
+    response.headers['Location'] = url.encode('utf-8')
     return response
 
 @app.route('/stream/<int:n>')
