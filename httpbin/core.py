@@ -14,7 +14,6 @@ import time
 from flask import Flask, Response, request, render_template, redirect, jsonify
 from werkzeug.datastructures import WWWAuthenticate
 
-
 from . import filters
 from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H
 from .utils import weighted_choice
