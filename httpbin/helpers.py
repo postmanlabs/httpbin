@@ -96,9 +96,9 @@ def get_dict(*keys, **extras):
         form = nonflat_dict
 
     try:
-        json = json.loads(request.data)
+        _json = json.loads(request.data)
     except ValueError:
-        json = None
+        _json = None
 
 
     d = dict(
@@ -108,7 +108,8 @@ def get_dict(*keys, **extras):
         data=data,
         origin=request.remote_addr,
         headers=get_headers(),
-        files=get_files()
+        files=get_files(),
+        json=_json
     )
 
     out_d = dict()
