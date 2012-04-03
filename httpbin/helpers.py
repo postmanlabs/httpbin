@@ -135,6 +135,12 @@ def status_code(code):
         305: redirect,
         307: redirect,
         401: dict(headers={'WWW-Authenticate': 'Basic realm="Fake Realm"'}),
+        402: dict(
+            data='Fuck you, payme!',
+            headers={
+                'x-more-info': 'http://vimeo.com/22053820'
+            }
+        ),
         407: dict(headers={'Proxy-Authenticate': 'Basic realm="Fake Realm"'}),
         418: dict(  # I'm a teapot!
             data=ASCII_ART,
