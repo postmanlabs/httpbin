@@ -136,7 +136,7 @@ def status_code(code):
         307: redirect,
         401: dict(headers={'WWW-Authenticate': 'Basic realm="Fake Realm"'}),
         402: dict(
-            data='Fuck you, payme!',
+            data='Fuck you, pay me!',
             headers={
                 'x-more-info': 'http://vimeo.com/22053820'
             }
