@@ -25,7 +25,7 @@ Freely hosted in [HTTP](http://httpbin.org) &
 - [`/hidden-basic-auth/:user/:passwd`](http://httpbin.org/hidden-basic-auth/user/passwd) 404'd BasicAuth.
 - [`/digest-auth/:qop/:user/:passwd`](http://httpbin.org/digest-auth/auth/user/passwd) Challenges HTTP Digest Auth.
 - [`/stream/:n`](http://httpbin.org/stream/20) Streams *n*–100 lines.
-- [`/delay/:n`](/delay/3) Delays responding for *n*–10 seconds.
+- [`/delay/:n`](http://httpbin.org/delay/3) Delays responding for *n*–10 seconds.
 
 
 ## DESCRIPTION
