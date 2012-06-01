@@ -269,7 +269,7 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
         response.headers['WWW-Authenticate'] = auth.to_header()
         return response
     elif not check_digest_auth(user, passwd):
-        return status_code(403)
+        return status_code(401)
     return jsonify(authenticated=True, user=user)
 
 
