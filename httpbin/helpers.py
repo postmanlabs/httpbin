@@ -96,7 +96,7 @@ def get_dict(*keys, **extras):
         form = nonflat_dict
 
     try:
-        _json = json.loads(request.data)
+        _json = json.loads(data)
     except ValueError:
         _json = None
 
