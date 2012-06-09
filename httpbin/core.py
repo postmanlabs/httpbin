@@ -19,6 +19,13 @@ from .helpers import get_headers, status_code, get_dict, check_basic_auth, check
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
+try:
+    import newrelic.agent
+    newrelic.agent.initialize()
+except ImportError:
+    pass
+
+
 ENV_COOKIES = (
     '_gauges_unique',
     '_gauges_unique_year',
@@ -36,11 +43,6 @@ app = Flask(__name__)
 # ------
 # Routes
 # ------
-
-@app.errorhandler(500)
-def page_not_found(e):
-    return ':(', 200
-
 
 @app.route('/')
 def view_landing_page():
