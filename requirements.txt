@@ -6,7 +6,7 @@ argparse==1.2.1
 blinker==1.2
 decorator==3.3.2
 distribute==0.6.15
-gevent==0.13.6
+eventlet==0.9.16
 greenlet==0.3.1
 gunicorn==0.13.4
 newrelic==1.2.1.265
