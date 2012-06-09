@@ -11,20 +11,17 @@ import base64
 import json
 import os
 import time
+
+import newrelic.agent
+
 from flask import Flask, Response, request, render_template, redirect, jsonify
+from raven.contrib.flask import Sentry
 from werkzeug.datastructures import WWWAuthenticate
 
 from . import filters
 from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
-
-try:
-    import newrelic.agent
-    newrelic.agent.initialize()
-except ImportError:
-    pass
-
 
 ENV_COOKIES = (
     '_gauges_unique',
@@ -39,6 +36,9 @@ ENV_COOKIES = (
 
 app = Flask(__name__)
 
+# Setup error collection
+sentry = Sentry(app)
+newrelic.agent.initialize()
 
 # ------
 # Routes
