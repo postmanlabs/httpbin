@@ -11,6 +11,7 @@ import base64
 import json
 import os
 import time
+import random
 
 import newrelic.agent
 
@@ -286,6 +287,38 @@ def delay_response(delay):
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
 
 
+@app.route('/simulate/')
+def simulate():
+    mu = request.args.get('mu')
+    sigma = request.args.get('sigma')
+
+    mu = float(mu) if mu is not None else 1.6
+    sigma = float(sigma) if sigma is not None else 1.0
+
+    delay = random.lognormvariate(mu, sigma)
+
+    time.sleep(delay)
+
+    if random.random() < 0.6:
+        status = 200
+
+    status = random.choice([500, 404, 402])
+
+    content = get_dict(
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files')
+
+    content['slept-for'] = delay
+    content['returned-status'] = status
+    content['mu'] = mu
+    content['sigma'] = sigma
+
+    response = jsonify(content)
+    response.status_code = status
+
+    return response
+
+
+  
 @app.route('/base64/<value>')
 def decode_base64(value):
     """Decodes base64url-encoded string"""
