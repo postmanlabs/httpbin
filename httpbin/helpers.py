@@ -45,7 +45,22 @@ ENV_HEADERS = (
     'X-Forwarded-Port'
 )
 
+ROBOT_TXT = """User-agent: *
+Disallow: /deny
+"""
 
+ANGRY_ASCII ="""
+          .-''''''-.
+        .' _      _ '.
+       /   O      O   \\
+      :                :
+      |                |
+      :       __       :
+       \  .-"`  `"-.  /
+        '.          .'
+          '-......-'
+      YOU SHOUDN'T BE HERE
+"""
 
 def get_files():
     """Returns files dict from request context."""

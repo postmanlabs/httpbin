@@ -14,12 +14,12 @@ import time
 
 import newrelic.agent
 
-from flask import Flask, Response, request, render_template, redirect, jsonify
+from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
 from raven.contrib.flask import Sentry
 from werkzeug.datastructures import WWWAuthenticate
 
 from . import filters
-from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H
+from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H, ROBOT_TXT, ANGRY_ASCII
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
@@ -49,6 +49,33 @@ def view_landing_page():
     """Generates Landing Page."""
 
     return render_template('index.html')
+
+
+@app.route('/html')
+def view_html_page():
+    """Simple Html Page"""
+
+    return render_template('moby.html')
+
+
+@app.route('/robots.txt')
+def view_robots_page():
+    """Simple Html Page"""
+
+    response = make_response()
+    response.data = ROBOT_TXT
+    response.content_type = "text/plain"
+    return response
+
+
+@app.route('/deny')
+def view_deny_page():
+    """Simple Html Page"""
+    response = make_response()
+    response.data = ANGRY_ASCII
+    response.content_type = "text/plain"
+    return response
+    # return "YOU SHOULDN'T BE HERE"
 
 
 @app.route('/ip')
