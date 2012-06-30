@@ -26,6 +26,9 @@ Freely hosted in [HTTP](http://httpbin.org) &
 - [`/digest-auth/:qop/:user/:passwd`](http://httpbin.org/digest-auth/auth/user/passwd) Challenges HTTP Digest Auth.
 - [`/stream/:n`](http://httpbin.org/stream/20) Streams *n*–100 lines.
 - [`/delay/:n`](http://httpbin.org/delay/3) Delays responding for *n*–10 seconds.
+- [`/html`](http://httpbin.org/html) Renders an HTML Page.
+- [`/robots.txt`](http://httpbin.org/robots.txt) Returns some robots.txt rules.
+- [`/deny`](http://httpbin.org/deny) Denied by robots.txt file.
 
 
 ## DESCRIPTION
