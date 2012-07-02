@@ -20,7 +20,7 @@ from werkzeug.datastructures import WWWAuthenticate
 
 from . import filters
 from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H
-from .utils import weighted_choice
+from .utils import weighted_choice, sleep
 from .structures import CaseInsensitiveDict
 
 ENV_COOKIES = (
@@ -280,7 +280,7 @@ def delay_response(delay):
     """Returns a delayed response"""
     delay = min(delay, 10)
 
-    time.sleep(delay)
+    sleep(delay)
 
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
