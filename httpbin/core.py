@@ -289,8 +289,8 @@ def delay_response(delay):
 
 @app.route('/simulate/')
 def simulate():
-    mu = request.args.get('mu', 1.6)
-    sigma = request.args.get('sigma', 1.0)
+    mu = float(request.args.get('mu', 1.6))
+    sigma = float(request.args.get('sigma', 1.0))
 
     delay = random.lognormvariate(mu, sigma)
 
