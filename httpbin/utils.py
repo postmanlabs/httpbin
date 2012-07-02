@@ -15,7 +15,6 @@ try:
     import gevent
 except ImportError:
     print "Could not import gevent"
-    pass
 
 def weighted_choice(choices):
     """Returns a value from choices chosen by weighted random selection

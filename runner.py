@@ -10,10 +10,8 @@ gunicorn.
 """
 
 import sys
-
 from gevent.wsgi import WSGIServer
-from core import app
-
+from httpbin import app
 
 def main():
     try:
