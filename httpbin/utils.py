@@ -9,7 +9,13 @@ Utility functions.
 
 import random
 import bisect
+import time
 
+try:
+    import gevent
+except ImportError:
+    print "Could not import gevent"
+    pass
 
 def weighted_choice(choices):
     """Returns a value from choices chosen by weighted random selection
@@ -28,3 +34,11 @@ def weighted_choice(choices):
     x = random.uniform(0, total)
     i = bisect.bisect(cum_weights, x)
     return values[i]
+
+
+
+def sleep(seconds):
+    try:
+        gevent.sleep(seconds)
+    except:
+        time.sleep(seconds)

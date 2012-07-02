@@ -21,7 +21,7 @@ from werkzeug.datastructures import WWWAuthenticate
 
 from . import filters
 from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H
-from .utils import weighted_choice
+from .utils import weighted_choice, sleep
 from .structures import CaseInsensitiveDict
 
 ENV_COOKIES = (
@@ -281,7 +281,7 @@ def delay_response(delay):
     """Returns a delayed response"""
     delay = min(delay, 10)
 
-    time.sleep(delay)
+    sleep(delay)
 
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
@@ -289,20 +289,17 @@ def delay_response(delay):
 
 @app.route('/simulate/')
 def simulate():
-    mu = request.args.get('mu')
-    sigma = request.args.get('sigma')
-
-    mu = float(mu) if mu is not None else 1.6
-    sigma = float(sigma) if sigma is not None else 1.0
+    mu = request.args.get('mu', 1.6)
+    sigma = request.args.get('sigma', 1.0)
 
     delay = random.lognormvariate(mu, sigma)
 
-    time.sleep(delay)
+    sleep(delay)
 
-    if random.random() < 0.6:
+    if random.random() < 0.97:
         status = 200
-
-    status = random.choice([500, 404, 402])
+    else:
+        status = random.choice([500, 404, 402])
 
     content = get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files')

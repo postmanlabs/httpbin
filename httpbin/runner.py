@@ -12,7 +12,7 @@ gunicorn.
 import sys
 
 from gevent.wsgi import WSGIServer
-from httpbin import app
+from core import app
 
 
 def main():
