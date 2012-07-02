@@ -292,7 +292,10 @@ def simulate():
     mu = float(request.args.get('mu', 1.18))
     sigma = float(request.args.get('sigma', 0.7))
 
-    delay = random.lognormvariate(mu, sigma)
+    if random.random() < 0.015:
+        delay = 3 * 60
+    else: # Timeout
+        delay = random.lognormvariate(mu, sigma)
 
     sleep(delay)
 
