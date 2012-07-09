@@ -39,6 +39,8 @@ setup(
     url='https://httpbin.org',
     packages=['httpbin'],
     license='MIT',
+    zip_safe=False,
+    include_package_data=True,
     classifiers=(
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
