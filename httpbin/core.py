@@ -10,6 +10,7 @@ This module provides the core HttpBin experience.
 import base64
 import json
 import os
+import random
 import time
 
 import newrelic.agent
@@ -286,6 +287,35 @@ def delay_response(delay):
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
 
 
+@app.route('/simulate/')
+def simulate():
+    mu = request.args.get('mu', 1.18)
+    sigma = request.args.get('sigma', 0.7)
+
+    delay = random.lognormvariate(mu, sigma)
+    delay = max(delay, 10)
+
+    time.sleep(delay)
+
+    if random.random() < 0.97:
+        status = 200
+    else:
+        status = random.choice([500, 404, 402])
+
+    content = get_dict(
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files')
+
+    content['slept-for'] = delay
+    content['returned-status'] = status
+    content['mu'] = mu
+    content['sigma'] = sigma
+
+    response = jsonify(content)
+    response.status_code = status
+
+    return response
+
+  
 @app.route('/base64/<value>')
 def decode_base64(value):
     """Decodes base64url-encoded string"""
