@@ -14,7 +14,7 @@ import time
 
 import newrelic.agent
 
-from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
+from flask import Flask, Response, request, render_template, redirect, jsonify, url_for, make_response
 from raven.contrib.flask import Sentry
 from werkzeug.datastructures import WWWAuthenticate
 
@@ -155,9 +155,9 @@ def redirect_n_times(n):
     assert n > 0
 
     if (n == 1):
-        return redirect('/get')
+        return redirect(url_for('view_get'))
 
-    return redirect('/redirect/{0}'.format(n - 1))
+    return redirect(url_for('redirect_n_times',n=(n - 1)))
 
 
 @app.route('/relative-redirect/<int:n>')
@@ -170,10 +170,10 @@ def relative_redirect_n_times(n):
     response.status_code = 302
 
     if (n == 1):
-        response.headers['Location'] = '/get'
+        response.headers['Location'] = url_for('view_get')
         return response
 
-    response.headers['Location'] = '/relative-redirect/{0}'.format(n - 1)
+    response.headers['Location'] = url_for('relative_redirect_n_times',n=(n - 1))
     return response
 
 
@@ -253,7 +253,7 @@ def view_cookies(hide_env=True):
 def set_cookie(name, value):
     """Sets a cookie and redirects to cookie list."""
 
-    r = app.make_response(redirect('/cookies'))
+    r = app.make_response(redirect(url_for('view_cookies')))
     r.set_cookie(key=name, value=value)
 
     return r
