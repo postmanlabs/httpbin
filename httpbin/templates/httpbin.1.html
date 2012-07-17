@@ -1,7 +1,5 @@
 <div class='mp'>
 <h1>httpbin(1): HTTP Request &amp; Response Service</h1>
-<p>Freely hosted in <a href="http://httpbin.org">HTTP</a> &amp;
-<a href="https://httpbin.org">HTTPS</a> flavors.</p>
 
 <h2 id="ENDPOINTS">ENDPOINTS</h2>
 
@@ -42,17 +40,17 @@ scenarios. Additional endpoints are being considered (e.g. <code>/deflate</code>
 
 <h2 id="EXAMPLES">EXAMPLES</h2>
 
-<h3 id="-curl-http-httpbin-org-ip">$ curl http://httpbin.org/ip</h3>
+<h3 id="-curl-http-httpbin-org-ip">$ curl http://theburritobot.com/httpbin/ip</h3>
 
 <pre><code>{"origin": "24.127.96.129"}
 </code></pre>
 
-<h3 id="-curl-http-httpbin-org-user-agent">$ curl http://httpbin.org/user-agent</h3>
+<h3 id="-curl-http-httpbin-org-user-agent">$ curl http://theburritobot.com/httpbin/user-agent</h3>
 
 <pre><code>{"user-agent": "curl/7.19.7 (universal-apple-darwin10.0) libcurl/7.19.7 OpenSSL/0.9.8l zlib/1.2.3"}
 </code></pre>
 
-<h3 id="-curl-http-httpbin-org-get">$ curl http://httpbin.org/get</h3>
+<h3 id="-curl-http-httpbin-org-get">$ curl http://theburritobot.com/httpbin/get</h3>
 
 <pre><code>{
    "args": {},
@@ -61,15 +59,15 @@ scenarios. Additional endpoints are being considered (e.g. <code>/deflate</code>
       "Connection": "close",
       "Content-Length": "",
       "Content-Type": "",
-      "Host": "httpbin.org",
+      "Host": "theburritobot.com",
       "User-Agent": "curl/7.19.7 (universal-apple-darwin10.0) libcurl/7.19.7 OpenSSL/0.9.8l zlib/1.2.3"
    },
    "origin": "24.127.96.129",
-   "url": "http://httpbin.org/get"
+   "url": "http://theburritobot.com/httpbin/get"
 }
 </code></pre>
 
-<h3 id="-curl-I-http-httpbin-org-status-418">$ curl -I http://httpbin.org/status/418</h3>
+<h3 id="-curl-I-http-httpbin-org-status-418">$ curl -I http://theburritobot.com/httpbin/status/418</h3>
 
 <pre><code>HTTP/1.1 418 I'M A TEAPOT
 Server: nginx/0.7.67
@@ -79,13 +77,7 @@ x-more-info: http://tools.ietf.org/html/rfc2324
 Content-Length: 135
 </code></pre>
 
-<h2 id="AUTHOR">AUTHOR</h2>
-
-<p>A <a href="http://kennethreitz.com/pages/open-projects.html">Kenneth Reitz</a>
-Project.</p>
-
-<h2 id="SEE-ALSO">SEE ALSO</h2>
-
-<p><a href="http://python-requests.org" data-bare-link="true">http://python-requests.org</a></p>
+<h2 id="AUTHOR">ORIGINAL AUTHOR</h2>
+<p><a href="http://kennethreitz.com/pages/open-projects.html">Kenneth Reitz</a></p>
 
 </div>

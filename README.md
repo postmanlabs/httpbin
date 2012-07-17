@@ -76,12 +76,7 @@ All endpoint responses are JSON-encoded.
     Content-Length: 135
 
 
-## AUTHOR
+## ORIGINAL AUTHOR
 
 A [Kenneth Reitz](http://kennethreitz.com/pages/open-projects.html)
 Project.
-
-## SEE ALSO
-
-<http://python-requests.org>
-
