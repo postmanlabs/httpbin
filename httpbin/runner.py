@@ -11,7 +11,7 @@ gunicorn.
 
 import sys
 
-from gevent.wsgi import WSGIServer
+from gevent.pywsgi import WSGIServer
 from httpbin import app
 
 
