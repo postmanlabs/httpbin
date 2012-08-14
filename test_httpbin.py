@@ -25,6 +25,22 @@ class HttpbinTestCase(unittest.TestCase):
         content = response.data.decode('utf-8')
         self.assertEquals(greeting, content)
 
+    def test_post_binary(self):
+        response = self.app.post('/post',
+                                 data='\x01\x02\x03\x81\x82\x83',
+                                 content_type='application/octet-stream')
+        self.assertEquals(response.status_code, 200)
+
+    def test_post_file_text(self):
+        with open('httpbin/core.py') as f:
+            response = self.app.post('/post', data={"file": f})
+        self.assertEquals(response.status_code, 200)
+
+    def test_post_file_binary(self):
+        with open('httpbin/core.pyc') as f:
+            response = self.app.post('/post', data={"file": f})
+        self.assertEquals(response.status_code, 200)
+
 
 if __name__ == '__main__':
     unittest.main()
