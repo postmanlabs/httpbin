@@ -13,3 +13,4 @@ newrelic==1.2.1.265
 raven==1.9.3
 simplejson==2.4.0
 wsgiref==0.1.2
+gevent
