@@ -20,7 +20,6 @@ Freely hosted in [HTTP](http://httpbin.org) &
 - [`/redirect/:n`](http://httpbin.org/redirect/6) 302 Redirects *n* times.
 - [`/relative-redirect/:n`](http://httpbin.org/relative-redirect/6) 302 Relative redirects *n* times.
 - [`/cookies`](http://httpbin.org/cookies) Returns cookie data.
-- [`/cookies/set/:name/:value`](http://httpbin.org/cookies/set/key/value) Sets a simple cookie.
 - [`/cookies/set?name=value`](http://httpbin.org/cookies/set?k1=v1&k2=v2) Sets one or more simple cookies.
 - [`/basic-auth/:user/:passwd`](http://httpbin.org/basic-auth/user/passwd) Challenges HTTPBasic Auth.
 - [`/hidden-basic-auth/:user/:passwd`](http://httpbin.org/hidden-basic-auth/user/passwd) 404'd BasicAuth.
