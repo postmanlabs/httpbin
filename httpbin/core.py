@@ -11,7 +11,6 @@ import base64
 import json
 import os
 import time
-import gevent
 
 import newrelic.agent
 
@@ -308,7 +307,7 @@ def delay_response(delay):
     """Returns a delayed response"""
     delay = min(delay, 10)
 
-    gevent.sleep(delay)
+    time.sleep(delay)
 
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
