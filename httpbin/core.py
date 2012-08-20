@@ -259,6 +259,18 @@ def set_cookie(name, value):
     return r
 
 
+@app.route('/cookies/set')
+def set_cookies():
+    """Sets cookie(s) as provided by the query string and redirects to cookie list."""
+
+    cookies = dict(request.args.items())
+    r = app.make_response(redirect('/cookies'))
+    for key, value in cookies.items():
+        r.set_cookie(key=key, value=value)
+
+    return r
+
+
 @app.route('/basic-auth/<user>/<passwd>')
 def basic_auth(user='user', passwd='passwd'):
     """Prompts the user for authorization using HTTP Basic Auth."""
