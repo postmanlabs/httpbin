@@ -7,7 +7,8 @@ httpbin.helpers
 This module provides helper functions for httpbin.
 """
 
-import json
+import base64
+import simplejson as json
 from hashlib import md5
 from werkzeug.http import parse_authorization_header
 
@@ -62,13 +63,34 @@ ANGRY_ASCII ="""
       YOU SHOUDN'T BE HERE
 """
 
+
+def json_safe(string, content_type='application/octet-stream'):
+    """Returns JSON-safe version of `string`.
+
+    If `string` is a Unicode string or a valid UTF-8, it is returned unmodified,
+    as it can safely be encoded to JSON string.
+
+    If `string` contains raw/binary data, it is Base64-encoded, formatted and
+    returned according to "data" URL scheme (RFC2397). Since JSON is not
+    suitable for binary data, some additional encoding was necessary; "data"
+    URL scheme was chosen for its simplicity.
+    """
+
+    try:
+        _encoded = json.dumps(string)
+        return string
+    except ValueError:
+        return ''.join(['data:%s;base64,' % content_type,
+                        base64.b64encode(string)])
+
+
 def get_files():
     """Returns files dict from request context."""
 
     files = dict()
 
     for k, v in request.files.items():
-        files[k] = v.read()
+        files[k] = json_safe(v.read(), request.files[k].content_type)
 
     return files
 
@@ -120,7 +142,7 @@ def get_dict(*keys, **extras):
         url=request.url,
         args=request.args,
         form=form,
-        data=data,
+        data=json_safe(data),
         origin=request.remote_addr,
         headers=get_headers(),
         files=get_files(),
