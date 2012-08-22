@@ -29,6 +29,7 @@ Freely hosted in [HTTP](http://httpbin.org) &
 - [`/html`](http://httpbin.org/html) Renders an HTML Page.
 - [`/robots.txt`](http://httpbin.org/robots.txt) Returns some robots.txt rules.
 - [`/deny`](http://httpbin.org/deny) Denied by robots.txt file.
+- [`/json`](http://httpbin.org/json) Valides a json and returns it. It accepts GET and POST requests
 
 
 ## DESCRIPTION

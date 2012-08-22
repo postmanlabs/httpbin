@@ -77,6 +77,23 @@ def view_deny_page():
     return response
     # return "YOU SHOULDN'T BE HERE"
 
+@app.route('/json', methods=('GET', 'POST'))
+def view_json():
+    resp = {}
+    if request.method == "GET":
+        for key, value in request.args.items():
+            if value:
+                resp[key] = value
+    else:
+        try:
+            resp = json.loads(request.data)
+        except ValueError:
+            response = jsonify({"message": "Json not valid"})
+            response.satus_code = 500
+            response.content_type
+            return response
+
+    return jsonify(resp)
 
 @app.route('/ip')
 def view_origin():
