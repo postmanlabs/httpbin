@@ -162,7 +162,7 @@ def redirect_n_times(n):
 
 @app.route('/relative-redirect/<int:n>')
 def relative_redirect_n_times(n):
-    """301 Redirects n times."""
+    """302 Redirects n times."""
 
     assert n > 0
 
