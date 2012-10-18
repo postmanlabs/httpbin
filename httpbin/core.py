@@ -116,6 +116,16 @@ def view_post():
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
 
 
+@app.route('/data/status/<code>', methods=('GET', 'POST'))
+def view_data_status(code):
+    """Returns GET or POST Data with the given status code."""
+
+    j = jsonify(get_dict(
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
+    j.status_code = int(code)
+    return j
+
+
 @app.route('/put', methods=('PUT',))
 def view_put():
     """Returns PUT Data."""
