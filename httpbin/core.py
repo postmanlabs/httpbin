@@ -51,7 +51,7 @@ def view_landing_page():
     return render_template('index.html')
 
 
-@app.route('/html')
+@app.route('/html', methods=("GET", "POST", "PUT", "DELETE"))
 def view_html_page():
     """Simple Html Page"""
 
@@ -116,7 +116,7 @@ def view_post():
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
 
 
-@app.route('/data/status/<code>', methods=('GET', 'POST'))
+@app.route('/data/status/<code>', methods=("GET", "POST", "PUT", "DELETE"))
 def view_data_status(code):
     """Returns GET or POST Data with the given status code."""
 
