@@ -20,11 +20,8 @@ deps = [
     'Flask-Script==0.3.1',
     'Jinja2==2.5.5',
     'Werkzeug==0.8.1',
-    'argparse==1.2.1',
     'distribute==0.6.15',
-    'wsgiref==0.1.2',
     'decorator==3.3.2',
-    'omnijson==0.1.2',
     'gevent'
 ]
 

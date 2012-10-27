@@ -12,10 +12,7 @@ import json
 import os
 import time
 
-import newrelic.agent
-
 from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
-from raven.contrib.flask import Sentry
 from werkzeug.datastructures import WWWAuthenticate
 
 from . import filters
@@ -35,10 +32,6 @@ ENV_COOKIES = (
 )
 
 app = Flask(__name__)
-
-# Setup error collection
-sentry = Sentry(app)
-newrelic.agent.initialize()
 
 # ------
 # Routes
