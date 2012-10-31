@@ -8,7 +8,7 @@ This module provides helper functions for httpbin.
 """
 
 import base64
-import simplejson as json
+import json
 from hashlib import md5
 from werkzeug.http import parse_authorization_header
 

@@ -5,7 +5,7 @@ httpbin.runner
 ~~~~~~~~~~~~~~
 
 This module serves as a command-line runner for httpbin, powered by
-gunicorn.
+gevent.
 
 """
 
