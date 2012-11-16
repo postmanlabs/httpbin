@@ -44,7 +44,7 @@ def view_landing_page():
     return render_template('index.html')
 
 
-@app.route('/html')
+@app.route('/html', methods=("GET", "POST", "PUT", "DELETE"))
 def view_html_page():
     """Simple Html Page"""
 
@@ -107,6 +107,16 @@ def view_post():
 
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
+
+
+@app.route('/data/status/<code>', methods=("GET", "POST", "PUT", "DELETE"))
+def view_data_status(code):
+    """Returns GET or POST Data with the given status code."""
+
+    j = jsonify(get_dict(
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
+    j.status_code = int(code)
+    return j
 
 
 @app.route('/put', methods=('PUT',))
@@ -187,7 +197,7 @@ def stream_n_messages(n):
         })
 
 
-@app.route('/status/<codes>')
+@app.route('/status/<codes>', methods=("GET", "POST", "PUT", "DELETE"))
 def view_status_code(codes):
     """Return status code or random status code if more than one are given"""
 

@@ -1,2 +1,5 @@
-include README.md LICENSE AUTHORS requirements.txt
-include httpbin/templates/*
+include README.md
+include LICENSE
+include AUTHORS
+include requirements.txt
+recursive-include httpbin/templates/ *

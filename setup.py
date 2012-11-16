@@ -35,6 +35,7 @@ setup(
     author_email='me@kennethreitz.com',
     url='https://httpbin.org',
     packages=['httpbin'],
+    package_data={'httpbin': ['templates/*']},
     license='MIT',
     classifiers=(
         'Development Status :: 5 - Production/Stable',
