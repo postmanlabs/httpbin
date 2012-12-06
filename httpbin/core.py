@@ -12,7 +12,7 @@ import json
 import os
 import time
 
-import newrelic.agent
+import librato
 
 from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
 from raven.contrib.flask import Sentry
@@ -38,11 +38,19 @@ app = Flask(__name__)
 
 # Setup error collection
 sentry = Sentry(app)
-newrelic.agent.initialize()
+
+metrics = librato.connect(
+    os.environ.get('LIBRATO_USER'),
+    os.environ.get('LIBRATO_TOKEN')
+    ).get_gauge('httpbin-requests')
 
 # ------
 # Routes
 # ------
+
+@app.after_request
+def log_metrics():
+    metrics.add(1)
 
 @app.route('/')
 def view_landing_page():
