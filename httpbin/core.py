@@ -49,7 +49,7 @@ metrics = librato.connect(
 # ------
 
 @app.after_request
-def log_metrics():
+def log_metrics(*args, **kwargs):
     metrics.add(1)
 
 @app.route('/')
