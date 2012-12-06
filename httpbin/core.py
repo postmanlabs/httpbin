@@ -50,7 +50,7 @@ metrics = librato.connect(
 
 @app.after_request
 def log_metrics(r):
-    metrics.add(1)
+    metrics.add(10)
     return r
 
 @app.route('/')
