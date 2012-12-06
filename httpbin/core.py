@@ -35,6 +35,7 @@ ENV_COOKIES = (
 )
 
 app = Flask(__name__)
+app.debug = True
 
 # Setup error collection
 sentry = Sentry(app)
@@ -49,8 +50,9 @@ metrics = librato.connect(
 # ------
 
 @app.after_request
-def log_metrics(*args, **kwargs):
+def log_metrics(r):
     metrics.add(1)
+    return r
 
 @app.route('/')
 def view_landing_page():
