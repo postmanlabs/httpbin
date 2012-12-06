@@ -9,7 +9,6 @@ distribute==0.6.15
 eventlet==0.9.16
 greenlet==0.3.1
 gunicorn==0.13.4
-newrelic==1.2.1.265
 raven==1.9.3
 simplejson==2.4.0
 wsgiref==0.1.2
