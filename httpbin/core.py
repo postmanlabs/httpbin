@@ -35,7 +35,6 @@ ENV_COOKIES = (
 )
 
 app = Flask(__name__)
-app.debug = True
 
 # Setup error collection
 sentry = Sentry(app)
