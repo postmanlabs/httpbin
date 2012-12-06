@@ -42,7 +42,7 @@ sentry = Sentry(app)
 metrics = librato.connect(
     os.environ.get('LIBRATO_USER'),
     os.environ.get('LIBRATO_TOKEN')
-    ).get_gauge('httpbin-requests')
+    ).get_counter('httpbin-requests')
 
 # ------
 # Routes
