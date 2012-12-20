@@ -10,9 +10,7 @@ This module provides the core HttpBin experience.
 import base64
 import json
 import os
-import time
-
-import librato
+import timelibra
 
 from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
 from raven.contrib.flask import Sentry
@@ -39,19 +37,10 @@ app = Flask(__name__)
 # Setup error collection
 sentry = Sentry(app)
 
-metrics = librato.connect(
-    os.environ.get('LIBRATO_USER'),
-    os.environ.get('LIBRATO_TOKEN')
-    ).get_counter('httpbin-requests')
 
 # ------
 # Routes
 # ------
-
-@app.after_request
-def log_metrics(r):
-    metrics.add(10)
-    return r
 
 @app.route('/')
 def view_landing_page():
