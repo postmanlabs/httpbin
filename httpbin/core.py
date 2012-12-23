@@ -10,7 +10,6 @@ This module provides the core HttpBin experience.
 import base64
 import json
 import os
-import timelibra
 
 from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
 from raven.contrib.flask import Sentry
@@ -192,7 +191,7 @@ def stream_n_messages(n):
         })
 
 
-@app.route('/status/<codes>')
+@app.route('/status/<codes>', methods=('GET', 'POST', 'PUT'))
 def view_status_code(codes):
     """Return status code or random status code if more than one are given"""
 
