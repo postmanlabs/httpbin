@@ -10,7 +10,6 @@ This module provides the core HttpBin experience.
 import base64
 import json
 import os
-import timelibra
 
 from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
 from raven.contrib.flask import Sentry
