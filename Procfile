@@ -1,1 +1,1 @@
-web: gunicorn httpbin:app
+web: gunicorn -k gevent httpbin:app
