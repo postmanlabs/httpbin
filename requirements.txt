@@ -1,11 +1,11 @@
-Flask==0.8
-Flask-Script==0.3.1
+Flask==0.9
+Flask-Script==0.5.2
 Jinja2==2.5.5
-Werkzeug==0.8.1
+Werkzeug==0.8.3
 blinker==1.2
-decorator==3.3.2
-raven==1.9.3
-simplejson==2.4.0
+decorator==3.4.0
+raven==3.1.0
+simplejson==3.0.5
 argparse==1.2.1
 gevent==0.13.8
 greenlet==0.4.0

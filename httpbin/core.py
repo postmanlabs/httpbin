@@ -7,13 +7,13 @@ httpbin.core
 This module provides the core HttpBin experience.
 """
 
-import gevent
+import gevent.monkey
 gevent.monkey.patch_all()
 
 import base64
 import json
 import os
-import timelibra
+import time
 
 from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
 from raven.contrib.flask import Sentry
