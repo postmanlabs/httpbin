@@ -38,6 +38,15 @@ app = Flask(__name__)
 sentry = Sentry(app)
 
 
+# -----------
+# Middlewares
+# -----------
+@app.after_request
+def set_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
+
+
 # ------
 # Routes
 # ------

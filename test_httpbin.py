@@ -41,6 +41,10 @@ class HttpbinTestCase(unittest.TestCase):
             response = self.app.post('/post', data={"file": f})
         self.assertEquals(response.status_code, 200)
 
+    def test_set_cors_headers_after_request(self):
+        response = self.app.get('/get')
+        self.assertEquals(response.headers.get('Access-Control-Allow-Origin'), '*')
+
 
 if __name__ == '__main__':
     unittest.main()
