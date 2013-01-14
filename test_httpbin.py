@@ -45,6 +45,16 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.get('/get')
         self.assertEquals(response.headers.get('Access-Control-Allow-Origin'), '*')
 
+    def test_set_cors_headers_with_options_verb(self):
+        response = self.app.open('/get', method='OPTIONS')
+        self.assertEquals(response.headers.get('Access-Control-Allow-Origin'), '*')
+        self.assertEquals(response.headers.get('Access-Control-Allow-Credentials'), 'true')
+        self.assertEquals(response.headers.get('Access-Control-Allow-Methods'), 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+        self.assertEquals(response.headers.get('Access-Control-Max-Age'), '3600')
+        self.assertNotIn('Access-Control-Allow-Headers', response.headers)  # FIXME should we add any extra headers?
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
