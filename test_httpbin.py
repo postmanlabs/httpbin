@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import base64
+import unittest
 
 import httpbin
-import unittest
-import base64
 
 
 def _string_to_base64(string):
@@ -52,8 +52,6 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEquals(response.headers.get('Access-Control-Allow-Methods'), 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
         self.assertEquals(response.headers.get('Access-Control-Max-Age'), '3600')
         self.assertNotIn('Access-Control-Allow-Headers', response.headers)  # FIXME should we add any extra headers?
-
-
 
 
 if __name__ == '__main__':
