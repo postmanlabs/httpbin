@@ -78,6 +78,35 @@ All endpoint responses are JSON-encoded.
     Content-Length: 135
 
 
+### $ curl https://httpbin.org/get?show_env=1
+
+    {
+      "headers": {
+        "Content-Length": "",
+        "Accept-Language": "en-US,en;q=0.8",
+        "Accept-Encoding": "gzip,deflate,sdch",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-For": "109.60.101.240",
+        "X-Heroku-Dynos-In-Use": "1",
+        "Host": "httpbin.org",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.83 Safari/535.11",
+        "X-Request-Start": "1350053933441",
+        "Accept-Charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.3",
+        "Connection": "keep-alive",
+        "X-Forwarded-Proto": "https",
+        "Cookie": "_gauges_unique_day=1; _gauges_unique_month=1; _gauges_unique_year=1; _gauges_unique=1; _gauges_unique_hour=1",
+        "X-Heroku-Queue-Depth": "0",
+        "X-Heroku-Queue-Wait-Time": "11",
+        "Content-Type": ""
+      },
+      "args": {
+        "show_env": "1"
+      },
+      "origin": "109.60.101.240",
+      "url": "http://httpbin.org/get?show_env=1"
+    }
+
 ## AUTHOR
 
 A [Kenneth Reitz](http://kennethreitz.com/pages/open-projects.html)
