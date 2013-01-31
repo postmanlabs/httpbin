@@ -47,7 +47,7 @@ def set_cors_headers(response):
     if request.method == 'OPTIONS':
         response.headers['Access-Control-Allow-Credentials'] = 'true'
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
-        response.headers['Access-Control-Max-Age'] = str(60 * 60) # 1 hour cache
+        response.headers['Access-Control-Max-Age'] = '3600'  # 1 hour cache
     return response
 
 
