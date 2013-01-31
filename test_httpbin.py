@@ -45,6 +45,10 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.get('/get')
         self.assertEquals(response.headers.get('Access-Control-Allow-Origin'), '*')
 
+    def test_set_cors_headers_after_request_with_request_origin(self):
+        response = self.app.get('/get', headers={'Origin': 'origin'})
+        self.assertEquals(response.headers.get('Access-Control-Allow-Origin'), 'origin')
+
     def test_set_cors_headers_with_options_verb(self):
         response = self.app.open('/get', method='OPTIONS')
         self.assertEquals(response.headers.get('Access-Control-Allow-Origin'), '*')
