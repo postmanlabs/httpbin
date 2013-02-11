@@ -137,13 +137,17 @@ def get_dict(*keys, **extras):
     except ValueError:
         _json = None
 
+    xff = request.headers.get('X-Forwarded-For', '')
+    origin = request.remote_addr
+    if xff:
+        origin = xff
 
     d = dict(
         url=request.url,
         args=request.args,
         form=form,
         data=json_safe(data),
-        origin=request.remote_addr,
+        origin=origin,
         headers=get_headers(),
         files=get_files(),
         json=_json
