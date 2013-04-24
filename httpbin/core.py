@@ -80,7 +80,7 @@ def view_deny_page():
 def view_origin():
     """Returns Origin IP."""
 
-    return jsonify(origin=request.remote_addr)
+    return jsonify(origin=request.headers.get('X-Forwarded-For', request.remote_addr))
 
 
 @app.route('/headers')

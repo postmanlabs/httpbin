@@ -143,7 +143,7 @@ def get_dict(*keys, **extras):
         args=request.args,
         form=form,
         data=json_safe(data),
-        origin=request.remote_addr,
+        origin=request.headers.get('X-Forwarded-For', request.remote_addr),
         headers=get_headers(),
         files=get_files(),
         json=_json
