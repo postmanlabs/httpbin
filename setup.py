@@ -24,7 +24,6 @@ deps = [
     'distribute==0.6.15',
     'wsgiref==0.1.2',
     'decorator==3.3.2',
-    'omnijson==0.1.2',
     'gevent'
 ]
 

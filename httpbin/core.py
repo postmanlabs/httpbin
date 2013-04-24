@@ -13,7 +13,6 @@ import os
 import time
 
 from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
-from raven.contrib.flask import Sentry
 from werkzeug.datastructures import WWWAuthenticate
 
 from . import filters
@@ -33,9 +32,6 @@ ENV_COOKIES = (
 )
 
 app = Flask(__name__)
-
-# Setup error collection
-sentry = Sentry(app)
 
 
 # ------
@@ -265,6 +261,18 @@ def set_cookies():
     r = app.make_response(redirect('/cookies'))
     for key, value in cookies.items():
         r.set_cookie(key=key, value=value)
+
+    return r
+
+
+@app.route('/cookies/delete')
+def delete_cookies():
+    """Deletes cookie(s) as provided by the query string and redirects to cookie list."""
+
+    cookies = dict(request.args.items())
+    r = app.make_response(redirect('/cookies'))
+    for key, value in cookies.items():
+        r.delete_cookie(key=key)
 
     return r
 
