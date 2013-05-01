@@ -19,6 +19,7 @@ Freely hosted in [HTTP](http://httpbin.org) &
 - [`/status/:code`](http://httpbin.org/status/418) Returns given HTTP Status code.
 - [`/response-headers?key=val`](http://httpbin.org/response-headers?Content-Type=text/plain;%20charset=UTF-8&Server=httpbin) Returns given response headers.
 - [`/redirect/:n`](http://httpbin.org/redirect/6) 302 Redirects *n* times.
+- [`/redirect-to?url=foo`](http://httpbin.org/redirect-to?url=http://example.com/) 302 Redirects to the *foo* URL.
 - [`/relative-redirect/:n`](http://httpbin.org/relative-redirect/6) 302 Relative redirects *n* times.
 - [`/cookies`](http://httpbin.org/cookies) Returns cookie data.
 - [`/cookies/set?name=value`](http://httpbin.org/cookies/set?k1=v1&k2=v2) Sets one or more simple cookies.
