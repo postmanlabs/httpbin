@@ -330,5 +330,16 @@ def decode_base64(value):
     return base64.urlsafe_b64decode(encoded).decode('utf-8')
 
 
+@app.route('/cache', methods=('GET',))
+def cache():
+    """Returns a 304 if an If-Modified-Since header is present. Returns the same as a GET otherwise."""
+    if_modified = request.headers.get('If-Modified-Since')
+
+    if if_modified is None:
+        return view_get()
+    else:
+        return status_code(304)
+
+
 if __name__ == '__main__':
     app.run()
