@@ -30,7 +30,7 @@ Freely hosted in [HTTP](http://httpbin.org) &
 - [`/html`](http://httpbin.org/html) Renders an HTML Page.
 - [`/robots.txt`](http://httpbin.org/robots.txt) Returns some robots.txt rules.
 - [`/deny`](http://httpbin.org/deny) Denied by robots.txt file.
-- [`/cache`](http://httpbin.org/cache) Returns 200 unless an If-Modified-Since header is provided, when it returns a 304.
+- [`/cache`](http://httpbin.org/cache) Returns 200 unless an If-Modified-Since or If-None-Match header is provided, when it returns a 304.
 
 
 ## DESCRIPTION
