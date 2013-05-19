@@ -11,10 +11,12 @@ import base64
 import json
 import os
 import time
+import uuid
 
 from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
 from raven.contrib.flask import Sentry
 from werkzeug.datastructures import WWWAuthenticate
+from werkzeug.http import http_date
 
 from . import filters
 from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H, ROBOT_TXT, ANGRY_ASCII
@@ -332,11 +334,14 @@ def decode_base64(value):
 
 @app.route('/cache', methods=('GET',))
 def cache():
-    """Returns a 304 if an If-Modified-Since header is present. Returns the same as a GET otherwise."""
-    if_modified = request.headers.get('If-Modified-Since')
+    """Returns a 304 if an If-Modified-Since header or If-None-Match is present. Returns the same as a GET otherwise."""
+    is_conditional = request.headers.get('If-Modified-Since') or request.headers.get('If-None-Match')
 
-    if if_modified is None:
-        return view_get()
+    if is_conditional is None:
+        response = view_get()
+        response.headers['Last-Modified'] = http_date()
+        response.headers['ETag'] = uuid.uuid4().hex
+        return response
     else:
         return status_code(304)
 
