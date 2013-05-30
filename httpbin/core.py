@@ -17,6 +17,7 @@ from flask import Flask, Response, request, render_template, redirect, jsonify, 
 from raven.contrib.flask import Sentry
 from werkzeug.datastructures import WWWAuthenticate
 from werkzeug.http import http_date
+from werkzeug.wrappers import BaseResponse
 
 from . import filters
 from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H, ROBOT_TXT, ANGRY_ASCII
@@ -33,6 +34,9 @@ ENV_COOKIES = (
     '__utma',
     '__utmb'
 )
+
+# Prevent WSGI from correcting the casing of the Location header
+BaseResponse.autocorrect_location_header = False
 
 app = Flask(__name__)
 
@@ -158,6 +162,22 @@ def redirect_n_times(n):
         return redirect('/get')
 
     return redirect('/redirect/{0}'.format(n - 1))
+
+
+@app.route('/redirect-to')
+def redirect_to():
+    """302 Redirects to the given URL."""
+
+    args = CaseInsensitiveDict(request.args.items())
+
+    # We need to build the response manually and convert to UTF-8 to prevent
+    # werkzeug from "fixing" the URL. This endpoint should set the Location
+    # header to the exact string supplied.
+    response = app.make_response('')
+    response.status_code = 302
+    response.headers['Location'] = args['url'].encode('utf-8')
+
+    return response
 
 
 @app.route('/relative-redirect/<int:n>')
