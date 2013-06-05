@@ -12,6 +12,7 @@ import json
 import os
 import time
 import uuid
+import random
 
 from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
 from raven.contrib.flask import Sentry
@@ -364,6 +365,77 @@ def cache():
         return response
     else:
         return status_code(304)
+
+
+@app.route('/bytes/<int:n>')
+def random_bytes(n):
+    """Returns n random bytes generated with given seed."""
+    n = min(n, 100 * 1024) # set 100KB limit
+
+    params = CaseInsensitiveDict(request.args.items())
+    if 'seed' in params:
+        random.seed(int(params['seed']))
+
+    response = make_response()
+    response.data = bytes().join(chr(random.randint(0, 255)) for i in xrange(n))
+    response.content_type = 'application/octet-stream'
+    return response
+
+
+@app.route('/stream-bytes/<int:n>')
+def stream_random_bytes(n):
+    """Streams n random bytes generated with given seed, at given chunk size per packet."""
+    n = min(n, 100 * 1024) # set 100KB limit
+
+    params = CaseInsensitiveDict(request.args.items())
+    if 'seed' in params:
+        random.seed(int(params['seed']))
+
+    if 'chunk_size' in params:
+        chunk_size = max(1, int(params['chunk_size']))
+    else:
+        chunk_size = 10 * 1024
+
+    def generate_bytes():
+        chunks = []
+
+        for i in xrange(n):
+            chunks.append(chr(random.randint(0, 255)))
+            if len(chunks) == chunk_size:
+                yield(bytes().join(chunks))
+                chunks = []
+
+        if chunks:
+            yield(bytes().join(chunks))
+
+    headers = {'Transfer-Encoding': 'chunked',
+               'Content-Type': 'application/octet-stream'}
+
+    return Response(generate_bytes(), headers=headers)
+
+
+@app.route('/links/<int:n>/<int:offset>')
+def link_page(n, offset):
+    """Generate a page containing n links to other pages which do the same."""
+    n = min(max(1, n), 200) # limit to between 1 and 200 links
+
+    link = "<a href='/links/{0}/{1}'>{2}</a> "
+
+    html = ['<html><head><title>Links</title></head><body>']
+    for i in xrange(n):
+        if i == offset:
+            html.append("{0} ".format(i))
+        else:
+            html.append(link.format(n, i, i))
+    html.append('</body></html>')
+
+    return ''.join(html)
+
+
+@app.route('/links/<int:n>')
+def links(n):
+    """Redirect to first links page."""
+    return redirect("/links/{0}/0".format(n))
 
 
 if __name__ == '__main__':
