@@ -13,6 +13,7 @@ import os
 import time
 import uuid
 import random
+import base64
 
 from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
 from raven.contrib.flask import Sentry
@@ -436,6 +437,19 @@ def link_page(n, offset):
 def links(n):
     """Redirect to first links page."""
     return redirect("/links/{0}/0".format(n))
+
+
+@app.route('/image')
+def image():
+    """Returns a simple image of the type suggest by the Accept header."""
+
+    headers = get_headers()
+    if headers['accept'].lower() == 'image/png' or headers['accept'].lower() == 'image/*':
+        return Response(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg=='), headers={'Content-Type': 'image/png'})
+    elif headers['accept'].lower() == 'image/jpeg':
+        return Response(base64.b64decode('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/yQALCAABAAEBAREA/8wABgAQEAX/2gAIAQEAAD8A0s8g/9k='), headers={'Content-Type': 'image/jpeg'})
+    else:
+        return status_code(404)
 
 
 if __name__ == '__main__':
