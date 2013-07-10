@@ -32,10 +32,10 @@ Freely hosted in [HTTP](http://httpbin.org) &
 - [`/robots.txt`](http://httpbin.org/robots.txt) Returns some robots.txt rules.
 - [`/deny`](http://httpbin.org/deny) Denied by robots.txt file.
 - [`/cache`](http://httpbin.org/cache) Returns 200 unless an If-Modified-Since or If-None-Match header is provided, when it returns a 304.
+- [`/cache/:n`](http://httpbin.org/cache/60) Sets a Cache-Control header for *n* seconds.
 - [`/bytes/:n`](http://httpbin.org/bytes/1024) Generates *n* random bytes of binary data, accepts optional *seed* integer parameter.
 - [`/stream-bytes/:n`](http://httpbin.org/stream-bytes/1024) Streams *n* random bytes of binary data, accepts optional *seed* and *chunk_size* integer parameters.
 - [`/links/:n`](http://httpbin.org/links/10) Returns page containing *n* HTML links.
-
 
 ## DESCRIPTION
 

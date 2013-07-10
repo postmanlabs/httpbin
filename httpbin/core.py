@@ -368,6 +368,14 @@ def cache():
         return status_code(304)
 
 
+@app.route('/cache/<int:value>')
+def cache_control(value):
+    """Sets a Cache-Control header."""
+    response = view_get()
+    response.headers['Cache-Control'] = 'public, max-age={0}'.format(value)
+    return response
+
+
 @app.route('/bytes/<int:n>')
 def random_bytes(n):
     """Returns n random bytes generated with given seed."""
