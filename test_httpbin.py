@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import base64
+import unittest
 
 import httpbin
-import unittest
-import base64
 
 
 def _string_to_base64(string):
@@ -40,6 +40,22 @@ class HttpbinTestCase(unittest.TestCase):
         with open('httpbin/core.pyc') as f:
             response = self.app.post('/post', data={"file": f})
         self.assertEquals(response.status_code, 200)
+
+    def test_set_cors_headers_after_request(self):
+        response = self.app.get('/get')
+        self.assertEquals(response.headers.get('Access-Control-Allow-Origin'), '*')
+
+    def test_set_cors_headers_after_request_with_request_origin(self):
+        response = self.app.get('/get', headers={'Origin': 'origin'})
+        self.assertEquals(response.headers.get('Access-Control-Allow-Origin'), 'origin')
+
+    def test_set_cors_headers_with_options_verb(self):
+        response = self.app.open('/get', method='OPTIONS')
+        self.assertEquals(response.headers.get('Access-Control-Allow-Origin'), '*')
+        self.assertEquals(response.headers.get('Access-Control-Allow-Credentials'), 'true')
+        self.assertEquals(response.headers.get('Access-Control-Allow-Methods'), 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+        self.assertEquals(response.headers.get('Access-Control-Max-Age'), '3600')
+        self.assertNotIn('Access-Control-Allow-Headers', response.headers)  # FIXME should we add any extra headers?
 
 
 if __name__ == '__main__':

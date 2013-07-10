@@ -46,6 +46,20 @@ app = Flask(__name__)
 sentry = Sentry(app)
 
 
+# -----------
+# Middlewares
+# -----------
+@app.after_request
+def set_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+
+    if request.method == 'OPTIONS':
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
+        response.headers['Access-Control-Max-Age'] = '3600'  # 1 hour cache
+    return response
+
+
 # ------
 # Routes
 # ------
@@ -289,6 +303,18 @@ def set_cookies():
     r = app.make_response(redirect('/cookies'))
     for key, value in cookies.items():
         r.set_cookie(key=key, value=value)
+
+    return r
+
+
+@app.route('/cookies/delete')
+def delete_cookies():
+    """Deletes cookie(s) as provided by the query string and redirects to cookie list."""
+
+    cookies = dict(request.args.items())
+    r = app.make_response(redirect('/cookies'))
+    for key, value in cookies.items():
+        r.delete_cookie(key=key)
 
     return r
 
