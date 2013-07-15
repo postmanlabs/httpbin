@@ -29,6 +29,7 @@ deps = [
     'raven==3.3.7',
     'simplejson==2.4.0',
     'wsgiref==0.1.2',
+    'gevent'
 ]
 
 setup(
