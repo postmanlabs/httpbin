@@ -225,7 +225,7 @@ def stream_n_messages(n):
     """Stream n JSON messages"""
     response = get_dict('url', 'args', 'headers', 'origin')
     n = min(n, 100)
-    delimiter = DELIMITERS.get(request.args.get('d', 'lf').lower(), 'lf')
+    delimiter = DELIMITERS.get(request.args.get('d', 'lf').lower(), DELIMITERS['lf'])
 
     def generate_stream():
         for i in range(n):
