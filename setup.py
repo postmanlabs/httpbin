@@ -16,16 +16,19 @@ if sys.argv[-1] == 'publish':
 
 
 deps = [
-    'Flask==0.8',
-    'Flask-Script==0.3.1',
-    'Jinja2==2.5.5',
-    'Werkzeug==0.8.1',
+    'Flask==0.9',
+    'Flask-Script==0.5.3',
+    'Jinja2==2.7',
+    'MarkupSafe==0.18',
+    'Werkzeug==0.8.3',
     'argparse==1.2.1',
-    'distribute==0.6.15',
-    'wsgiref==0.1.2',
+    'blinker==1.2',
     'decorator==3.3.2',
-    'omnijson==0.1.2',
-    'gevent'
+    'distribute==0.6.34',
+    'gunicorn==0.17.4',
+    'raven==3.3.7',
+    'simplejson==2.4.0',
+    'wsgiref==0.1.2',
 ]
 
 setup(

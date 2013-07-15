@@ -37,6 +37,13 @@ ENV_COOKIES = (
     '__utmb'
 )
 
+# For #105
+DELIMITERS = {
+    "lf": "\n",
+    "cr": "\r",
+    "crlf": "\r\n"
+}
+
 # Prevent WSGI from correcting the casing of the Location header
 BaseResponse.autocorrect_location_header = False
 
@@ -218,11 +225,12 @@ def stream_n_messages(n):
     """Stream n JSON messages"""
     response = get_dict('url', 'args', 'headers', 'origin')
     n = min(n, 100)
+    delimiter = DELIMITERS.get(request.args.get('d', 'lf').lower(), DELIMITERS['lf'])
 
     def generate_stream():
         for i in range(n):
             response['id'] = i
-            yield json.dumps(response) + '\n'
+            yield json.dumps(response) + delimiter
 
     return Response(generate_stream(), headers={
         "Transfer-Encoding": "chunked",
