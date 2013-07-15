@@ -23,7 +23,7 @@ deps = [
     'Werkzeug==0.8.3',
     'argparse==1.2.1',
     'blinker==1.2',
-    'decorator==3.3.2'
+    'decorator==3.3.2',
     'distribute==0.6.34',
     'gunicorn==0.17.4',
     'raven==3.3.7',
