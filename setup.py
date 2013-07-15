@@ -19,7 +19,7 @@ deps = [
     'Flask==0.9',
     'Flask-Script==0.5.3',
     'Jinja2==2.7',
-    'MarkupSafe==0.18'
+    'MarkupSafe==0.18',
     'Werkzeug==0.8.3',
     'argparse==1.2.1',
     'blinker==1.2',
