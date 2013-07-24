@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from httpbin import app
-from flaskext.script import Manager, Command
+from flask.ext.script import Manager, Command
 
 
 manager = Manager(app)
