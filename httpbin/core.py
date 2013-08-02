@@ -356,8 +356,10 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
         auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
                         qop=('auth', 'auth-int') if qop is None else (qop, ))
         response.headers['WWW-Authenticate'] = auth.to_header()
+        response.headers['Set-Cookie'] = 'fake=fake_value'
         return response
-    elif not check_digest_auth(user, passwd):
+    elif not (check_digest_auth(user, passwd) and
+              request.headers.get('Cookie')):
         return status_code(401)
     return jsonify(authenticated=True, user=user)
 
