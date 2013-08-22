@@ -122,14 +122,16 @@ def view_user_agent():
 
 
 @app.route('/get', methods=('GET',))
-def view_get():
+@app.route('/get/<path:extrapath>', methods=('GET',))
+def view_get(extrapath=None):
     """Returns GET Data."""
 
     return jsonify(get_dict('url', 'args', 'headers', 'origin'))
 
 
 @app.route('/post', methods=('POST',))
-def view_post():
+@app.route('/post/<path:extrapath>', methods=('POST',))
+def view_post(extrapath=None):
     """Returns POST Data."""
 
     return jsonify(get_dict(
@@ -137,7 +139,8 @@ def view_post():
 
 
 @app.route('/put', methods=('PUT',))
-def view_put():
+@app.route('/put/<path:extrapath>', methods=('PUT',))
+def view_put(extrapath=None):
     """Returns PUT Data."""
 
     return jsonify(get_dict(
@@ -145,7 +148,8 @@ def view_put():
 
 
 @app.route('/patch', methods=('PATCH',))
-def view_patch():
+@app.route('/patch/<path:extrapath>', methods=('PATCH',))
+def view_patch(extrapath=None):
     """Returns PATCH Data."""
 
     return jsonify(get_dict(
@@ -153,7 +157,8 @@ def view_patch():
 
 
 @app.route('/delete', methods=('DELETE',))
-def view_delete():
+@app.route('/delete/<path:extrapath>', methods=('DELETE',))
+def view_delete(extrapath=None):
     """Returns DETLETE Data."""
 
     return jsonify(get_dict('url', 'args', 'data', 'origin', 'headers', 'json'))
