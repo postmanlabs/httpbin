@@ -27,14 +27,14 @@
 <li><a href="/cookies/delete?k1&amp;k2"><code>/cookies/delete?name</code></a> Deletes one or more simple cookies.</li>
 <li><a href="/basic-auth/user/passwd"><code>/basic-auth/:user/:passwd</code></a> HTTPBasic Auth.</li>
 <li><a href="/hidden-basic-auth/user/passwd"><code>/hidden-basic-auth/:user/:passwd</code></a> 404'd BasicAuth.</li>
-<li><a href="/digest-auth/auth/user/passwd"><code>/digest-auth/:qop/:user/:passwd</code></a> Challenges HTTP Digest Auth.</li>
+<li><a href="/digest-auth/auth/user/passwd"><code>/digest-auth/:qop/:user/:passwd</code></a> HTTP Digest Auth.</li>
 <li><a href="/stream/20"><code>/stream/:n</code></a> Streams <em>n</em>–100 lines.</li>
 <li><a href="/delay/3"><code>/delay/:n</code></a> Delays responding for <em>n</em>–10 seconds.</li>
 <li><a href="/drip?numbytes=400&duration=3&delay=1"><code>/drip?numbytes=400&duration=3&delay=1</code></a> Drip drip drip.</li>
 <li><a href="/html" data-bare-link="true"><code>/html</code></a> Renders an HTML Page.</li>
 <li><a href="/robots.txt" data-bare-link="true"><code>/robots.txt</code></a> Returns some robots.txt rules.</li>
 <li><a href="/deny" data-bare-link="true"><code>/deny</code></a> Denied by robots.txt file.</li>
-<li><a href="/cache" data-bare-link="true"><code>/cache</code></a> Returns 200 unless an If-Modified-Since header is provided, when it returns a 304 Not Modified.</li>
+<li><a href="/cache" data-bare-link="true"><code>/cache</code></a> 200 unless If-Modified-Since was sent, then 304.</li>
 </ul>
 
 
