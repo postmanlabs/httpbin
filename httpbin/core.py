@@ -374,6 +374,26 @@ def delay_response(delay):
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
 
+@app.route('/drip')
+def drip():
+    """Drips data over a duration after an optional initial delay."""
+    args = CaseInsensitiveDict(request.args.items())
+    duration = float(args.get('duration', 2))
+    numbytes = int(args.get('numbytes', 10))
+    pause = duration / numbytes
+
+    delay = float(args.get('delay', 0))
+    if delay > 0:
+        time.sleep(delay)
+    
+    def generate_bytes():
+        for i in xrange(numbytes):
+            yield bytes(chr(42))
+            time.sleep(pause)
+
+    return Response(generate_bytes(), headers={
+        "Content-Type": "application/octet-stream",
+        })
 
 @app.route('/base64/<value>')
 def decode_base64(value):
