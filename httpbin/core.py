@@ -45,7 +45,6 @@ tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 app = Flask(__name__, template_folder=tmpl_dir)
 
-
 # -----------
 # Middlewares
 # -----------
@@ -533,6 +532,13 @@ def image():
         return Response(base64.b64decode('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/yQALCAABAAEBAREA/8wABgAQEAX/2gAIAQEAAD8A0s8g/9k='), headers={'Content-Type': 'image/jpeg'})
     else:
         return status_code(404)
+
+
+@app.route("/xml")
+def xml():
+    response = make_response(render_template("sample.xml"))
+    response.headers["Content-Type"] = "application/xml"
+    return response
 
 
 if __name__ == '__main__':
