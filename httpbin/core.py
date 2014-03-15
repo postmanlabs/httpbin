@@ -45,6 +45,7 @@ app = Flask(__name__)
 # Setup error collection
 sentry = Sentry(app)
 
+ALL_METHODS = ["GET", "POST", "PUT", "HEAD", "OPTIONS", "DELETE", "PATCH"]
 
 # -----------
 # Middlewares
@@ -71,7 +72,7 @@ def view_landing_page():
     return render_template('index.html')
 
 
-@app.route('/html')
+@app.route('/html', methods=ALL_METHODS)
 def view_html_page():
     """Simple Html Page"""
 
@@ -88,7 +89,7 @@ def view_robots_page():
     return response
 
 
-@app.route('/deny')
+@app.route('/deny', methods=ALL_METHODS)
 def view_deny_page():
     """Simple Html Page"""
     response = make_response()
@@ -98,21 +99,21 @@ def view_deny_page():
     # return "YOU SHOULDN'T BE HERE"
 
 
-@app.route('/ip')
+@app.route('/ip', methods=ALL_METHODS)
 def view_origin():
     """Returns Origin IP."""
 
     return jsonify(origin=request.headers.get('X-Forwarded-For', request.remote_addr))
 
 
-@app.route('/headers')
+@app.route('/headers', methods=ALL_METHODS)
 def view_headers():
     """Returns HTTP HEADERS."""
 
     return jsonify(get_dict('headers'))
 
 
-@app.route('/user-agent')
+@app.route('/user-agent', methods=ALL_METHODS)
 def view_user_agent():
     """Returns User-Agent."""
 
@@ -159,7 +160,7 @@ def view_delete():
     return jsonify(get_dict('url', 'args', 'data', 'origin', 'headers', 'json'))
 
 
-@app.route('/gzip')
+@app.route('/gzip', methods=ALL_METHODS)
 @filters.gzip
 def view_gzip_encoded_content():
     """Returns GZip-Encoded Data."""
@@ -168,7 +169,7 @@ def view_gzip_encoded_content():
         'origin', 'headers', method=request.method, gzipped=True))
 
 
-@app.route('/redirect/<int:n>')
+@app.route('/redirect/<int:n>', methods=ALL_METHODS)
 def redirect_n_times(n):
     """301 Redirects n times."""
 
@@ -180,7 +181,7 @@ def redirect_n_times(n):
     return redirect('/redirect/{0}'.format(n - 1))
 
 
-@app.route('/redirect-to')
+@app.route('/redirect-to', methods=ALL_METHODS)
 def redirect_to():
     """302 Redirects to the given URL."""
 
@@ -196,7 +197,7 @@ def redirect_to():
     return response
 
 
-@app.route('/relative-redirect/<int:n>')
+@app.route('/relative-redirect/<int:n>', methods=ALL_METHODS)
 def relative_redirect_n_times(n):
     """301 Redirects n times."""
 
@@ -213,7 +214,7 @@ def relative_redirect_n_times(n):
     return response
 
 
-@app.route('/stream/<int:n>')
+@app.route('/stream/<int:n>', methods=ALL_METHODS)
 def stream_n_messages(n):
     """Stream n JSON messages"""
     response = get_dict('url', 'args', 'headers', 'origin')
@@ -230,7 +231,7 @@ def stream_n_messages(n):
         })
 
 
-@app.route('/status/<codes>')
+@app.route('/status/<codes>', methods=ALL_METHODS)
 def view_status_code(codes):
     """Return status code or random status code if more than one are given"""
 
@@ -253,7 +254,7 @@ def view_status_code(codes):
     return status_code(code)
 
 
-@app.route('/response-headers')
+@app.route('/response-headers', methods=ALL_METHODS)
 def response_headers():
     """Returns a set of response headers from the query string """
     headers = CaseInsensitiveDict(request.args.items())
@@ -269,7 +270,7 @@ def response_headers():
     return response
 
 
-@app.route('/cookies')
+@app.route('/cookies', methods=ALL_METHODS)
 def view_cookies(hide_env=True):
     """Returns cookie data."""
 
@@ -285,7 +286,7 @@ def view_cookies(hide_env=True):
     return jsonify(cookies=cookies)
 
 
-@app.route('/cookies/set/<name>/<value>')
+@app.route('/cookies/set/<name>/<value>', methods=ALL_METHODS)
 def set_cookie(name, value):
     """Sets a cookie and redirects to cookie list."""
 
@@ -295,7 +296,7 @@ def set_cookie(name, value):
     return r
 
 
-@app.route('/cookies/set')
+@app.route('/cookies/set', methods=ALL_METHODS)
 def set_cookies():
     """Sets cookie(s) as provided by the query string and redirects to cookie list."""
 
@@ -307,7 +308,7 @@ def set_cookies():
     return r
 
 
-@app.route('/cookies/delete')
+@app.route('/cookies/delete', methods=ALL_METHODS)
 def delete_cookies():
     """Deletes cookie(s) as provided by the query string and redirects to cookie list."""
 
@@ -319,7 +320,7 @@ def delete_cookies():
     return r
 
 
-@app.route('/basic-auth/<user>/<passwd>')
+@app.route('/basic-auth/<user>/<passwd>', methods=ALL_METHODS)
 def basic_auth(user='user', passwd='passwd'):
     """Prompts the user for authorization using HTTP Basic Auth."""
 
@@ -329,7 +330,7 @@ def basic_auth(user='user', passwd='passwd'):
     return jsonify(authenticated=True, user=user)
 
 
-@app.route('/hidden-basic-auth/<user>/<passwd>')
+@app.route('/hidden-basic-auth/<user>/<passwd>', methods=ALL_METHODS)
 def hidden_basic_auth(user='user', passwd='passwd'):
     """Prompts the user for authorization using HTTP Basic Auth."""
 
@@ -338,7 +339,7 @@ def hidden_basic_auth(user='user', passwd='passwd'):
     return jsonify(authenticated=True, user=user)
 
 
-@app.route('/digest-auth/<qop>/<user>/<passwd>')
+@app.route('/digest-auth/<qop>/<user>/<passwd>', methods=ALL_METHODS)
 def digest_auth(qop=None, user='user', passwd='passwd'):
     """Prompts the user for authorization using HTTP Digest auth"""
     if qop not in ('auth', 'auth-int'):
@@ -364,7 +365,7 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
     return jsonify(authenticated=True, user=user)
 
 
-@app.route('/delay/<int:delay>')
+@app.route('/delay/<int:delay>', methods=ALL_METHODS)
 def delay_response(delay):
     """Returns a delayed response"""
     delay = min(delay, 10)
@@ -374,7 +375,7 @@ def delay_response(delay):
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
 
-@app.route('/drip')
+@app.route('/drip', methods=ALL_METHODS)
 def drip():
     """Drips data over a duration after an optional initial delay."""
     args = CaseInsensitiveDict(request.args.items())
@@ -395,7 +396,7 @@ def drip():
         "Content-Type": "application/octet-stream",
         })
 
-@app.route('/base64/<value>')
+@app.route('/base64/<value>', methods=ALL_METHODS)
 def decode_base64(value):
     """Decodes base64url-encoded string"""
     encoded = value.encode('utf-8')
@@ -424,7 +425,7 @@ def cache_control(value):
     return response
 
 
-@app.route('/bytes/<int:n>')
+@app.route('/bytes/<int:n>', methods=ALL_METHODS)
 def random_bytes(n):
     """Returns n random bytes generated with given seed."""
     n = min(n, 100 * 1024) # set 100KB limit
@@ -506,6 +507,13 @@ def image():
         return Response(base64.b64decode('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/yQALCAABAAEBAREA/8wABgAQEAX/2gAIAQEAAD8A0s8g/9k='), headers={'Content-Type': 'image/jpeg'})
     else:
         return status_code(404)
+
+
+@app.route("/xml", methods=ALL_METHODS)
+def xml():
+    response = make_response(render_template("sample.xml"))
+    response.headers["Content-Type"] = "application/xml"    
+    return response
 
 
 if __name__ == '__main__':

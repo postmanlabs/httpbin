@@ -119,6 +119,7 @@ def get_dict(*keys, **extras):
 
     data = request.data
     form = request.form
+    args = request.args
 
     if (len(form) == 1) and (not data):
         if not form.values().pop():
@@ -132,6 +133,13 @@ def get_dict(*keys, **extras):
                 nonflat_dict[k] = v[0]
         form = nonflat_dict
 
+    if args:
+        nonflat_dict = args.to_dict(flat=False)
+        for k, v in nonflat_dict.items():
+            if len(v) == 1:
+                nonflat_dict[k] = v[0]
+        args = nonflat_dict
+
     try:
         _json = json.loads(data)
     except ValueError:
@@ -140,7 +148,7 @@ def get_dict(*keys, **extras):
 
     d = dict(
         url=request.url,
-        args=request.args,
+        args=args,
         form=form,
         data=json_safe(data),
         origin=request.headers.get('X-Forwarded-For', request.remote_addr),
