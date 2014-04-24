@@ -1,0 +1,8 @@
+{
+  "name": "httpbin",
+  "description": "HTTP Request & Response Service, written in Python + Flask.",
+  "repository": "https://github.com/kennethreitz/httpbin",
+  "website": "https://httpbin.org",
+  "logo": "https://s3.amazonaws.com/f.cl.ly/items/333Y191Z2C0G2J3m3Y0b/httpbin.svg",
+  "keywords": ["http", "rest", "API", "testing", "integration", "python", "flask"]
+}
