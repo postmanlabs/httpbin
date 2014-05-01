@@ -165,6 +165,10 @@ def view_delete():
     return jsonify(
         get_dict('url', 'args', 'data', 'origin', 'headers', 'json'))
 
+@app.route('/options', methods=('OPTIONS',))
+def view_options(*args, **kwargs):
+    """Generates Landing Page."""
+    return render_template('options.json')
 
 @app.route('/gzip')
 @filters.gzip
