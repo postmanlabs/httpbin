@@ -15,14 +15,18 @@ import uuid
 import random
 import base64
 
-from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
+from flask import (
+    Flask, Response, request, render_template, redirect,
+    jsonify, make_response)
 from raven.contrib.flask import Sentry
 from werkzeug.datastructures import WWWAuthenticate
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
 
 from . import filters
-from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H, ROBOT_TXT, ANGRY_ASCII
+from .helpers import (
+    get_headers, status_code, get_dict, check_basic_auth,
+    check_digest_auth, H, ROBOT_TXT, ANGRY_ASCII)
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
@@ -51,11 +55,14 @@ sentry = Sentry(app)
 # -----------
 @app.after_request
 def set_cors_headers(response):
-    response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+    response.headers['Access-Control-Allow-Origin'] = request.headers.get(
+        'Origin', '*')
 
     if request.method == 'OPTIONS':
         response.headers['Access-Control-Allow-Credentials'] = 'true'
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
+        response.headers[
+            'Access-Control-Allow-Methods'
+        ] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
         response.headers['Access-Control-Max-Age'] = '3600'  # 1 hour cache
     return response
 
@@ -74,7 +81,6 @@ def view_landing_page():
 @app.route('/html')
 def view_html_page():
     """Simple Html Page"""
-
     return render_template('moby.html')
 
 
@@ -95,14 +101,14 @@ def view_deny_page():
     response.data = ANGRY_ASCII
     response.content_type = "text/plain"
     return response
-    # return "YOU SHOULDN'T BE HERE"
 
 
 @app.route('/ip')
 def view_origin():
     """Returns Origin IP."""
 
-    return jsonify(origin=request.headers.get('X-Forwarded-For', request.remote_addr))
+    return jsonify(
+        origin=request.headers.get('X-Forwarded-For', request.remote_addr))
 
 
 @app.route('/headers')
@@ -156,7 +162,8 @@ def view_patch():
 def view_delete():
     """Returns DETLETE Data."""
 
-    return jsonify(get_dict('url', 'args', 'data', 'origin', 'headers', 'json'))
+    return jsonify(
+        get_dict('url', 'args', 'data', 'origin', 'headers', 'json'))
 
 
 @app.route('/gzip')
@@ -297,7 +304,8 @@ def set_cookie(name, value):
 
 @app.route('/cookies/set')
 def set_cookies():
-    """Sets cookie(s) as provided by the query string and redirects to cookie list."""
+    """Sets cookie(s) as provided by the query string and
+    redirects to cookie list."""
 
     cookies = dict(request.args.items())
     r = app.make_response(redirect('/cookies'))
@@ -309,7 +317,8 @@ def set_cookies():
 
 @app.route('/cookies/delete')
 def delete_cookies():
-    """Deletes cookie(s) as provided by the query string and redirects to cookie list."""
+    """Deletes cookie(s) as provided by the query string and
+    redirects to cookie list."""
 
     cookies = dict(request.args.items())
     r = app.make_response(redirect('/cookies'))
@@ -404,7 +413,8 @@ def decode_base64(value):
 
 @app.route('/cache', methods=('GET',))
 def cache():
-    """Returns a 304 if an If-Modified-Since header or If-None-Match is present. Returns the same as a GET otherwise."""
+    """Returns a 304 if an If-Modified-Since header or If-None-Match
+    is present. Returns the same as a GET otherwise."""
     is_conditional = request.headers.get('If-Modified-Since') or request.headers.get('If-None-Match')
 
     if is_conditional is None:
@@ -441,7 +451,8 @@ def random_bytes(n):
 
 @app.route('/stream-bytes/<int:n>')
 def stream_random_bytes(n):
-    """Streams n random bytes generated with given seed, at given chunk size per packet."""
+    """Streams n random bytes generated with given seed,
+    at given chunk size per packet."""
     n = min(n, 100 * 1024) # set 100KB limit
 
     params = CaseInsensitiveDict(request.args.items())
