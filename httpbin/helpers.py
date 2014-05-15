@@ -110,6 +110,20 @@ def get_headers(hide_env=True):
     return CaseInsensitiveDict(headers.items())
 
 
+def semiflatten(multi):
+    """Convert a MutiDict into a regular dict. If there are more than one value
+    for a key, the result will have a list of values for the key. Otherwise it
+    will have the plain value."""
+    if multi:
+        result = multi.to_dict(flat=False)
+        for k, v in result.items():
+            if len(v) == 1:
+                result[k] = v[0]
+        return result
+    else:
+        return multi
+
+
 def get_dict(*keys, **extras):
     """Returns request dict of given keys."""
 
@@ -125,22 +139,16 @@ def get_dict(*keys, **extras):
             data = form.keys().pop()
             form = None
 
-    if form:
-        nonflat_dict = form.to_dict(flat=False)
-        for k, v in nonflat_dict.items():
-            if len(v) == 1:
-                nonflat_dict[k] = v[0]
-        form = nonflat_dict
+    form = semiflatten(form)
 
     try:
         _json = json.loads(data)
     except ValueError:
         _json = None
 
-
     d = dict(
         url=request.url,
-        args=request.args,
+        args=semiflatten(request.args),
         form=form,
         data=json_safe(data),
         origin=request.headers.get('X-Forwarded-For', request.remote_addr),
