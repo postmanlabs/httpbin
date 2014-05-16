@@ -168,6 +168,15 @@ def view_gzip_encoded_content():
         'origin', 'headers', method=request.method, gzipped=True))
 
 
+@app.route('/deflate')
+@filters.deflate
+def view_deflate_encoded_content():
+    """Returns Deflate-Encoded Data."""
+
+    return jsonify(get_dict(
+        'origin', 'headers', method=request.method, deflated=True))
+
+
 @app.route('/redirect/<int:n>')
 def redirect_n_times(n):
     """301 Redirects n times."""
@@ -385,7 +394,7 @@ def drip():
     delay = float(args.get('delay', 0))
     if delay > 0:
         time.sleep(delay)
-    
+
     def generate_bytes():
         for i in xrange(numbytes):
             yield bytes(chr(42))
