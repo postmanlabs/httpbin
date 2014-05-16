@@ -16,6 +16,7 @@ Freely hosted in [HTTP](http://httpbin.org) &
 - [`/put`](http://hurl.it/hurls/18016368fa5e5eef80db935f5dae615d5858a4a4/a512d904f5da64df9627ee998c040f7874d6436a) Returns PUT data.
 - [`/delete`](http://hurl.it/hurls/6faafea5191f77172fca4cfe1505739230d5f769/bc255ffc69e04c2c8b968822c59544746bbb872c) Returns DELETE data
 - [`/gzip`](http://httpbin.org/gzip) Returns gzip-encoded data.
+- [`/deflate`](http://httpbin.org/deflate) Returns deflate-encoded data.
 - [`/status/:code`](http://httpbin.org/status/418) Returns given HTTP Status code.
 - [`/response-headers?key=val`](http://httpbin.org/response-headers?Content-Type=text/plain;%20charset=UTF-8&Server=httpbin) Returns given response headers.
 - [`/redirect/:n`](http://httpbin.org/redirect/6) 302 Redirects *n* times.
@@ -43,7 +44,7 @@ Freely hosted in [HTTP](http://httpbin.org) &
 
 Testing an HTTP Library can become difficult sometimes. PostBin.org is fantastic
 for testing POST requests, but not much else. This exists to cover all kinds of HTTP
-scenarios. Additional endpoints are being considered (e.g. `/deflate`).
+scenarios. Additional endpoints are being considered.
 
 All endpoint responses are JSON-encoded.
 

@@ -17,6 +17,7 @@
 <li><code>/patch</code> Returns PATCH data.</li>
 <li><code>/delete</code> Returns DELETE data</li>
 <li><a href="/gzip" data-bare-link="true"><code>/gzip</code></a> Returns gzip-encoded data.</li>
+<li><a href="/deflate" data-bare-link="true"><code>/deflate</code></a> Returns deflate-encoded data.</li>
 <li><a href="/status/418"><code>/status/:code</code></a> Returns given HTTP Status code.</li>
 <li><a href="/response-headers?Content-Type=text/plain;%20charset=UTF-8&amp;Server=httpbin"><code>/response-headers?key=val</code></a> Returns given response headers.</li>
 <li><a href="/redirect/6"><code>/redirect/:n</code></a> 302 Redirects <em>n</em> times.</li>
@@ -42,7 +43,7 @@
 
 <p>Testing an HTTP Library can become difficult sometimes. <a href="http://postbin.org">Postbin</a> is fantastic
 for testing POST requests, but not much else. This exists to cover all kinds of HTTP
-scenarios. Additional endpoints are being considered (e.g. <code>/deflate</code>).</p>
+scenarios. Additional endpoints are being considered.</p>
 
 <p>All endpoint responses are JSON-encoded.</p>
 
