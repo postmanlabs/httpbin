@@ -8,3 +8,4 @@ greenlet==0.4.2
 gunicorn==18.0
 itsdangerous==0.24
 wsgiref==0.1.2
+six==1.6.1

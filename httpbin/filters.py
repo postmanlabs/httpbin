@@ -10,7 +10,7 @@ This module provides response filter decorators.
 import gzip as gzip2
 import zlib
 
-from cStringIO import StringIO
+from six import BytesIO
 from decimal import Decimal
 from time import time as now
 
@@ -44,7 +44,7 @@ def gzip(f, *args, **kwargs):
     else:
         content = data
 
-    gzip_buffer = StringIO()
+    gzip_buffer = BytesIO()
     gzip_file = gzip2.GzipFile(
         mode='wb',
         compresslevel=4,
