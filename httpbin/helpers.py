@@ -79,9 +79,13 @@ def json_safe(string, content_type='application/octet-stream'):
     try:
         _encoded = json.dumps(string)
         return string
-    except ValueError:
-        return ''.join(['data:%s;base64,' % content_type,
-                        base64.b64encode(string)])
+    except (ValueError, TypeError):
+        return b''.join([
+            b'data:', 
+            content_type.encode('utf-8'),
+            b';base64,',
+            base64.b64encode(string)
+        ]).decode('utf-8')
 
 
 def get_files():
@@ -139,17 +143,11 @@ def get_dict(*keys, **extras):
 
     data = request.data
     form = request.form
-
-    if (len(form) == 1) and (not data):
-        if not form.values().pop():
-            data = form.keys().pop()
-            form = None
-
-    form = semiflatten(form)
+    form = semiflatten(request.form)
 
     try:
-        _json = json.loads(data)
-    except ValueError:
+        _json = json.loads(data.decode('utf-8'))
+    except (ValueError, TypeError):
         _json = None
 
     d = dict(
@@ -237,9 +235,11 @@ def HA1(realm, username, password):
 
     HA1 = md5(A1) = MD5(username:realm:password)
     """
-    return H("%s:%s:%s" % (username,
-                           realm,
-                           password))
+    if not realm:
+        realm = u''
+    return H(b":".join([username.encode('utf-8'),
+                           realm.encode('utf-8'),
+                           password.encode('utf-8')]))
 
 
 def HA2(credentails, request):
@@ -251,7 +251,7 @@ def HA2(credentails, request):
         HA2 = md5(A2) = MD5(method:digestURI:MD5(entityBody))
     """
     if credentails.get("qop") == "auth" or credentails.get('qop') is None:
-        return H("%s:%s" % (request['method'], request['uri']))
+        return H(b":".join([request['method'].encode('utf-8'), request['uri'].encode('utf-8')]))
     elif credentails.get("qop") == "auth-int":
         for k in 'method', 'uri', 'body':
             if k not in request:
@@ -276,20 +276,28 @@ def response(credentails, password, request):
     - `request`: request dict
     """
     response = None
-    HA1_value = HA1(credentails.get('realm'), credentails.get('username'), password)
+    HA1_value = HA1(
+        credentails.get('realm'),
+        credentails.get('username'),
+        password
+    )
     HA2_value = HA2(credentails, request)
     if credentails.get('qop') is None:
-        response = H(":".join([HA1_value, credentails.get('nonce'), HA2_value]))
+        response = H(b":".join([
+            HA1_value.encode('utf-8'), 
+            credentails.get('nonce').encode('utf-8'), 
+            HA2_value.encode('utf-8')
+        ]))
     elif credentails.get('qop') == 'auth' or credentails.get('qop') == 'auth-int':
         for k in 'nonce', 'nc', 'cnonce', 'qop':
             if k not in credentails:
                 raise ValueError("%s required for response H" % k)
-        response = H(":".join([HA1_value,
-                               credentails.get('nonce'),
-                               credentails.get('nc'),
-                               credentails.get('cnonce'),
-                               credentails.get('qop'),
-                               HA2_value]))
+        response = H(b":".join([HA1_value.encode('utf-8'),
+                               credentails.get('nonce').encode('utf-8'),
+                               credentails.get('nc').encode('utf-8'),
+                               credentails.get('cnonce').encode('utf-8'),
+                               credentails.get('qop').encode('utf-8'),
+                               HA2_value.encode('utf-8')]))
     else:
         raise ValueError("qop value are wrong")
 

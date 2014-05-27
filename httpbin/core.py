@@ -19,6 +19,7 @@ from flask import Flask, Response, request, render_template, redirect, jsonify, 
 from werkzeug.datastructures import WWWAuthenticate
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
+from six.moves import range as xrange
 
 from . import filters
 from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H, ROBOT_TXT, ANGRY_ASCII
@@ -352,9 +353,17 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
         response = app.make_response('')
         response.status_code = 401
 
-        nonce = H("%s:%d:%s" % (request.remote_addr,
-                                  time.time(),
-                                  os.urandom(10)))
+        # RFC2616 Section4.2: HTTP headers are ASCII.  That means
+        # request.remote_addr was originally ASCII, so I should be able to
+        # encode it back to ascii.  Also, RFC2617 says about nonces: "The
+        # contents of the nonce are implementation dependent"
+        nonce = H(b''.join([
+            getattr(request,'remote_addr',u'').encode('ascii'),
+            b':',
+            str(time.time()).encode('ascii'),
+            b':',
+            os.urandom(10)
+        ]))
         opaque = H(os.urandom(10))
 
         auth = WWWAuthenticate("digest")
@@ -393,7 +402,7 @@ def drip():
 
     def generate_bytes():
         for i in xrange(numbytes):
-            yield bytes(chr(42))
+            yield u"*".encode('utf-8')
             time.sleep(pause)
 
     return Response(generate_bytes(), headers={
@@ -403,7 +412,7 @@ def drip():
 @app.route('/base64/<value>')
 def decode_base64(value):
     """Decodes base64url-encoded string"""
-    encoded = value.encode('utf-8')
+    encoded = value.encode('utf-8') # base64 expects binary string as input
     return base64.urlsafe_b64decode(encoded).decode('utf-8')
 
 

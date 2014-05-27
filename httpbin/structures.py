@@ -16,7 +16,7 @@ class CaseInsensitiveDict(dict):
     """
 
     def _lower_keys(self):
-        return map(str.lower, self.keys())
+        return [str.lower(k) for k in  self.keys()]
 
     def __contains__(self, key):
         return key.lower() in self._lower_keys()
@@ -24,4 +24,4 @@ class CaseInsensitiveDict(dict):
     def __getitem__(self, key):
         # We allow fall-through here, so values default to None
         if key in self:
-            return self.items()[self._lower_keys().index(key.lower())][1]
+            return list(self.items())[self._lower_keys().index(key.lower())][1]
