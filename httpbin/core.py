@@ -291,6 +291,13 @@ def view_cookies(hide_env=True):
     return jsonify(cookies=cookies)
 
 
+@app.route('/forms/post')
+def view_forms_post():
+    """Simple HTML form."""
+
+    return render_template('forms-post.html')
+
+
 @app.route('/cookies/set/<name>/<value>')
 def set_cookie(name, value):
     """Sets a cookie and redirects to cookie list."""
