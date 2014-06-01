@@ -114,6 +114,20 @@ All endpoint responses are JSON-encoded.
       "url": "http://httpbin.org/get?show_env=1"
     }
 
+## Installing and running from PyPI
+
+You can install httpbin as a library from PyPI and run it as a WSGI app.  For example, using Gunicorn:
+
+```bash
+$ pip install httpbin
+$ gunicorn httpbin:app
+```
+
+## Changelog
+
+* 0.1.1: Added templates as data in setup.py
+* 0.1.0: Added python3 support and (re)publish on PyPI
+
 ## AUTHOR
 
 A [Kenneth Reitz](http://kennethreitz.com/pages/open-projects.html)

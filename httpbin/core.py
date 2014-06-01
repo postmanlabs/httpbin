@@ -40,7 +40,10 @@ ENV_COOKIES = (
 # Prevent WSGI from correcting the casing of the Location header
 BaseResponse.autocorrect_location_header = False
 
-app = Flask(__name__)
+# Find the correct template folder when running from a different location
+tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+
+app = Flask(__name__, template_folder=tmpl_dir)
 
 
 # -----------

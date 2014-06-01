@@ -1,4 +1,6 @@
 env/
+build/
+dist/
 .workon
 .epio-app
 *.pyc

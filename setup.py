@@ -5,7 +5,7 @@ import re
 
 setup(
     name="httpbin",
-    version="0.1.0",
+    version="0.1.1",
     description="HTTP Request and Response Service",
 
     # The project URL.
@@ -28,5 +28,6 @@ setup(
          'Programming Language :: Python :: 3.4',
     ],
     packages=find_packages(),
+    include_package_data = True, # include files listed in MANIFEST.in
     install_requires=['Flask','MarkupSafe','decorator','itsdangerous','six'],
 )
