@@ -75,6 +75,11 @@ def set_cors_headers(response):
     return response
 
 
+@app.before_request
+def option_method_bf(*args, **kwargs):
+    if request.method == 'OPTIONS':
+        return render_template('options.json')
+
 # ------
 # Routes
 # ------

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import base64
 import unittest
+import json
+
 from werkzeug.http import parse_dict_header
 from hashlib import md5
 
@@ -131,6 +133,33 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.get('/drip?numbytes=400&duration=2&delay=1')
         self.assertEqual(len(response.get_data()), 400)
         self.assertEqual(response.status_code, 200)
+
+    def assertValidOptionsResponse(self, response):
+        data = response.get_data()
+
+        # Non empty response
+        self.assertTrue(len(data) > 0)
+
+        # Valid json with proper content from options.json template
+        json_data = json.loads(data)
+        self.assertEqual(json_data.get('name'), 'httpbin')
+
+        # Headers from app.after_request properly set
+        self.assertEqual(
+            response.headers.get('Access-Control-Allow-Credentials'), 'true')
+        self.assertEqual(
+            response.headers.get('Access-Control-Allow-Methods'),
+            'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+        self.assertEqual(
+            response.headers.get('Access-Control-Max-Age'), '3600')
+
+    def test_options_http_method_for_index(self):
+        response = self.app.options('/')
+        self.assertValidOptionsResponse(response)
+
+    def test_options_http_method_for_options_route(self):
+        response = self.app.options('/options')
+        self.assertValidOptionsResponse(response)
 
 
 if __name__ == '__main__':
