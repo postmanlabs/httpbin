@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import base64
 import unittest
+import json
+
 from werkzeug.http import parse_dict_header
 from hashlib import md5
 
@@ -40,28 +42,39 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_post_file_binary(self):
-        with open('httpbin/core.pyc','rb') as f:
+        with open('httpbin/core.pyc', 'rb') as f:
             response = self.app.post('/post', data={"file": f.read()})
         self.assertEqual(response.status_code, 200)
 
     def test_set_cors_headers_after_request(self):
         response = self.app.get('/get')
-        self.assertEqual(response.headers.get('Access-Control-Allow-Origin'), '*')
+        self.assertEqual(
+            response.headers.get('Access-Control-Allow-Origin'), '*')
 
     def test_set_cors_headers_after_request_with_request_origin(self):
         response = self.app.get('/get', headers={'Origin': 'origin'})
-        self.assertEqual(response.headers.get('Access-Control-Allow-Origin'), 'origin')
+        self.assertEqual(
+            response.headers.get('Access-Control-Allow-Origin'), 'origin')
 
     def test_set_cors_headers_with_options_verb(self):
         response = self.app.open('/get', method='OPTIONS')
-        self.assertEqual(response.headers.get('Access-Control-Allow-Origin'), '*')
-        self.assertEqual(response.headers.get('Access-Control-Allow-Credentials'), 'true')
-        self.assertEqual(response.headers.get('Access-Control-Allow-Methods'), 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-        self.assertEqual(response.headers.get('Access-Control-Max-Age'), '3600')
-        self.assertNotIn('Access-Control-Allow-Headers', response.headers)  # FIXME should we add any extra headers?
+        self.assertEqual(
+            response.headers.get('Access-Control-Allow-Origin'), '*')
+        self.assertEqual(
+            response.headers.get('Access-Control-Allow-Credentials'), 'true')
+        self.assertEqual(
+            response.headers.get('Access-Control-Allow-Methods'),
+            'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+        self.assertEqual(
+            response.headers.get('Access-Control-Max-Age'), '3600')
+
+        # FIXME should we add any extra headers?
+        self.assertNotIn(
+            'Access-Control-Allow-Headers', response.headers)
 
     def test_user_agent(self):
-        response = self.app.get('/user-agent', headers={'User-Agent':'test'})
+        response = self.app.get(
+            '/user-agent', headers={'User-Agent': 'test'})
         self.assertIn('test', response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 200)
 
@@ -73,9 +86,11 @@ class HttpbinTestCase(unittest.TestCase):
         # make first request
         unauthorized_response = self.app.get(
             '/digest-auth/auth/user/passwd',
-            environ_base = {
-                'REMOTE_ADDR':'127.0.0.1', # digest auth uses the remote addr to build the nonce
-        })
+            environ_base={
+                'REMOTE_ADDR': '127.0.0.1',  # digest auth uses the
+                                             # remote addr to build the nonce
+            })
+
         # make sure it returns a 401
         self.assertEqual(unauthorized_response.status_code, 401)
         header = unauthorized_response.headers.get('WWW-Authenticate')
@@ -101,10 +116,12 @@ class HttpbinTestCase(unittest.TestCase):
         # make second request
         authorized_response = self.app.get(
             '/digest-auth/auth/user/passwd',
-            environ_base = {
-                'REMOTE_ADDR':'127.0.0.1', # httpbin's digest auth implementation uses the remote addr to build the nonce
+            environ_base={
+                'REMOTE_ADDR': '127.0.0.1',  # httpbin's digest auth
+                                             # implementation uses the remote
+                                             # addr to build the nonce
             },
-            headers =  {
+            headers={
                 'Authorization': auth_header,
             }
         )
@@ -117,6 +134,32 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(len(response.get_data()), 400)
         self.assertEqual(response.status_code, 200)
 
+    def assertValidOptionsResponse(self, response):
+        data = response.get_data()
+
+        # Non empty response
+        self.assertTrue(len(data) > 0)
+
+        # Valid json with proper content from options.json template
+        json_data = json.loads(data)
+        self.assertEqual(json_data.get('name'), 'httpbin')
+
+        # Headers from app.after_request properly set
+        self.assertEqual(
+            response.headers.get('Access-Control-Allow-Credentials'), 'true')
+        self.assertEqual(
+            response.headers.get('Access-Control-Allow-Methods'),
+            'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+        self.assertEqual(
+            response.headers.get('Access-Control-Max-Age'), '3600')
+
+    def test_options_http_method_for_index(self):
+        response = self.app.options('/')
+        self.assertValidOptionsResponse(response)
+
+    def test_options_http_method_for_options_route(self):
+        response = self.app.options('/options')
+        self.assertValidOptionsResponse(response)
 
 
 if __name__ == '__main__':
