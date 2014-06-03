@@ -50,7 +50,7 @@ ROBOT_TXT = """User-agent: *
 Disallow: /deny
 """
 
-ANGRY_ASCII ="""
+ANGRY_ASCII = """
           .-''''''-.
         .' _      _ '.
        /   O      O   \\
@@ -67,8 +67,8 @@ ANGRY_ASCII ="""
 def json_safe(string, content_type='application/octet-stream'):
     """Returns JSON-safe version of `string`.
 
-    If `string` is a Unicode string or a valid UTF-8, it is returned unmodified,
-    as it can safely be encoded to JSON string.
+    If `string` is a Unicode string or a valid UTF-8,
+    it is returned unmodified, as it can safely be encoded to JSON string.
 
     If `string` contains raw/binary data, it is Base64-encoded, formatted and
     returned according to "data" URL scheme (RFC2397). Since JSON is not
@@ -81,7 +81,7 @@ def json_safe(string, content_type='application/octet-stream'):
         return string
     except (ValueError, TypeError):
         return b''.join([
-            b'data:', 
+            b'data:',
             content_type.encode('utf-8'),
             b';base64,',
             base64.b64encode(string)
@@ -137,7 +137,8 @@ def semiflatten(multi):
 def get_dict(*keys, **extras):
     """Returns request dict of given keys."""
 
-    _keys = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json')
+    _keys = (
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json')
 
     assert all(map(_keys.__contains__, keys))
 
@@ -222,10 +223,8 @@ def check_basic_auth(user, passwd):
     return auth and auth.username == user and auth.password == passwd
 
 
-
 # Digest auth helpers
 # qop is a quality of protection
-
 def H(data):
     return md5(data).hexdigest()
 
@@ -237,9 +236,10 @@ def HA1(realm, username, password):
     """
     if not realm:
         realm = u''
-    return H(b":".join([username.encode('utf-8'),
-                           realm.encode('utf-8'),
-                           password.encode('utf-8')]))
+    return H(b":".join([
+        username.encode('utf-8'),
+        realm.encode('utf-8'),
+        password.encode('utf-8')]))
 
 
 def HA2(credentails, request):
@@ -251,7 +251,10 @@ def HA2(credentails, request):
         HA2 = md5(A2) = MD5(method:digestURI:MD5(entityBody))
     """
     if credentails.get("qop") == "auth" or credentails.get('qop') is None:
-        return H(b":".join([request['method'].encode('utf-8'), request['uri'].encode('utf-8')]))
+        return H(
+            b":".join([
+                request['method'].encode('utf-8'),
+                request['uri'].encode('utf-8')]))
     elif credentails.get("qop") == "auth-int":
         for k in 'method', 'uri', 'body':
             if k not in request:
@@ -265,9 +268,11 @@ def HA2(credentails, request):
 def response(credentails, password, request):
     """Compile digest auth response
 
-    If the qop directive's value is "auth" or "auth-int" , then compute the response as follows:
+    If the qop directive's value is "auth" or "auth-int" ,
+    then compute the response as follows:
        RESPONSE = MD5(HA1:nonce:nonceCount:clienNonce:qop:HA2)
-    Else if the qop directive is unspecified, then compute the response as follows:
+    Else if the qop directive is unspecified,
+    then compute the response as follows:
        RESPONSE = MD5(HA1:nonce:HA2)
 
     Arguments:
@@ -284,11 +289,12 @@ def response(credentails, password, request):
     HA2_value = HA2(credentails, request)
     if credentails.get('qop') is None:
         response = H(b":".join([
-            HA1_value.encode('utf-8'), 
-            credentails.get('nonce').encode('utf-8'), 
+            HA1_value.encode('utf-8'),
+            credentails.get('nonce').encode('utf-8'),
             HA2_value.encode('utf-8')
         ]))
-    elif credentails.get('qop') == 'auth' or credentails.get('qop') == 'auth-int':
+    elif (credentails.get('qop') == 'auth' or
+          credentails.get('qop') == 'auth-int'):
         for k in 'nonce', 'nc', 'cnonce', 'qop':
             if k not in credentails:
                 raise ValueError("%s required for response H" % k)
@@ -308,12 +314,15 @@ def check_digest_auth(user, passwd):
     """Check user authentication using HTTP Digest auth"""
 
     if request.headers.get('Authorization'):
-        credentails = parse_authorization_header(request.headers.get('Authorization'))
+        credentails = parse_authorization_header(
+            request.headers.get('Authorization'))
         if not credentails:
             return
-        response_hash = response(credentails, passwd, dict(uri=request.path,
-                                                           body=request.data,
-                                                           method=request.method))
+        response_hash = response(
+            credentails, passwd, dict(
+                uri=request.path,
+                body=request.data,
+                method=request.method))
         if credentails['response'] == response_hash:
             return True
     return False

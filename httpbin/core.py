@@ -15,14 +15,18 @@ import uuid
 import random
 import base64
 
-from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
+from flask import (
+    Flask, Response, request, render_template,
+    redirect, jsonify, make_response)
 from werkzeug.datastructures import WWWAuthenticate
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
 from six.moves import range as xrange
 
 from . import filters
-from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H, ROBOT_TXT, ANGRY_ASCII
+from .helpers import (
+    get_headers, status_code, get_dict,
+    check_basic_auth, check_digest_auth, H, ROBOT_TXT, ANGRY_ASCII)
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
@@ -37,11 +41,20 @@ ENV_COOKIES = (
     '__utmb'
 )
 
+PNG_IMAGE = ('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4' +
+             'nGMAAQAABQABDQottAAAAABJRU5ErkJggg==')
+
+JPEG_IMAGE = (
+    '/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBA' +
+    'gGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/yQALCAABA' +
+    'AEBAREA/8wABgAQEAX/2gAIAQEAAD8A0s8g/9k=')
+
 # Prevent WSGI from correcting the casing of the Location header
 BaseResponse.autocorrect_location_header = False
 
 # Find the correct template folder when running from a different location
-tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+tmpl_dir = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 app = Flask(__name__, template_folder=tmpl_dir)
 
@@ -51,11 +64,13 @@ app = Flask(__name__, template_folder=tmpl_dir)
 # -----------
 @app.after_request
 def set_cors_headers(response):
-    response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+    response.headers['Access-Control-Allow-Origin'] = request.headers.get(
+        'Origin', '*')
 
     if request.method == 'OPTIONS':
         response.headers['Access-Control-Allow-Credentials'] = 'true'
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
+        response.headers['Access-Control-Allow-Methods'] = (
+            'GET, POST, PUT, DELETE, PATCH, OPTIONS')
         response.headers['Access-Control-Max-Age'] = '3600'  # 1 hour cache
     return response
 
@@ -102,7 +117,8 @@ def view_deny_page():
 def view_origin():
     """Returns Origin IP."""
 
-    return jsonify(origin=request.headers.get('X-Forwarded-For', request.remote_addr))
+    return jsonify(
+        origin=request.headers.get('X-Forwarded-For', request.remote_addr))
 
 
 @app.route('/headers')
@@ -156,7 +172,8 @@ def view_patch():
 def view_delete():
     """Returns DETLETE Data."""
 
-    return jsonify(get_dict('url', 'args', 'data', 'origin', 'headers', 'json'))
+    return jsonify(
+        get_dict('url', 'args', 'data', 'origin', 'headers', 'json'))
 
 
 @app.route('/gzip')
@@ -236,7 +253,7 @@ def stream_n_messages(n):
     return Response(generate_stream(), headers={
         "Transfer-Encoding": "chunked",
         "Content-Type": "application/json",
-        })
+    })
 
 
 @app.route('/status/<codes>')
@@ -313,7 +330,8 @@ def set_cookie(name, value):
 
 @app.route('/cookies/set')
 def set_cookies():
-    """Sets cookie(s) as provided by the query string and redirects to cookie list."""
+    """Sets cookie(s) as provided by the query string
+    and redirects to cookie list."""
 
     cookies = dict(request.args.items())
     r = app.make_response(redirect('/cookies'))
@@ -325,7 +343,8 @@ def set_cookies():
 
 @app.route('/cookies/delete')
 def delete_cookies():
-    """Deletes cookie(s) as provided by the query string and redirects to cookie list."""
+    """Deletes cookie(s) as provided by the query
+    string and redirects to cookie list."""
 
     cookies = dict(request.args.items())
     r = app.make_response(redirect('/cookies'))
@@ -368,7 +387,7 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
         # encode it back to ascii.  Also, RFC2617 says about nonces: "The
         # contents of the nonce are implementation dependent"
         nonce = H(b''.join([
-            getattr(request,'remote_addr',u'').encode('ascii'),
+            getattr(request, 'remote_addr', u'').encode('ascii'),
             b':',
             str(time.time()).encode('ascii'),
             b':',
@@ -398,6 +417,7 @@ def delay_response(delay):
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
 
+
 @app.route('/drip')
 def drip():
     """Drips data over a duration after an optional initial delay."""
@@ -419,17 +439,21 @@ def drip():
         "Content-Type": "application/octet-stream",
         })
 
+
 @app.route('/base64/<value>')
 def decode_base64(value):
     """Decodes base64url-encoded string"""
-    encoded = value.encode('utf-8') # base64 expects binary string as input
+    encoded = value.encode('utf-8')  # base64 expects binary string as input
     return base64.urlsafe_b64decode(encoded).decode('utf-8')
 
 
 @app.route('/cache', methods=('GET',))
 def cache():
-    """Returns a 304 if an If-Modified-Since header or If-None-Match is present. Returns the same as a GET otherwise."""
-    is_conditional = request.headers.get('If-Modified-Since') or request.headers.get('If-None-Match')
+    """Returns a 304 if an If-Modified-Since
+    header or If-None-Match is present.
+    Returns the same as a GET otherwise."""
+    is_conditional = request.headers.get(
+        'If-Modified-Since') or request.headers.get('If-None-Match')
 
     if is_conditional is None:
         response = view_get()
@@ -451,22 +475,24 @@ def cache_control(value):
 @app.route('/bytes/<int:n>')
 def random_bytes(n):
     """Returns n random bytes generated with given seed."""
-    n = min(n, 100 * 1024) # set 100KB limit
+    n = min(n, 100 * 1024)  # set 100KB limit
 
     params = CaseInsensitiveDict(request.args.items())
     if 'seed' in params:
         random.seed(int(params['seed']))
 
     response = make_response()
-    response.data = bytes().join(chr(random.randint(0, 255)) for i in xrange(n))
+    response.data = bytes().join(
+        chr(random.randint(0, 255)) for i in xrange(n))
     response.content_type = 'application/octet-stream'
     return response
 
 
 @app.route('/stream-bytes/<int:n>')
 def stream_random_bytes(n):
-    """Streams n random bytes generated with given seed, at given chunk size per packet."""
-    n = min(n, 100 * 1024) # set 100KB limit
+    """Streams n random bytes generated with given seed,
+    at given chunk size per packet."""
+    n = min(n, 100 * 1024)  # set 100KB limit
 
     params = CaseInsensitiveDict(request.args.items())
     if 'seed' in params:
@@ -498,7 +524,7 @@ def stream_random_bytes(n):
 @app.route('/links/<int:n>/<int:offset>')
 def link_page(n, offset):
     """Generate a page containing n links to other pages which do the same."""
-    n = min(max(1, n), 200) # limit to between 1 and 200 links
+    n = min(max(1, n), 200)  # limit to between 1 and 200 links
 
     link = "<a href='/links/{0}/{1}'>{2}</a> "
 
@@ -524,10 +550,15 @@ def image():
     """Returns a simple image of the type suggest by the Accept header."""
 
     headers = get_headers()
-    if headers['accept'].lower() == 'image/png' or headers['accept'].lower() == 'image/*':
-        return Response(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg=='), headers={'Content-Type': 'image/png'})
+    if (headers['accept'].lower() == 'image/png' or
+            headers['accept'].lower() == 'image/*'):
+        return Response(
+            base64.b64decode(PNG_IMAGE),
+            headers={'Content-Type': 'image/png'})
     elif headers['accept'].lower() == 'image/jpeg':
-        return Response(base64.b64decode('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/yQALCAABAAEBAREA/8wABgAQEAX/2gAIAQEAAD8A0s8g/9k='), headers={'Content-Type': 'image/jpeg'})
+        return Response(
+            base64.b64decode(JPEG_IMAGE),
+            headers={'Content-Type': 'image/jpeg'})
     else:
         return status_code(404)
 
