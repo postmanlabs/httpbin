@@ -75,13 +75,12 @@ def json_safe(string, content_type='application/octet-stream'):
     suitable for binary data, some additional encoding was necessary; "data"
     URL scheme was chosen for its simplicity.
     """
-
     try:
         _encoded = json.dumps(string)
         return string
     except (ValueError, TypeError):
         return b''.join([
-            b'data:', 
+            b'data:',
             content_type.encode('utf-8'),
             b';base64,',
             base64.b64encode(string)
@@ -94,7 +93,8 @@ def get_files():
     files = dict()
 
     for k, v in request.files.items():
-        val = json_safe(v.read(), request.files[k].content_type)
+        content_type = request.files[k].content_type or 'application/octet-stream'
+        val = json_safe(v.read(), content_type)
         if files.get(k):
             if not isinstance(files[k], list):
                 files[k] = [files[k]]

@@ -4,6 +4,7 @@ import base64
 import unittest
 from werkzeug.http import parse_dict_header
 from hashlib import md5
+from six import BytesIO
 
 import httpbin
 
@@ -34,14 +35,25 @@ class HttpbinTestCase(unittest.TestCase):
                                  content_type='application/octet-stream')
         self.assertEqual(response.status_code, 200)
 
-    def test_post_file_text(self):
+    def test_post_body_text(self):
         with open('httpbin/core.py') as f:
             response = self.app.post('/post', data={"file": f.read()})
         self.assertEqual(response.status_code, 200)
 
-    def test_post_file_binary(self):
+    def test_post_body_binary(self):
         with open('httpbin/core.pyc','rb') as f:
             response = self.app.post('/post', data={"file": f.read()})
+        self.assertEqual(response.status_code, 200)
+
+    def test_post_file_with_missing_content_type_header(self):
+        # I built up the form data manually here because I couldn't find a way
+        # to convince the werkzeug test client to send files without the
+        # content-type of the file set.
+        response = self.app.post(
+            '/post',
+            content_type='multipart/form-data; boundary=bound',
+            data = '--bound\r\nContent-Disposition: form-data; name="media"; filename="test.bin"\r\n\r\n\xa5\xc6\n--bound--\r\n'
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_set_cors_headers_after_request(self):
