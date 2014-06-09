@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import base64
 import unittest
+import six
 from werkzeug.http import parse_dict_header
 from hashlib import md5
 from six import BytesIO
@@ -134,10 +135,30 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(len(response.get_data()), 1024)
         self.assertEqual(response.status_code, 200)
 
+    def test_bytes_with_seed(self):
+        response = self.app.get('/bytes/10?seed=0')
+        # The RNG changed in python3, so even though we are
+        # setting the seed, we can't expect the value to be the
+        # same across both interpreters.
+        if six.PY3:
+            self.assertEqual(response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o')
+        else:
+            self.assertEqual(response.data, b'\xd8\xc2kB\x82g\xc8Mz\x95')
+
     def test_stream_bytes(self):
         response = self.app.get('/stream-bytes/1024')
         self.assertEqual(len(response.get_data()), 1024)
         self.assertEqual(response.status_code, 200)
+
+    def test_stream_bytes_with_seed(self):
+        response = self.app.get('/stream-bytes/10?seed=0')
+        # The RNG changed in python3, so even though we are
+        # setting the seed, we can't expect the value to be the
+        # same across both interpreters.
+        if six.PY3:
+            self.assertEqual(response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o')
+        else:
+            self.assertEqual(response.data, b'\xd8\xc2kB\x82g\xc8Mz\x95')
 
 
 if __name__ == '__main__':

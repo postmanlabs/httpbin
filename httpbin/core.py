@@ -458,7 +458,9 @@ def random_bytes(n):
         random.seed(int(params['seed']))
 
     response = make_response()
-    response.data = os.urandom(n)
+
+    # Note: can't just use os.urandom here because it ignores the seed
+    response.data = bytearray(random.randint(0, 255) for i in range(n))
     response.content_type = 'application/octet-stream'
     return response
 
@@ -478,16 +480,16 @@ def stream_random_bytes(n):
         chunk_size = 10 * 1024
 
     def generate_bytes():
-        chunks = []
+        chunks = bytearray()
 
         for i in xrange(n):
-            chunks.append(os.urandom(1))
+            chunks.append(random.randint(0, 255))
             if len(chunks) == chunk_size:
-                yield(bytes().join(chunks))
-                chunks = []
+                yield(bytes(chunks))
+                chunks = bytearray()
 
         if chunks:
-            yield(bytes().join(chunks))
+            yield(bytes(chunks))
 
     headers = {'Transfer-Encoding': 'chunked',
                'Content-Type': 'application/octet-stream'}
