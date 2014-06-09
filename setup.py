@@ -5,7 +5,7 @@ import re
 
 setup(
     name="httpbin",
-    version="0.1.1",
+    version="0.1.2",
     description="HTTP Request and Response Service",
 
     # The project URL.
