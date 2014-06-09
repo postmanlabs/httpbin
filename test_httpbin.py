@@ -129,6 +129,10 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(len(response.get_data()), 400)
         self.assertEqual(response.status_code, 200)
 
+    def test_get_bytes(self):
+        response = self.app.get('/bytes/1024')
+        self.assertEqual(len(response.get_data()), 1024)
+        self.assertEqual(response.status_code, 200)
 
 
 if __name__ == '__main__':

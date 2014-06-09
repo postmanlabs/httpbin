@@ -458,7 +458,7 @@ def random_bytes(n):
         random.seed(int(params['seed']))
 
     response = make_response()
-    response.data = bytes().join(chr(random.randint(0, 255)) for i in xrange(n))
+    response.data = os.urandom(n)
     response.content_type = 'application/octet-stream'
     return response
 
