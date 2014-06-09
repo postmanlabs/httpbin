@@ -481,7 +481,7 @@ def stream_random_bytes(n):
         chunks = []
 
         for i in xrange(n):
-            chunks.append(chr(random.randint(0, 255)))
+            chunks.append(os.urandom(1))
             if len(chunks) == chunk_size:
                 yield(bytes().join(chunks))
                 chunks = []
