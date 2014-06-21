@@ -3,6 +3,7 @@
 import base64
 import unittest
 import six
+import json
 from werkzeug.http import parse_dict_header
 from hashlib import md5
 from six import BytesIO
@@ -159,6 +160,14 @@ class HttpbinTestCase(unittest.TestCase):
             self.assertEqual(response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o')
         else:
             self.assertEqual(response.data, b'\xd8\xc2kB\x82g\xc8Mz\x95')
+
+    def test_delete_endpoint_returns_body(self):
+        response = self.app.delete(
+            '/delete',
+            data={'name':'kevin'},
+            content_type='application/x-www-form-urlencoded'
+        )
+        assert json.loads(response.data.decode('utf-8'))['form'] == {'name':'kevin'}
 
 
 if __name__ == '__main__':

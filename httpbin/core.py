@@ -156,7 +156,8 @@ def view_patch():
 def view_delete():
     """Returns DETLETE Data."""
 
-    return jsonify(get_dict('url', 'args', 'data', 'origin', 'headers', 'json'))
+    return jsonify(get_dict(
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
 
 
 @app.route('/gzip')
