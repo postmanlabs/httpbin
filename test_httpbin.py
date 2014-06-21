@@ -169,6 +169,19 @@ class HttpbinTestCase(unittest.TestCase):
         )
         assert json.loads(response.data.decode('utf-8'))['form'] == {'name':'kevin'}
 
+    def test_methods__to_status_endpoint(self):
+        methods = [
+            'GET',
+            'HEAD',
+            'POST',
+            'PUT',
+            'DELETE',
+            'PATCH',
+            'TRACE',
+        ]
+        for m in methods:
+            response = self.app.open(path='/status/418', method=m)
+            self.assertEqual(response.status_code, 418)
 
 if __name__ == '__main__':
     unittest.main()
