@@ -43,7 +43,7 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_post_body_binary(self):
-        with open('httpbin/core.pyc','rb') as f:
+        with open('httpbin/core.pyc', 'rb') as f:
             response = self.app.post('/post', data={"file": f.read()})
         self.assertEqual(response.status_code, 200)
 
@@ -51,31 +51,51 @@ class HttpbinTestCase(unittest.TestCase):
         # I built up the form data manually here because I couldn't find a way
         # to convince the werkzeug test client to send files without the
         # content-type of the file set.
+        data = '--bound\r\nContent-Disposition: form-data; name="media"; '
+        data += 'filename="test.bin"\r\n\r\n\xa5\xc6\n--bound--\r\n'
         response = self.app.post(
             '/post',
             content_type='multipart/form-data; boundary=bound',
-            data = '--bound\r\nContent-Disposition: form-data; name="media"; filename="test.bin"\r\n\r\n\xa5\xc6\n--bound--\r\n'
+            data=data,
         )
         self.assertEqual(response.status_code, 200)
 
     def test_set_cors_headers_after_request(self):
         response = self.app.get('/get')
-        self.assertEqual(response.headers.get('Access-Control-Allow-Origin'), '*')
+        self.assertEqual(
+            response.headers.get('Access-Control-Allow-Origin'), '*'
+        )
 
     def test_set_cors_headers_after_request_with_request_origin(self):
         response = self.app.get('/get', headers={'Origin': 'origin'})
-        self.assertEqual(response.headers.get('Access-Control-Allow-Origin'), 'origin')
+        self.assertEqual(
+            response.headers.get('Access-Control-Allow-Origin'), 'origin'
+        )
 
     def test_set_cors_headers_with_options_verb(self):
         response = self.app.open('/get', method='OPTIONS')
-        self.assertEqual(response.headers.get('Access-Control-Allow-Origin'), '*')
-        self.assertEqual(response.headers.get('Access-Control-Allow-Credentials'), 'true')
-        self.assertEqual(response.headers.get('Access-Control-Allow-Methods'), 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-        self.assertEqual(response.headers.get('Access-Control-Max-Age'), '3600')
-        self.assertNotIn('Access-Control-Allow-Headers', response.headers)  # FIXME should we add any extra headers?
+        self.assertEqual(
+            response.headers.get('Access-Control-Allow-Origin'), '*'
+        )
+        self.assertEqual(
+            response.headers.get('Access-Control-Allow-Credentials'), 'true'
+        )
+        self.assertEqual(
+            response.headers.get('Access-Control-Allow-Methods'),
+            'GET, POST, PUT, DELETE, PATCH, OPTIONS'
+        )
+        self.assertEqual(
+            response.headers.get('Access-Control-Max-Age'), '3600'
+        )
+        # FIXME should we add any extra headers?
+        self.assertNotIn(
+            'Access-Control-Allow-Headers', response.headers
+        )
 
     def test_user_agent(self):
-        response = self.app.get('/user-agent', headers={'User-Agent':'test'})
+        response = self.app.get(
+            '/user-agent', headers={'User-Agent': 'test'}
+        )
         self.assertIn('test', response.data.decode('utf-8'))
         self.assertEqual(response.status_code, 200)
 
@@ -87,9 +107,11 @@ class HttpbinTestCase(unittest.TestCase):
         # make first request
         unauthorized_response = self.app.get(
             '/digest-auth/auth/user/passwd',
-            environ_base = {
-                'REMOTE_ADDR':'127.0.0.1', # digest auth uses the remote addr to build the nonce
-        })
+            environ_base={
+                # digest auth uses the remote addr to build the nonce
+                'REMOTE_ADDR': '127.0.0.1',
+            }
+        )
         # make sure it returns a 401
         self.assertEqual(unauthorized_response.status_code, 401)
         header = unauthorized_response.headers.get('WWW-Authenticate')
@@ -115,10 +137,12 @@ class HttpbinTestCase(unittest.TestCase):
         # make second request
         authorized_response = self.app.get(
             '/digest-auth/auth/user/passwd',
-            environ_base = {
-                'REMOTE_ADDR':'127.0.0.1', # httpbin's digest auth implementation uses the remote addr to build the nonce
+            environ_base={
+                # httpbin's digest auth implementation uses the remote addr to
+                # build the nonce
+                'REMOTE_ADDR': '127.0.0.1',
             },
-            headers =  {
+            headers={
                 'Authorization': auth_header,
             }
         )
@@ -142,9 +166,13 @@ class HttpbinTestCase(unittest.TestCase):
         # setting the seed, we can't expect the value to be the
         # same across both interpreters.
         if six.PY3:
-            self.assertEqual(response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o')
+            self.assertEqual(
+                response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
+            )
         else:
-            self.assertEqual(response.data, b'\xd8\xc2kB\x82g\xc8Mz\x95')
+            self.assertEqual(
+                response.data, b'\xd8\xc2kB\x82g\xc8Mz\x95'
+            )
 
     def test_stream_bytes(self):
         response = self.app.get('/stream-bytes/1024')
@@ -157,17 +185,22 @@ class HttpbinTestCase(unittest.TestCase):
         # setting the seed, we can't expect the value to be the
         # same across both interpreters.
         if six.PY3:
-            self.assertEqual(response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o')
+            self.assertEqual(
+                response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
+            )
         else:
-            self.assertEqual(response.data, b'\xd8\xc2kB\x82g\xc8Mz\x95')
+            self.assertEqual(
+                response.data, b'\xd8\xc2kB\x82g\xc8Mz\x95'
+            )
 
     def test_delete_endpoint_returns_body(self):
         response = self.app.delete(
             '/delete',
-            data={'name':'kevin'},
+            data={'name': 'kevin'},
             content_type='application/x-www-form-urlencoded'
         )
-        assert json.loads(response.data.decode('utf-8'))['form'] == {'name':'kevin'}
+        form_data = json.loads(response.data.decode('utf-8'))['form']
+        self.assertEquals(form_data, {'name': 'kevin'})
 
     def test_methods__to_status_endpoint(self):
         methods = [
@@ -185,7 +218,9 @@ class HttpbinTestCase(unittest.TestCase):
 
     def test_xml_endpoint(self):
         response = self.app.get(path='/xml')
-        self.assertEqual(response.headers.get('Content-Type'), 'application/xml')
+        self.assertEqual(
+            response.headers.get('Content-Type'), 'application/xml'
+        )
 
 
 if __name__ == '__main__':
