@@ -103,6 +103,21 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.get('/gzip')
         self.assertEqual(response.status_code, 200)
 
+    def test_digest_auth_with_wrong_password(self):
+        auth_header = 'Digest username="user",realm="wrong",nonce="wrong",uri="/digest-auth/user/passwd",response="wrong",opaque="wrong"'
+        response = self.app.get(
+            '/digest-auth/auth/user/passwd',
+            environ_base={
+                # httpbin's digest auth implementation uses the remote addr to
+                # build the nonce
+                'REMOTE_ADDR': '127.0.0.1',
+            },
+            headers={
+                'Authorization': auth_header,
+            }
+        )
+        assert 'Digest' in response.headers.get('WWW-Authenticate')
+
     def test_digest_auth(self):
         # make first request
         unauthorized_response = self.app.get(
