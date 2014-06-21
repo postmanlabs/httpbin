@@ -1,8 +1,7 @@
 httpbin(1): HTTP Request & Response Service
 ===========================================
 
-Freely hosted in [HTTP](http://httpbin.org) &
-[HTTPS](https://httpbin.org) flavors.
+Freely hosted in [HTTP](http://httpbin.org), [HTTPS](https://httpbin.org) & [EU](http://eu.httpbin.org/) flavors by [Runscope](https://www.runscope.com/)
 
 ## ENDPOINTS
 
@@ -11,10 +10,10 @@ Freely hosted in [HTTP](http://httpbin.org) &
 - [`/user-agent`](http://httpbin.org/user-agent) Returns user-agent.
 - [`/headers`](http://httpbin.org/headers) Returns header dict.
 - [`/get`](http://httpbin.org/get) Returns GET data.
-- [`/post`](http://hurl.it/hurls/190ccaa90ee1ed35d34abfa4ac6ef088bc319402/d834bcdf7718c44c4184bf914ee473b6ebd8e566) Returns POST data.
-- [`/patch`](http://hurl.it/hurls/18016368fa5e5eef80db935f5dae615d5858a4a4/a512d904f5da64df9627ee998c040f7874d6436a) Returns PATCH data.
-- [`/put`](http://hurl.it/hurls/18016368fa5e5eef80db935f5dae615d5858a4a4/a512d904f5da64df9627ee998c040f7874d6436a) Returns PUT data.
-- [`/delete`](http://hurl.it/hurls/6faafea5191f77172fca4cfe1505739230d5f769/bc255ffc69e04c2c8b968822c59544746bbb872c) Returns DELETE data
+- `/post` Returns POST data.
+- `/patch` Returns PATCH data.
+- `/put` Returns PUT data.
+- `/delete` Returns DELETE data
 - [`/gzip`](http://httpbin.org/gzip) Returns gzip-encoded data.
 - [`/deflate`](http://httpbin.org/deflate) Returns deflate-encoded data.
 - [`/status/:code`](http://httpbin.org/status/418) Returns given HTTP Status code.
@@ -39,10 +38,12 @@ Freely hosted in [HTTP](http://httpbin.org) &
 - [`/bytes/:n`](http://httpbin.org/bytes/1024) Generates *n* random bytes of binary data, accepts optional *seed* integer parameter.
 - [`/stream-bytes/:n`](http://httpbin.org/stream-bytes/1024) Streams *n* random bytes of binary data, accepts optional *seed* and *chunk_size* integer parameters.
 - [`/links/:n`](http://httpbin.org/links/10) Returns page containing *n* HTML links.
+- [`/forms/post`](http://httpbin.org/forms/post) HTML form that submits to */post*
+- [`/xml`](http://httpbin.org/xml) Returns some XML
 
 ## DESCRIPTION
 
-Testing an HTTP Library can become difficult sometimes. PostBin.org is fantastic
+Testing an HTTP Library can become difficult sometimes. [PostBin.org](http://postbin.org) is fantastic
 for testing POST requests, but not much else. This exists to cover all kinds of HTTP
 scenarios. Additional endpoints are being considered.
 
@@ -131,7 +132,7 @@ $ gunicorn httpbin:app
 
 ## AUTHOR
 
-A [Kenneth Reitz](http://kennethreitz.com/pages/open-projects.html)
+A [Kenneth Reitz](http://kennethreitz.com/)
 Project.
 
 ## SEE ALSO
