@@ -183,5 +183,10 @@ class HttpbinTestCase(unittest.TestCase):
             response = self.app.open(path='/status/418', method=m)
             self.assertEqual(response.status_code, 418)
 
+    def test_xml_endpoint(self):
+        response = self.app.get(path='/xml')
+        self.assertEqual(response.headers.get('Content-Type'), 'application/xml')
+
+
 if __name__ == '__main__':
     unittest.main()
