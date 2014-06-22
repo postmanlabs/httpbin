@@ -51,9 +51,11 @@ app = Flask(__name__, template_folder=tmpl_dir)
 @app.after_request
 def set_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
 
     if request.method == 'OPTIONS':
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        # Both of these headers are only used for the "preflight request"
+        # http://www.w3.org/TR/cors/#access-control-allow-methods-response-header
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
         response.headers['Access-Control-Max-Age'] = '3600'  # 1 hour cache
     return response
