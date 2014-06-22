@@ -215,7 +215,7 @@ class HttpbinTestCase(unittest.TestCase):
             content_type='application/x-www-form-urlencoded'
         )
         form_data = json.loads(response.data.decode('utf-8'))['form']
-        self.assertEquals(form_data, {'name': 'kevin'})
+        self.assertEqual(form_data, {'name': 'kevin'})
 
     def test_methods__to_status_endpoint(self):
         methods = [
@@ -236,6 +236,12 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(
             response.headers.get('Content-Type'), 'application/xml'
         )
+
+    def test_x_forwarded_proto(self):
+        response = self.app.get(path='/get', headers={
+            'X-Forwarded-Proto':'https'
+        })
+        assert json.loads(response.data.decode('utf-8'))['url'].startswith('https://')
 
 
 if __name__ == '__main__':
