@@ -47,6 +47,10 @@ class HttpbinTestCase(unittest.TestCase):
             response = self.app.post('/post', data={"file": f.read()})
         self.assertEqual(response.status_code, 200)
 
+    def test_post_body_unicode(self):
+        response = self.app.post('/post', data=u'оживлённым'.encode('utf-8'))
+        self.assertEqual(json.loads(response.data.decode('utf-8'))['data'], u'оживлённым')
+
     def test_post_file_with_missing_content_type_header(self):
         # I built up the form data manually here because I couldn't find a way
         # to convince the werkzeug test client to send files without the

@@ -77,6 +77,7 @@ def json_safe(string, content_type='application/octet-stream'):
     URL scheme was chosen for its simplicity.
     """
     try:
+        string = string.decode('utf-8')
         _encoded = json.dumps(string)
         return string
     except (ValueError, TypeError):
@@ -152,7 +153,6 @@ def get_dict(*keys, **extras):
     _keys = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json')
 
     assert all(map(_keys.__contains__, keys))
-
     data = request.data
     form = request.form
     form = semiflatten(request.form)
