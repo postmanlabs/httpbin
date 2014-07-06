@@ -126,6 +126,7 @@ $ gunicorn httpbin:app
 
 ## Changelog
 
+* 0.2.0: Added an XML endpoint.  Also fixes several bugs with unicode, CORS headers, digest auth, and more.
 * 0.1.2: Fix a couple Python3 bugs with the random byte endpoints, fix a bug when uploading files without a Content-Type header set.
 * 0.1.1: Added templates as data in setup.py
 * 0.1.0: Added python3 support and (re)publish on PyPI
