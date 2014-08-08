@@ -29,7 +29,7 @@ Freely hosted in [HTTP](http://httpbin.org), [HTTPS](https://httpbin.org) & [EU]
 - [`/digest-auth/:qop/:user/:passwd`](http://httpbin.org/digest-auth/auth/user/passwd) Challenges HTTP Digest Auth.
 - [`/stream/:n`](http://httpbin.org/stream/20) Streams *n*–100 lines.
 - [`/delay/:n`](http://httpbin.org/delay/3) Delays responding for *n*–10 seconds.
-- [`/drip?numbytes=n&duration=s&delay=s`](http://httpbin.org/drip?numbytes=5&duration=5) Drips data over a duration after an optional initial delay.
+- [`/drip?numbytes=n&duration=s&delay=s&code=code`](http://httpbin.org/drip?numbytes=5&duration=5&code=200) Drips data over a duration after an optional initial delay, then (optionally) returns with the given status code.
 - [`/html`](http://httpbin.org/html) Renders an HTML Page.
 - [`/robots.txt`](http://httpbin.org/robots.txt) Returns some robots.txt rules.
 - [`/deny`](http://httpbin.org/deny) Denied by robots.txt file.
