@@ -2,6 +2,8 @@
 <h1>httpbin(1): HTTP Request &amp; Response Service</h1>
 <p>Freely hosted in <a href="http://httpbin.org">HTTP</a>, <a href="https://httpbin.org">HTTPS</a> &amp; <a href="http://eu.httpbin.org/">EU</a> flavors by <a href="https://www.runscope.com/">Runscope</a></p>
 
+<p><a href="https://heroku.com/deploy?template=https://github.com/kennethreitz/httpbin"><img src="https://camo.githubusercontent.com/c0824806f5221ebb7d25e559568582dd39dd1170/68747470733a2f2f7777772e6865726f6b7563646e2e636f6d2f6465706c6f792f627574746f6e2e706e67" alt="Deploy to Heroku" /></a></p>
+
 <h2 id="ENDPOINTS">ENDPOINTS</h2>
 
 <ul>
@@ -29,7 +31,7 @@
 <li><a href="/digest-auth/auth/user/passwd"><code>/digest-auth/:qop/:user/:passwd</code></a> Challenges HTTP Digest Auth.</li>
 <li><a href="/stream/20"><code>/stream/:n</code></a> Streams <em>n</em>–100 lines.</li>
 <li><a href="/delay/3"><code>/delay/:n</code></a> Delays responding for <em>n</em>–10 seconds.</li>
-<li><a href="/drip?numbytes=5&amp;duration=5"><code>/drip?numbytes=n&amp;duration=s&amp;delay=s</code></a> Drips data over a duration after an optional initial delay.</li>
+<li><a href="/drip?numbytes=5&amp;duration=5&amp;code=200"><code>/drip?numbytes=n&amp;duration=s&amp;delay=s&amp;code=code</code></a> Drips data over a duration after an optional initial delay, then (optionally) returns with the given status code.</li>
 <li><a href="/html" data-bare-link="true"><code>/html</code></a> Renders an HTML Page.</li>
 <li><a href="/robots.txt" data-bare-link="true"><code>/robots.txt</code></a> Returns some robots.txt rules.</li>
 <li><a href="/deny" data-bare-link="true"><code>/deny</code></a> Denied by robots.txt file.</li>
