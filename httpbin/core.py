@@ -405,6 +405,7 @@ def drip():
     args = CaseInsensitiveDict(request.args.items())
     duration = float(args.get('duration', 2))
     numbytes = int(args.get('numbytes', 10))
+    code = int(args.get('code', 200))
     pause = duration / numbytes
 
     delay = float(args.get('delay', 0))
@@ -416,9 +417,13 @@ def drip():
             yield u"*".encode('utf-8')
             time.sleep(pause)
 
-    return Response(generate_bytes(), headers={
+    response = Response(generate_bytes(), headers={
         "Content-Type": "application/octet-stream",
-        })
+    })
+
+    response.status_code = code
+
+    return response
 
 @app.route('/base64/<value>')
 def decode_base64(value):
