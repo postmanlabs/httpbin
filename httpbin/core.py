@@ -59,7 +59,7 @@ def set_cors_headers(response):
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
         response.headers['Access-Control-Max-Age'] = '3600'  # 1 hour cache
         if request.headers.get('Access-Control-Request-Headers') is not None:
-            response.headers['Access-Control-Allow-Headers'] = request.headers.get('Access-Control-Request-Headers')
+            response.headers['Access-Control-Allow-Headers'] = request.headers['Access-Control-Request-Headers']
     return response
 
 
