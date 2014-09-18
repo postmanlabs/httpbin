@@ -419,6 +419,7 @@ def drip():
 
     response = Response(generate_bytes(), headers={
         "Content-Type": "application/octet-stream",
+        "Content-Length": str(numbytes),
     })
 
     response.status_code = code
