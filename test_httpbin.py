@@ -290,6 +290,50 @@ class HttpbinTestCase(unittest.TestCase):
         })
         assert json.loads(response.data.decode('utf-8'))['url'].startswith('https://')
 
+    def test_redirect_n_higher_than_1(self):
+        response = self.app.get('/redirect/5')
+        self.assertEqual(
+            response.headers.get('Location'), '/relative-redirect/4'
+        )
+
+    def test_redirect_absolute_param_n_higher_than_1(self):
+        response = self.app.get('/redirect/5?absolute=true')
+        self.assertEqual(
+            response.headers.get('Location'), 'http://localhost/absolute-redirect/4'
+        )
+
+    def test_redirect_n_equals_to_1(self):
+        response = self.app.get('/redirect/1')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.headers.get('Location'), '/get'
+        )
+
+    def test_relative_redirect_n_equals_to_1(self):
+        response = self.app.get('/relative-redirect/1')
+        self.assertEqual(
+            response.headers.get('Location'), '/get'
+        )
+
+    def test_relative_redirect_n_higher_than_1(self):
+        response = self.app.get('/relative-redirect/7')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.headers.get('Location'), '/relative-redirect/6'
+        )
+
+    def test_absolute_redirect_n_higher_than_1(self):
+        response = self.app.get('/absolute-redirect/5')
+        self.assertEqual(
+            response.headers.get('Location'), 'http://localhost/absolute-redirect/4'
+        )
+
+    def test_absolute_redirect_n_equals_to_1(self):
+        response = self.app.get('/absolute-redirect/1')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.headers.get('Location'), 'http://localhost/get'
+        )
 
 if __name__ == '__main__':
     unittest.main()

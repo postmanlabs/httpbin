@@ -14,7 +14,7 @@ import random
 import time
 import uuid
 
-from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response
+from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
@@ -188,14 +188,22 @@ def view_deflate_encoded_content():
 
 @app.route('/redirect/<int:n>')
 def redirect_n_times(n):
-    """301 Redirects n times."""
-
+    """302 Redirects n times."""
     assert n > 0
 
-    if (n == 1):
-        return redirect('/get')
+    absolute = request.args.get('absolute', 'false').lower() == 'true'
 
-    return redirect('/redirect/{0}'.format(n - 1))
+    if n == 1:
+        return redirect(url_for('view_get', _external=absolute))
+
+    if absolute:
+        return _redirect('absolute', n, True)
+    else:
+        return _redirect('relative', n, False)
+
+
+def _redirect(kind, n, external):
+    return redirect(url_for('{0}_redirect_n_times'.format(kind), n=n - 1, _external=external))
 
 
 @app.route('/redirect-to')
@@ -216,19 +224,31 @@ def redirect_to():
 
 @app.route('/relative-redirect/<int:n>')
 def relative_redirect_n_times(n):
-    """301 Redirects n times."""
+    """302 Redirects n times."""
 
     assert n > 0
 
     response = app.make_response('')
     response.status_code = 302
 
-    if (n == 1):
+    if n == 1:
         response.headers['Location'] = '/get'
         return response
 
     response.headers['Location'] = '/relative-redirect/{0}'.format(n - 1)
     return response
+
+
+@app.route('/absolute-redirect/<int:n>')
+def absolute_redirect_n_times(n):
+    """302 Redirects n times."""
+
+    assert n > 0
+
+    if n == 1:
+        return redirect(url_for('view_get', _external=True))
+
+    return _redirect('absolute', n, True)
 
 
 @app.route('/stream/<int:n>')
