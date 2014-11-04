@@ -127,6 +127,12 @@ $ pip install httpbin
 $ gunicorn httpbin:app
 ```
 
+Or run it directly:
+
+```bash
+$ python -m httpbin.core
+```
+
 ## Changelog
 
 * 0.2.0: Added an XML endpoint.  Also fixes several bugs with unicode, CORS headers, digest auth, and more.
