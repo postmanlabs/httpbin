@@ -1,1 +1,1 @@
-web: gunicorn httpbin:app -w 6
+web: gunicorn httpbin:app --log-file - --worker-class gevent
