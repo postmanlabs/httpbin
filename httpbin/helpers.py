@@ -297,7 +297,7 @@ def response(credentails, password, request):
     if credentails.get('qop') is None:
         response = H(b":".join([
             HA1_value.encode('utf-8'), 
-            credentails.get('nonce').encode('utf-8'), 
+            credentails.get('nonce', '').encode('utf-8'),
             HA2_value.encode('utf-8')
         ]))
     elif credentails.get('qop') == 'auth' or credentails.get('qop') == 'auth-int':
@@ -326,6 +326,6 @@ def check_digest_auth(user, passwd):
         response_hash = response(credentails, passwd, dict(uri=request.path,
                                                            body=request.data,
                                                            method=request.method))
-        if credentails['response'] == response_hash:
+        if credentails.get('response') == response_hash:
             return True
     return False
