@@ -24,6 +24,18 @@ class HttpbinTestCase(unittest.TestCase):
         httpbin.app.debug = True
         self.app = httpbin.app.test_client()
 
+    def test_response_headers_simple(self):
+        response = self.app.get('/response-headers?animal=dog')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get_all('animal'), ['dog'])
+        assert json.loads(response.data.decode('utf-8'))['animal'] == 'dog'
+
+    def test_response_headers_multi(self):
+        response = self.app.get('/response-headers?animal=dog&animal=cat')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get_all('animal'), ['dog', 'cat'])
+        assert json.loads(response.data.decode('utf-8'))['animal'] == ['dog', 'cat']
+
     def test_base64(self):
         greeting = u'Здравствуй, мир!'
         b64_encoded = _string_to_base64(greeting)

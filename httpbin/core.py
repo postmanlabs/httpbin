@@ -16,7 +16,7 @@ import random
 import base64
 
 from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
-from werkzeug.datastructures import WWWAuthenticate
+from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
 from six.moves import range as xrange
@@ -267,14 +267,20 @@ def view_status_code(codes):
 @app.route('/response-headers')
 def response_headers():
     """Returns a set of response headers from the query string """
-    headers = CaseInsensitiveDict(request.args.items())
-    response = jsonify(headers.items())
+    headers = MultiDict(request.args.items(multi=True))
+    response = jsonify(headers.lists())
 
     while True:
         content_len_shown = response.headers['Content-Length']
-        response = jsonify(response.headers.items())
-        for key, value in headers.items():
-            response.headers[key] = value
+        d = {}
+        for key in response.headers.keys():
+            value = response.headers.get_all(key)
+            if len(value) == 1:
+                value = value[0]
+            d[key] = value
+        response = jsonify(d)
+        for key, value in headers.items(multi=True):
+            response.headers.add(key, value)
         if response.headers['Content-Length'] == content_len_shown:
             break
     return response
