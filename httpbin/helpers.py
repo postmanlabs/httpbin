@@ -13,7 +13,11 @@ from hashlib import md5
 from werkzeug.http import parse_authorization_header
 
 from flask import request, make_response
-from six.moves.urllib.parse import urlparse, urlunparse
+
+try:
+    from urlparse import urlparse, urlunparse
+except ImportError:
+    from urllib.parse import urlparse, urlunparse
 
 
 from .structures import CaseInsensitiveDict

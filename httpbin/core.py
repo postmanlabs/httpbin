@@ -19,7 +19,11 @@ from flask import Flask, Response, request, render_template, redirect, jsonify, 
 from werkzeug.datastructures import WWWAuthenticate
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
-from six.moves import range as xrange
+
+try:
+    xrange
+except NameError:
+    xrange = range
 
 from . import filters
 from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H, ROBOT_TXT, ANGRY_ASCII
