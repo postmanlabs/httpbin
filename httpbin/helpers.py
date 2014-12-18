@@ -9,6 +9,7 @@ This module provides helper functions for httpbin.
 
 import json
 import base64
+import copy
 from hashlib import md5
 from werkzeug.http import parse_authorization_header
 
@@ -274,7 +275,7 @@ def HA2(credentails, request):
     raise ValueError
 
 
-def response(credentails, password, request):
+def response(credentails, user, password, request):
     """Compile digest auth response
 
     If the qop directive's value is "auth" or "auth-int" , then compute the response as follows:
@@ -290,7 +291,7 @@ def response(credentails, password, request):
     response = None
     HA1_value = HA1(
         credentails.get('realm'),
-        credentails.get('username'),
+        user,
         password
     )
     HA2_value = HA2(credentails, request)
@@ -323,7 +324,7 @@ def check_digest_auth(user, passwd):
         credentails = parse_authorization_header(request.headers.get('Authorization'))
         if not credentails:
             return
-        response_hash = response(credentails, passwd, dict(uri=request.path,
+        response_hash = response(credentails, user, passwd, dict(uri=request.path,
                                                            body=request.data,
                                                            method=request.method))
         if credentails.get('response') == response_hash:
