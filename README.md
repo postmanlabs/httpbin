@@ -46,8 +46,8 @@ Freely hosted in [HTTP](http://httpbin.org), [HTTPS](https://httpbin.org) & [EU]
 
 ## DESCRIPTION
 
-Testing an HTTP Library can become difficult sometimes. [PostBin.org](http://postbin.org) is fantastic
-for testing POST requests, but not much else. This exists to cover all kinds of HTTP
+Testing an HTTP Library can become difficult sometimes. [RequestBin](http://requestb.in) is fantastic
+for testing POST requests, but doesn't let you control the response. This exists to cover all kinds of HTTP
 scenarios. Additional endpoints are being considered.
 
 All endpoint responses are JSON-encoded.
@@ -136,10 +136,12 @@ $ gunicorn httpbin:app
 
 ## AUTHOR
 
-A [Kenneth Reitz](http://kennethreitz.com/)
-Project.
+A [Runscope Community Project](https://www.runscope.com/community).
+Originally created by [Kenneth Reitz](http://kennethreitz.com/).
 
 ## SEE ALSO
 
+<https://hurl.it>
+<http://requestb.in>
 <http://python-requests.org>
 
