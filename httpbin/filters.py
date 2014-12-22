@@ -12,11 +12,7 @@ import zlib
 
 from decimal import Decimal
 from time import time as now
-
-try:
-    from io import BytesIO
-except ImportError:
-    from StringIO import StringIO as BytesIO
+from io import BytesIO
 
 from decorator import decorator
 from flask import Flask, Response
