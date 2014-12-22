@@ -9,11 +9,11 @@ setup(
     description="HTTP Request and Response Service",
 
     # The project URL.
-    url='https://github.com/kennethreitz/httpbin',
+    url='https://github.com/Runscope/httpbin',
 
     # Author details
-    author='Kenneth Reitz',
-    author_email='me@kennethreitz.com',
+    author='Runscope',
+    author_email='httpbin@runscope.com',
 
     # Choose your license
     license='MIT',
