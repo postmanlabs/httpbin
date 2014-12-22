@@ -10,10 +10,9 @@ This module provides the core HttpBin experience.
 import base64
 import json
 import os
+import random
 import time
 import uuid
-import random
-import base64
 
 from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
 from werkzeug.datastructures import WWWAuthenticate
