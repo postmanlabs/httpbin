@@ -3,10 +3,14 @@ import codecs
 import os
 import re
 
+long_description = open(
+    os.path.join(os.path.dirname(__file__), 'README.rst')).read()
+
 setup(
     name="httpbin",
     version="0.2.0",
     description="HTTP Request and Response Service",
+    long_description=long_description,
 
     # The project URL.
     url='https://github.com/Runscope/httpbin',
