@@ -12,67 +12,67 @@ flavors by `Runscope <https://www.runscope.com/>`__
 ENDPOINTS
 ---------
 
--  ```/`` <http://httpbin.org/>`__ This page.
--  ```/ip`` <http://httpbin.org/ip>`__ Returns Origin IP.
--  ```/user-agent`` <http://httpbin.org/user-agent>`__ Returns
+-  `/ <http://httpbin.org/>`__ This page.
+-  `/ip <http://httpbin.org/ip>`__ Returns Origin IP.
+-  `/user-agent <http://httpbin.org/user-agent>`__ Returns
    user-agent.
--  ```/headers`` <http://httpbin.org/headers>`__ Returns header dict.
--  ```/get`` <http://httpbin.org/get>`__ Returns GET data.
--  ``/post`` Returns POST data.
--  ``/patch`` Returns PATCH data.
--  ``/put`` Returns PUT data.
--  ``/delete`` Returns DELETE data
--  ```/gzip`` <http://httpbin.org/gzip>`__ Returns gzip-encoded data.
--  ```/deflate`` <http://httpbin.org/deflate>`__ Returns deflate-encoded
+-  `/headers <http://httpbin.org/headers>`__ Returns header dict.
+-  `/get <http://httpbin.org/get>`__ Returns GET data.
+-  /post Returns POST data.
+-  /patch Returns PATCH data.
+-  /put Returns PUT data.
+-  /delete Returns DELETE data
+-  `/gzip <http://httpbin.org/gzip>`__ Returns gzip-encoded data.
+-  `/deflate <http://httpbin.org/deflate>`__ Returns deflate-encoded
    data.
--  ```/status/:code`` <http://httpbin.org/status/418>`__ Returns given
+-  `/status/:code <http://httpbin.org/status/418>`__ Returns given
    HTTP Status code.
--  ```/response-headers?key=val`` <http://httpbin.org/response-headers?Content-Type=text/plain;%20charset=UTF-8&Server=httpbin>`__
+-  `/response-headers?key=val <http://httpbin.org/response-headers?Content-Type=text/plain;%20charset=UTF-8&Server=httpbin>`__
    Returns given response headers.
--  ```/redirect/:n`` <http://httpbin.org/redirect/6>`__ 302 Redirects
+-  `/redirect/:n <http://httpbin.org/redirect/6>`__ 302 Redirects
    *n* times.
--  ```/redirect-to?url=foo`` <http://httpbin.org/redirect-to?url=http://example.com/>`__
+-  `/redirect-to?url=foo <http://httpbin.org/redirect-to?url=http://example.com/>`__
    302 Redirects to the *foo* URL.
--  ```/relative-redirect/:n`` <http://httpbin.org/relative-redirect/6>`__
+-  `/relative-redirect/:n <http://httpbin.org/relative-redirect/6>`__
    302 Relative redirects *n* times.
--  ```/cookies`` <http://httpbin.org/cookies>`__ Returns cookie data.
--  ```/cookies/set?name=value`` <http://httpbin.org/cookies/set?k1=v1&k2=v2>`__
+-  `/cookies <http://httpbin.org/cookies>`__ Returns cookie data.
+-  `/cookies/set?name=value <http://httpbin.org/cookies/set?k1=v1&k2=v2>`__
    Sets one or more simple cookies.
--  ```/cookies/delete?name`` <http://httpbin.org/cookies/delete?k1&k2>`__
+-  `/cookies/delete?name <http://httpbin.org/cookies/delete?k1&k2>`__
    Deletes one or more simple cookies.
--  ```/basic-auth/:user/:passwd`` <http://httpbin.org/basic-auth/user/passwd>`__
+-  `/basic-auth/:user/:passwd <http://httpbin.org/basic-auth/user/passwd>`__
    Challenges HTTPBasic Auth.
--  ```/hidden-basic-auth/:user/:passwd`` <http://httpbin.org/hidden-basic-auth/user/passwd>`__
+-  `/hidden-basic-auth/:user/:passwd <http://httpbin.org/hidden-basic-auth/user/passwd>`__
    404'd BasicAuth.
--  ```/digest-auth/:qop/:user/:passwd`` <http://httpbin.org/digest-auth/auth/user/passwd>`__
+-  `/digest-auth/:qop/:user/:passwd <http://httpbin.org/digest-auth/auth/user/passwd>`__
    Challenges HTTP Digest Auth.
--  ```/stream/:n`` <http://httpbin.org/stream/20>`__ Streams *n*–100
+-  `/stream/:n <http://httpbin.org/stream/20>`__ Streams *n*–100
    lines.
--  ```/delay/:n`` <http://httpbin.org/delay/3>`__ Delays responding for
+-  `/delay/:n <http://httpbin.org/delay/3>`__ Delays responding for
    *n*–10 seconds.
--  ```/drip?numbytes=n&duration=s&delay=s&code=code`` <http://httpbin.org/drip?numbytes=5&duration=5&code=200>`__
+-  `/drip?numbytes=n&duration=s&delay=s&code=code <http://httpbin.org/drip?numbytes=5&duration=5&code=200>`__
    Drips data over a duration after an optional initial delay, then
    (optionally) returns with the given status code.
--  ```/html`` <http://httpbin.org/html>`__ Renders an HTML Page.
--  ```/robots.txt`` <http://httpbin.org/robots.txt>`__ Returns some
+-  `/html <http://httpbin.org/html>`__ Renders an HTML Page.
+-  `/robots.txt <http://httpbin.org/robots.txt>`__ Returns some
    robots.txt rules.
--  ```/deny`` <http://httpbin.org/deny>`__ Denied by robots.txt file.
--  ```/cache`` <http://httpbin.org/cache>`__ Returns 200 unless an
+-  `/deny <http://httpbin.org/deny>`__ Denied by robots.txt file.
+-  `/cache <http://httpbin.org/cache>`__ Returns 200 unless an
    If-Modified-Since or If-None-Match header is provided, when it
    returns a 304.
--  ```/cache/:n`` <http://httpbin.org/cache/60>`__ Sets a Cache-Control
+-  `/cache/:n <http://httpbin.org/cache/60>`__ Sets a Cache-Control
    header for *n* seconds.
--  ```/bytes/:n`` <http://httpbin.org/bytes/1024>`__ Generates *n*
+-  `/bytes/:n <http://httpbin.org/bytes/1024>`__ Generates *n*
    random bytes of binary data, accepts optional *seed* integer
    parameter.
--  ```/stream-bytes/:n`` <http://httpbin.org/stream-bytes/1024>`__
+-  `/stream-bytes/:n <http://httpbin.org/stream-bytes/1024>`__
    Streams *n* random bytes of binary data, accepts optional *seed* and
    *chunk\_size* integer parameters.
--  ```/links/:n`` <http://httpbin.org/links/10>`__ Returns page
+-  `/links/:n <http://httpbin.org/links/10>`__ Returns page
    containing *n* HTML links.
--  ```/forms/post`` <http://httpbin.org/forms/post>`__ HTML form that
+-  `/forms/post <http://httpbin.org/forms/post>`__ HTML form that
    submits to */post*
--  ```/xml`` <http://httpbin.org/xml>`__ Returns some XML
+-  `/xml <http://httpbin.org/xml>`__ Returns some XML
 
 DESCRIPTION
 -----------
