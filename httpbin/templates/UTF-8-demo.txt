@@ -1,6 +1,7 @@
 <h1>Unicode Demo</h1>
 
-<p>Taken from http://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-demo.txt</p>
+<p>Taken from <a
+href="http://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-demo.txt">http://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-demo.txt</a></p>
 
 <pre>
 
