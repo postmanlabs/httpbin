@@ -329,3 +329,7 @@ def check_digest_auth(user, passwd):
         if credentails.get('response') == response_hash:
             return True
     return False
+
+def secure_cookie():
+    """Return true if cookie should have secure attribute"""
+    return request.environ['wsgi.url_scheme'] == 'https'
