@@ -36,6 +36,19 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.headers.get_all('animal'), ['dog', 'cat'])
         assert json.loads(response.data.decode('utf-8'))['animal'] == ['dog', 'cat']
 
+    def test_get(self):
+        response = self.app.get('/get', headers={'User-Agent': 'test'})
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(data['args'], {})
+        self.assertEqual(data['headers']['Host'], 'localhost')
+        self.assertEqual(data['headers']['Content-Type'], '')
+        self.assertEqual(data['headers']['Content-Length'], '0')
+        self.assertEqual(data['headers']['User-Agent'], 'test')
+        self.assertEqual(data['origin'], None)
+        self.assertEqual(data['url'], 'http://localhost/get')
+        self.assertTrue(response.data.endswith(b'\n'))
+
     def test_base64(self):
         greeting = u'Здравствуй, мир!'
         b64_encoded = _string_to_base64(greeting)

@@ -14,7 +14,7 @@ import random
 import time
 import uuid
 
-from flask import Flask, Response, request, render_template, redirect, jsonify, make_response
+from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
@@ -35,6 +35,12 @@ ENV_COOKIES = (
     '__utma',
     '__utmb'
 )
+
+def jsonify(*args, **kwargs):
+    response = flask_jsonify(*args, **kwargs)
+    if not response.data.endswith(b'\n'):
+        response.data += b'\n'
+    return response
 
 # Prevent WSGI from correcting the casing of the Location header
 BaseResponse.autocorrect_location_header = False
