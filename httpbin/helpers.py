@@ -284,9 +284,13 @@ def response(credentails, user, password, request):
 
     Arguments:
     - `credentails`: credentails dict
+    - `user`: request user name
     - `password`: request user password
     - `request`: request dict
     """
+    for key in 'nonce', 'realm':
+        if key not in credentails:
+            raise ValueError("%s required for response" % key)
     response = None
     HA1_value = HA1(
         credentails.get('realm'),
@@ -322,7 +326,7 @@ def check_digest_auth(user, passwd):
     if request.headers.get('Authorization'):
         credentails = parse_authorization_header(request.headers.get('Authorization'))
         if not credentails:
-            return
+            return False
         response_hash = response(credentails, user, passwd, dict(uri=request.path,
                                                            body=request.data,
                                                            method=request.method))
