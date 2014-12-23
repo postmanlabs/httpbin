@@ -113,7 +113,11 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertNotIn(
             'Access-Control-Allow-Headers', response.headers
         )
-
+    def test_set_cors_allow_headers(self):
+        response = self.app.open('/get', method='OPTIONS', headers={'Access-Control-Request-Headers': 'X-Test-Header'})
+        self.assertEqual(
+            response.headers.get('Access-Control-Allow-Headers'), 'X-Test-Header'
+        )
     def test_user_agent(self):
         response = self.app.get(
             '/user-agent', headers={'User-Agent': 'test'}
