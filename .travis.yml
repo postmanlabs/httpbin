@@ -1,0 +1,13 @@
+language: python
+
+sudo: false
+env:
+    - TOXENV=py27
+    - TOXENV=py34
+    - TOXENV=pypy
+
+install:
+    - travis_retry pip install tox
+
+script:
+    - tox
