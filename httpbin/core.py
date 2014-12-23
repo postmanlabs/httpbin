@@ -21,7 +21,7 @@ from werkzeug.wrappers import BaseResponse
 from six.moves import range as xrange
 
 from . import filters
-from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, H, ROBOT_TXT, ANGRY_ASCII
+from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, secure_cookie, H, ROBOT_TXT, ANGRY_ASCII
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
@@ -321,7 +321,7 @@ def set_cookie(name, value):
     """Sets a cookie and redirects to cookie list."""
 
     r = app.make_response(redirect('/cookies'))
-    r.set_cookie(key=name, value=value)
+    r.set_cookie(key=name, value=value, secure=secure_cookie())
 
     return r
 
@@ -333,7 +333,7 @@ def set_cookies():
     cookies = dict(request.args.items())
     r = app.make_response(redirect('/cookies'))
     for key, value in cookies.items():
-        r.set_cookie(key=key, value=value)
+        r.set_cookie(key=key, value=value, secure=secure_cookie())
 
     return r
 
