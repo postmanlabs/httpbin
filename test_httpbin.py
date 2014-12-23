@@ -193,11 +193,13 @@ class HttpbinTestCase(unittest.TestCase):
 
     def test_drip(self):
         response = self.app.get('/drip?numbytes=400&duration=2&delay=1')
+        self.assertEqual(response.content_length, 400)
         self.assertEqual(len(response.get_data()), 400)
         self.assertEqual(response.status_code, 200)
 
     def test_drip_with_custom_code(self):
         response = self.app.get('/drip?numbytes=400&duration=2&code=500')
+        self.assertEqual(response.content_length, 400)
         self.assertEqual(len(response.get_data()), 400)
         self.assertEqual(response.status_code, 500)
 
