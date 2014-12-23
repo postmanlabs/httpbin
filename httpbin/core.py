@@ -468,6 +468,11 @@ def cache_control(value):
     return response
 
 
+@app.route('/encoding/utf8')
+def encoding():
+    return render_template('UTF-8-demo.txt')
+
+
 @app.route('/bytes/<int:n>')
 def random_bytes(n):
     """Returns n random bytes generated with given seed."""
