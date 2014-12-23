@@ -571,12 +571,41 @@ def image():
     """Returns a simple image of the type suggest by the Accept header."""
 
     headers = get_headers()
-    if headers['accept'].lower() == 'image/png' or headers['accept'].lower() == 'image/*':
-        return Response(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg=='), headers={'Content-Type': 'image/png'})
-    elif headers['accept'].lower() == 'image/jpeg':
-        return Response(base64.b64decode('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/yQALCAABAAEBAREA/8wABgAQEAX/2gAIAQEAAD8A0s8g/9k='), headers={'Content-Type': 'image/jpeg'})
+    accept = headers['accept'].lower()
+
+    if 'image/webp' in accept:
+        return image_webp()
+    elif 'image/jpeg' in accept:
+        return image_jpeg()
+    elif 'image/png' in accept or 'image/*' in accept:
+        return image_png()
     else:
         return status_code(404)
+
+
+@app.route('/image/png')
+def image_png():
+    data = resource('images/pig_icon.png')
+    return Response(data, headers={'Content-Type': 'image/png'})
+
+
+@app.route('/image/jpeg')
+def image_jpeg():
+    data = resource('images/jackal.jpg')
+    return Response(data, headers={'Content-Type': 'image/jpeg'})
+
+
+@app.route('/image/webp')
+def image_webp():
+    data = resource('images/wolf_1.webp')
+    return Response(data, headers={'Content-Type': 'image/webp'})
+
+
+def resource(filename):
+    path = os.path.join(
+        tmpl_dir,
+        filename)
+    return open(path, 'rb').read()
 
 
 @app.route("/xml")
