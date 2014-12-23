@@ -1,8 +1,8 @@
 decorator==3.4.0
 Flask==0.10.1
 gevent==1.0.1
-greenlet==0.4.2
-gunicorn==18.0
+greenlet==0.4.5
+gunicorn==19.1.1
 itsdangerous==0.24
 Jinja2==2.7.2
 MarkupSafe==0.23
