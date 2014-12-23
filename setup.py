@@ -4,9 +4,13 @@ import os
 import re
 
 setup(
+    # Note that this requires pandoc on the build host
+    setup_requires='setuptools-markdown',
+
     name="httpbin",
     version="0.2.0",
     description="HTTP Request and Response Service",
+    long_description_markdown_filename='README.md',
 
     # The project URL.
     url='https://github.com/Runscope/httpbin',
