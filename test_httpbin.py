@@ -68,8 +68,9 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_post_body_binary(self):
-        with open('httpbin/core.pyc', 'rb') as f:
-            response = self.app.post('/post', data={"file": f.read()})
+        response = self.app.post(
+            '/post',
+            data={"file": b'\x01\x02\x03\x81\x82\x83'})
         self.assertEqual(response.status_code, 200)
 
     def test_post_body_unicode(self):

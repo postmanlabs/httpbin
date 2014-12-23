@@ -3,6 +3,8 @@ httpbin(1): HTTP Request & Response Service
 
 Freely hosted in [HTTP](http://httpbin.org), [HTTPS](https://httpbin.org) & [EU](http://eu.httpbin.org/) flavors by [Runscope](https://www.runscope.com/)
 
+[![Build
+Status](https://travis-ci.org/Runscope/httpbin.svg)](https://travis-ci.org/Runscope/httpbin)
 
 [![Deploy to Heroku](https://camo.githubusercontent.com/c0824806f5221ebb7d25e559568582dd39dd1170/68747470733a2f2f7777772e6865726f6b7563646e2e636f6d2f6465706c6f792f627574746f6e2e706e67)](https://heroku.com/deploy?template=https://github.com/Runscope/httpbin)
 
