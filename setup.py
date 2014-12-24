@@ -19,6 +19,11 @@ setup(
     author='Runscope',
     author_email='httpbin@runscope.com',
 
+    entry_points = """\
+      [console_scripts]
+      httpbin = httpbin.core:app.run
+    """,
+
     # Choose your license
     license='MIT',
 
