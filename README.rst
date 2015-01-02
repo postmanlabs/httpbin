@@ -40,6 +40,7 @@ Endpoint                                 Description
 `/stream/:n`_                            Streams *n* – 100 lines.
 `/delay/:n`_                             Delays responding for *n* – 10 seconds.
 `/drip`_                                 Drips data over a duration after an optional initial delay, then (optionally) returns with the given status code.
+`/range-request/:n`_                     Streams *n* bytes, and allows specifying a *Range* header to select a subset of the data. Accepts a *chunk\_size* and request *duration* parameter.
 `/html`_                                 Renders an HTML Page.
 `/robots.txt`_                           Returns some robots.txt rules.
 `/deny`_                                 Denied by robots.txt file.
@@ -74,6 +75,7 @@ Endpoint                                 Description
 .. _/stream/:n: http://httpbin.org/stream/20
 .. _/delay/:n: http://httpbin.org/delay/3
 .. _/drip: http://httpbin.org/drip?numbytes=5&duration=5&code=200
+.. _/range-request/:n: http://httpbin.org/range-request/1024
 .. _/html: http://httpbin.org/html
 .. _/robots.txt: http://httpbin.org/robots.txt
 .. _/deny: http://httpbin.org/deny
