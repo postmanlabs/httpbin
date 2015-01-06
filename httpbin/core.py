@@ -544,7 +544,15 @@ def stream_random_bytes(n):
 @app.route('/range-request/<int:numbytes>')
 def range_request(numbytes):
     """Streams n random bytes generated with given seed, at given chunk size per packet."""
-    numbytes = min(numbytes, 100 * 1024) # set 100KB limit
+
+    if numbytes <= 0 or numbytes > (100 * 1024):
+        response = Response(headers={
+            'ETag' : 'range-request%d' % numbytes,
+            'Accept-Ranges' : 'bytes'
+            })
+        response.status_code = 404
+        response.data = 'number of bytes must be in the range (0, 10240]'
+        return response
     
     params = CaseInsensitiveDict(request.args.items())
     if 'chunk_size' in params:
@@ -553,9 +561,7 @@ def range_request(numbytes):
         chunk_size = 10 * 1024
 
     duration = float(params.get('duration', 0))
-    pause = 0
-    if numbytes:
-        pause = duration / numbytes
+    pause_per_byte = duration / numbytes
 
     request_headers = get_headers()
     request_range = parse_request_range(request_headers['range'], numbytes)
@@ -563,12 +569,15 @@ def range_request(numbytes):
     first_byte_pos = request_range[0]
     last_byte_pos = request_range[1]
     if first_byte_pos is None and last_byte_pos is None:
+        # Request full range
         first_byte_pos = 0
         last_byte_pos = numbytes - 1
     elif first_byte_pos is None:
+        # Request the last X bytes
         first_byte_pos = max(0, numbytes - last_byte_pos)
         last_byte_pos = numbytes - 1
     elif last_byte_pos is None:
+        # Request the last X bytes
         last_byte_pos = numbytes - 1
 
     if first_byte_pos > last_byte_pos or first_byte_pos not in xrange(0, numbytes) or last_byte_pos not in xrange(0, numbytes):
@@ -584,16 +593,17 @@ def range_request(numbytes):
         chunks = bytearray()
 
         for i in xrange(first_byte_pos, last_byte_pos + 1):
-            time.sleep(pause)
 
             # We don't want the resource to change across requests, so we need
             # to use a predictable data generation function
             chunks.append(ord('a') + (i % 26))
             if len(chunks) == chunk_size:
                 yield(bytes(chunks))
+                time.sleep(pause_per_byte * chunk_size)
                 chunks = bytearray()
 
         if chunks:
+            time.sleep(pause_per_byte * len(chunks))
             yield(bytes(chunks))
 
     content_range = 'bytes %d-%d/%d' % (first_byte_pos, last_byte_pos, numbytes)
