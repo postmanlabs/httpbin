@@ -50,6 +50,23 @@ tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 app = Flask(__name__, template_folder=tmpl_dir)
 
+# Set up Bugsnag exception tracking, if desired. To use Bugsnag, install the
+# Bugsnag Python client with the command "pip install bugsnag", and set the
+# environment variable BUGSNAG_API_KEY. You can also optionally set
+# BUGSNAG_RELEASE_STAGE.
+if os.environ.get("BUGSNAG_API_KEY") is not None:
+    try:
+        import bugsnag
+        import bugsnag.flask
+        release_stage = os.environ.get("BUGSNAG_RELEASE_STAGE") or "production"
+        bugsnag.configure(api_key=os.environ.get("BUGSNAG_API_KEY"),
+                          project_root=os.path.dirname(os.path.abspath(__file__)),
+                          use_ssl=True, release_stage=release_stage,
+                          ignore_classes=['werkzeug.exceptions.NotFound'])
+        bugsnag.flask.handle_exceptions(app)
+    except:
+        app.logger.warning("Unable to initialize Bugsnag exception handling.")
+
 # -----------
 # Middlewares
 # -----------
