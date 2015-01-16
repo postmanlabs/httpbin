@@ -537,7 +537,7 @@ def stream_random_bytes(n):
             yield(bytes(chunks))
 
     headers = {'Transfer-Encoding': 'chunked',
-               'Content-Type': 'application/octet-stream' }
+               'Content-Type': 'application/octet-stream'}
 
     return Response(generate_bytes(), headers=headers)
 
