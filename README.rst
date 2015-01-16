@@ -7,8 +7,6 @@ flavors by `Runscope <https://www.runscope.com/>`__
 
 |Build Status|
 
-|Deploy to Heroku|
-
 ENDPOINTS
 ---------
 
@@ -157,7 +155,6 @@ $ curl https://httpbin.org/get?show\_env=1
         "Accept-Encoding": "gzip,deflate,sdch",
         "X-Forwarded-Port": "443",
         "X-Forwarded-For": "109.60.101.240",
-        "X-Heroku-Dynos-In-Use": "1",
         "Host": "httpbin.org",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "User-Agent": "Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.83 Safari/535.11",
@@ -166,8 +163,6 @@ $ curl https://httpbin.org/get?show\_env=1
         "Connection": "keep-alive",
         "X-Forwarded-Proto": "https",
         "Cookie": "_gauges_unique_day=1; _gauges_unique_month=1; _gauges_unique_year=1; _gauges_unique=1; _gauges_unique_hour=1",
-        "X-Heroku-Queue-Depth": "0",
-        "X-Heroku-Queue-Wait-Time": "11",
         "Content-Type": ""
       },
       "args": {
@@ -213,9 +208,9 @@ Originally created by `Kenneth Reitz <http://kennethreitz.com/>`__.
 SEE ALSO
 --------
 
-https://hurl.it http://requestb.in http://python-requests.org
+- https://hurl.it
+- http://requestb.in
+- http://python-requests.org
 
 .. |Build Status| image:: https://travis-ci.org/Runscope/httpbin.svg
    :target: https://travis-ci.org/Runscope/httpbin
-.. |Deploy to Heroku| image:: https://camo.githubusercontent.com/c0824806f5221ebb7d25e559568582dd39dd1170/68747470733a2f2f7777772e6865726f6b7563646e2e636f6d2f6465706c6f792f627574746f6e2e706e67
-   :target: https://heroku.com/deploy?template=https://github.com/Runscope/httpbin
