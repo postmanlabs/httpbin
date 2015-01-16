@@ -44,7 +44,8 @@ ENV_HEADERS = (
     'X-Heroku-Dynos-In-Use',
     'X-Forwarded-For',
     'X-Forwarded-Protocol',
-    'X-Forwarded-Port'
+    'X-Forwarded-Port',
+    'Runscope-Service'
 )
 
 ROBOT_TXT = """User-agent: *
