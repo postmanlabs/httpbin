@@ -434,6 +434,7 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
         auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
                         qop=('auth', 'auth-int') if qop is None else (qop, ))
         response.headers['WWW-Authenticate'] = auth.to_header()
+        response.headers['Access-Control-Expose-Headers'] = 'WWW-Authenticate'
         response.headers['Set-Cookie'] = 'fake=fake_value'
         return response
     return jsonify(authenticated=True, user=user)
