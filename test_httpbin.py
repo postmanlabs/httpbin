@@ -169,6 +169,8 @@ class HttpbinTestCase(unittest.TestCase):
         )
         # make sure it returns a 401
         self.assertEqual(unauthorized_response.status_code, 401)
+        # make sure the WWW-Authenticate header is exposed for cors
+        self.assertContains(unauthorized_response.headers.get('Access-Control-Expose-Headers'), 'WWW-Authenticate')
         header = unauthorized_response.headers.get('WWW-Authenticate')
         auth_type, auth_info = header.split(None, 1)
 
