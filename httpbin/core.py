@@ -541,13 +541,13 @@ def stream_random_bytes(n):
 
     return Response(generate_bytes(), headers=headers)
 
-@app.route('/range-request/<int:numbytes>')
+@app.route('/range/<int:numbytes>')
 def range_request(numbytes):
     """Streams n random bytes generated with given seed, at given chunk size per packet."""
 
     if numbytes <= 0 or numbytes > (100 * 1024):
         response = Response(headers={
-            'ETag' : 'range-request%d' % numbytes,
+            'ETag' : 'range%d' % numbytes,
             'Accept-Ranges' : 'bytes'
             })
         response.status_code = 404
@@ -582,7 +582,7 @@ def range_request(numbytes):
 
     if first_byte_pos > last_byte_pos or first_byte_pos not in xrange(0, numbytes) or last_byte_pos not in xrange(0, numbytes):
         response = Response(headers={
-            'ETag' : 'range-request%d' % numbytes,
+            'ETag' : 'range%d' % numbytes,
             'Accept-Ranges' : 'bytes',
             'Content-Range' : 'bytes */%d' % numbytes
             })
@@ -610,7 +610,7 @@ def range_request(numbytes):
     response_headers = {
         'Transfer-Encoding': 'chunked',
         'Content-Type': 'application/octet-stream',
-        'ETag' : 'range-request%d' % numbytes,
+        'ETag' : 'range%d' % numbytes,
         'Accept-Ranges' : 'bytes',
         'Content-Range' : content_range }
 

@@ -336,84 +336,84 @@ class HttpbinTestCase(unittest.TestCase):
         )
 
     def test_request_range(self):
-        response1 = self.app.get('/range-request/1234')
+        response1 = self.app.get('/range/1234')
         self.assertEqual(response1.status_code, 200)
-        self.assertEqual(response1.headers.get('ETag'), 'range-request1234')
+        self.assertEqual(response1.headers.get('ETag'), 'range1234')
         self.assertEqual(response1.headers.get('Content-range'), 'bytes 0-1233/1234')
         self.assertEqual(response1.headers.get('Accept-ranges'), 'bytes')
         self.assertEqual(len(response1.get_data()), 1234)
         
-        response2 = self.app.get('/range-request/1234')
+        response2 = self.app.get('/range/1234')
         self.assertEqual(response2.status_code, 200)
-        self.assertEqual(response2.headers.get('ETag'), 'range-request1234')
+        self.assertEqual(response2.headers.get('ETag'), 'range1234')
         self.assertEqual(response1.get_data(), response2.get_data())
     
     def test_request_range_with_parameters(self):
         response = self.app.get(
-            '/range-request/100?duration=1.5&chunk_size=5',
+            '/range/100?duration=1.5&chunk_size=5',
             headers={ 'Range': 'bytes=10-24' }
         )
 
         self.assertEqual(response.status_code, 206)
-        self.assertEqual(response.headers.get('ETag'), 'range-request100')
+        self.assertEqual(response.headers.get('ETag'), 'range100')
         self.assertEqual(response.headers.get('Content-range'), 'bytes 10-24/100')
         self.assertEqual(response.headers.get('Accept-ranges'), 'bytes')
         self.assertEqual(response.get_data(), 'klmnopqrstuvwxy')
     
     def test_request_range_first_15_bytes(self):
         response = self.app.get(
-            '/range-request/1000',
+            '/range/1000',
             headers={ 'Range': 'bytes=0-15' }
         )
 
         self.assertEqual(response.status_code, 206)
-        self.assertEqual(response.headers.get('ETag'), 'range-request1000')
+        self.assertEqual(response.headers.get('ETag'), 'range1000')
         self.assertEqual(response.get_data(), 'abcdefghijklmnop')
         self.assertEqual(response.headers.get('Content-range'), 'bytes 0-15/1000')
     
     def test_request_range_open_ended_last_6_bytes(self):
         response = self.app.get(
-            '/range-request/26',
+            '/range/26',
             headers={ 'Range': 'bytes=20-' }
         )
 
         self.assertEqual(response.status_code, 206)
-        self.assertEqual(response.headers.get('ETag'), 'range-request26')
+        self.assertEqual(response.headers.get('ETag'), 'range26')
         self.assertEqual(response.get_data(), 'uvwxyz')
         self.assertEqual(response.headers.get('Content-range'), 'bytes 20-25/26')
     
     def test_request_range_suffix(self):
         response = self.app.get(
-            '/range-request/26',
+            '/range/26',
             headers={ 'Range': 'bytes=-5' }
         )
 
         self.assertEqual(response.status_code, 206)
-        self.assertEqual(response.headers.get('ETag'), 'range-request26')
+        self.assertEqual(response.headers.get('ETag'), 'range26')
         self.assertEqual(response.get_data(), 'vwxyz')
         self.assertEqual(response.headers.get('Content-range'), 'bytes 21-25/26')
     
     def test_request_out_of_bounds(self):
         response = self.app.get(
-            '/range-request/26',
+            '/range/26',
             headers={ 'Range': 'bytes=10-5',
             }
         )
 
         self.assertEqual(response.status_code, 416)
-        self.assertEqual(response.headers.get('ETag'), 'range-request26')
+        self.assertEqual(response.headers.get('ETag'), 'range26')
         self.assertEqual(len(response.get_data()), 0)
         self.assertEqual(response.headers.get('Content-range'), 'bytes */26')
         
         response = self.app.get(
-            '/range-request/26',
+            '/range/26',
             headers={ 'Range': 'bytes=32-40',
             }
         )
         
         self.assertEqual(response.status_code, 416)
         response = self.app.get(
-            '/range-request/26',
+            '/range/26',
             headers={ 'Range': 'bytes=0-40',
             }
         )
