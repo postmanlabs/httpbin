@@ -21,7 +21,7 @@ from werkzeug.wrappers import BaseResponse
 from six.moves import range as xrange
 
 from . import filters
-from .helpers import get_headers, status_code, get_dict, parse_request_range, check_basic_auth, check_digest_auth, secure_cookie, H, ROBOT_TXT, ANGRY_ASCII
+from .helpers import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, secure_cookie, H, ROBOT_TXT, ANGRY_ASCII
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
@@ -564,21 +564,7 @@ def range_request(numbytes):
     pause_per_byte = duration / numbytes
 
     request_headers = get_headers()
-    request_range = parse_request_range(request_headers['range'], numbytes)
-
-    first_byte_pos = request_range[0]
-    last_byte_pos = request_range[1]
-    if first_byte_pos is None and last_byte_pos is None:
-        # Request full range
-        first_byte_pos = 0
-        last_byte_pos = numbytes - 1
-    elif first_byte_pos is None:
-        # Request the last X bytes
-        first_byte_pos = max(0, numbytes - last_byte_pos)
-        last_byte_pos = numbytes - 1
-    elif last_byte_pos is None:
-        # Request the last X bytes
-        last_byte_pos = numbytes - 1
+    first_byte_pos, last_byte_pos = get_request_range(request_headers, numbytes)
 
     if first_byte_pos > last_byte_pos or first_byte_pos not in xrange(0, numbytes) or last_byte_pos not in xrange(0, numbytes):
         response = Response(headers={

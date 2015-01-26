@@ -334,7 +334,7 @@ def secure_cookie():
     """Return true if cookie should have secure attribute"""
     return request.environ['wsgi.url_scheme'] == 'https'
 
-def parse_request_range(range_header_text, upper_bound):
+def __parse_request_range(range_header_text):
     """ Return a tuple describing the byte range requested in a GET request
     If the range is open ended on the left or right side, then a value of None
     will be set.
@@ -349,15 +349,15 @@ def parse_request_range(range_header_text, upper_bound):
     right = None
 
     if not range_header_text:
-        return (left, right)
+        return left, right
 
     range_header_text = range_header_text.strip()
     if not range_header_text.startswith('bytes'):
-        return (left, right)
+        return left, right
 
     components = range_header_text.split("=")
     if len(components) != 2:
-        return (left, right)
+        return left, right
 
     components = components[1].split("-")
 
@@ -371,5 +371,22 @@ def parse_request_range(range_header_text, upper_bound):
     except:
         pass
 
-    return (left, right)
+    return left, right
+
+def get_request_range(request_headers, upper_bound):
+    first_byte_pos, last_byte_pos = __parse_request_range(request_headers['range'])
+
+    if first_byte_pos is None and last_byte_pos is None:
+        # Request full range
+        first_byte_pos = 0
+        last_byte_pos = upper_bound - 1
+    elif first_byte_pos is None:
+        # Request the last X bytes
+        first_byte_pos = max(0, upper_bound - last_byte_pos)
+        last_byte_pos = upper_bound - 1
+    elif last_byte_pos is None:
+        # Request the last X bytes
+        last_byte_pos = upper_bound - 1
+
+    return first_byte_pos, last_byte_pos
 
