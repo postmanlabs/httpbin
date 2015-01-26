@@ -39,6 +39,8 @@ ENV_HEADERS = (
     'X-Heroku-Queue-Depth',
     'X-Real-Ip',
     'X-Forwarded-Proto',
+    'X-Forwarded-Protocol',
+    'X-Forwarded-Ssl',
     'X-Heroku-Queue-Wait-Time',
     'X-Forwarded-For',
     'X-Heroku-Dynos-In-Use',
@@ -139,12 +141,16 @@ def semiflatten(multi):
 def get_url(request):
     """
     Since we might be hosted behind a proxy, we need to check the
-    X-Forwarded-Proto header to find out what protocol was used to access us.
+    X-Forwarded-Proto, X-Forwarded-Protocol, or X-Forwarded-SSL headers
+    to find out what protocol was used to access us.
     """
-    if 'X-Forwarded-Proto' not in request.headers:
+    protocol = request.headers.get('X-Forwarded-Proto') or request.headers.get('X-Forwarded-Protocol')
+    if protocol is None and request.headers.get('X-Forwarded-Ssl') == 'on':
+        protocol = 'https'
+    if protocol is None:
         return request.url
     url = list(urlparse(request.url))
-    url[0] = request.headers.get('X-Forwarded-Proto')
+    url[0] = protocol
     return urlunparse(url)
 
 
