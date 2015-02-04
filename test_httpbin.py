@@ -16,6 +16,56 @@ def _string_to_base64(string):
     utf8_encoded = string.encode('utf-8')
     return base64.urlsafe_b64encode(utf8_encoded)
 
+def _test_digest_auth(self, path, expected_status_code):
+    uri = path + '/auth/user/passwd'
+    # make first request
+    unauthorized_response = self.app.get(
+        uri,
+        environ_base={
+            # digest auth uses the remote addr to build the nonce
+            'REMOTE_ADDR': '127.0.0.1',
+        }
+    )
+    # make sure it returns a 401
+    self.assertEqual(unauthorized_response.status_code, expected_status_code)
+    # make sure the WWW-Authenticate header is exposed for cors
+    self.assertTrue('WWW-Authenticate' in unauthorized_response.headers.get('Access-Control-Expose-Headers'))
+    header = unauthorized_response.headers.get('WWW-Authenticate')
+    auth_type, auth_info = header.split(None, 1)
+
+    # Begin crappy digest-auth implementation
+    d = parse_dict_header(auth_info)
+    a1 = b'user:' + d['realm'].encode('utf-8') + b':passwd'
+    ha1 = md5(a1).hexdigest().encode('utf-8')
+    a2 = b'GET:' + uri
+    ha2 = md5(a2).hexdigest().encode('utf-8')
+    a3 = ha1 + b':' + d['nonce'].encode('utf-8') + b':' + ha2
+    auth_response = md5(a3).hexdigest()
+    auth_header = 'Digest username="user",realm="' + \
+        d['realm'] + \
+        '",nonce="' + \
+        d['nonce'] + \
+        '",uri="' + uri + '",response="' + \
+        auth_response + \
+        '",opaque="' + \
+        d['opaque'] + '"'
+
+    # make second request
+    authorized_response = self.app.get(
+        uri,
+        environ_base={
+            # httpbin's digest auth implementation uses the remote addr to
+            # build the nonce
+            'REMOTE_ADDR': '127.0.0.1',
+        },
+        headers={
+            'Authorization': auth_header,
+        }
+    )
+
+    # done!
+    self.assertEqual(authorized_response.status_code, 200)
+
 
 class HttpbinTestCase(unittest.TestCase):
     """Httpbin tests"""
@@ -159,53 +209,10 @@ class HttpbinTestCase(unittest.TestCase):
         assert 'Digest' in response.headers.get('WWW-Authenticate')
 
     def test_digest_auth(self):
-        # make first request
-        unauthorized_response = self.app.get(
-            '/digest-auth/auth/user/passwd',
-            environ_base={
-                # digest auth uses the remote addr to build the nonce
-                'REMOTE_ADDR': '127.0.0.1',
-            }
-        )
-        # make sure it returns a 401
-        self.assertEqual(unauthorized_response.status_code, 401)
-        # make sure the WWW-Authenticate header is exposed for cors
-        self.assertTrue('WWW-Authenticate' in unauthorized_response.headers.get('Access-Control-Expose-Headers'))
-        header = unauthorized_response.headers.get('WWW-Authenticate')
-        auth_type, auth_info = header.split(None, 1)
+        _test_digest_auth(self, '/digest-auth', 401)
 
-        # Begin crappy digest-auth implementation
-        d = parse_dict_header(auth_info)
-        a1 = b'user:' + d['realm'].encode('utf-8') + b':passwd'
-        ha1 = md5(a1).hexdigest().encode('utf-8')
-        a2 = b'GET:/digest-auth/auth/user/passwd'
-        ha2 = md5(a2).hexdigest().encode('utf-8')
-        a3 = ha1 + b':' + d['nonce'].encode('utf-8') + b':' + ha2
-        auth_response = md5(a3).hexdigest()
-        auth_header = 'Digest username="user",realm="' + \
-            d['realm'] + \
-            '",nonce="' + \
-            d['nonce'] + \
-            '",uri="/digest-auth/auth/user/passwd",response="' + \
-            auth_response + \
-            '",opaque="' + \
-            d['opaque'] + '"'
-
-        # make second request
-        authorized_response = self.app.get(
-            '/digest-auth/auth/user/passwd',
-            environ_base={
-                # httpbin's digest auth implementation uses the remote addr to
-                # build the nonce
-                'REMOTE_ADDR': '127.0.0.1',
-            },
-            headers={
-                'Authorization': auth_header,
-            }
-        )
-
-        # done!
-        self.assertEqual(authorized_response.status_code, 200)
+    def test_hidden_digest_auth(self):
+        _test_digest_auth(self, '/hidden-digest-auth', 404)
 
     def test_drip(self):
         response = self.app.get('/drip?numbytes=400&duration=2&delay=1')

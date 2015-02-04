@@ -9,7 +9,10 @@ This module provides helper functions for httpbin.
 
 import json
 import base64
+import os
+import time
 from hashlib import md5
+from werkzeug.datastructures import WWWAuthenticate
 from werkzeug.http import parse_authorization_header
 
 from flask import request, make_response
@@ -330,6 +333,35 @@ def check_digest_auth(user, passwd):
         if credentails.get('response') == response_hash:
             return True
     return False
+
+def digest_challenge_response(qop, status_code):
+    """Build challenge response for HTTP Digest authentication"""
+
+    if qop not in ('auth', 'auth-int'):
+        qop = None
+
+    response = make_response()
+    response.status_code = status_code
+
+    # RFC2616 Section4.2: HTTP headers are ASCII.  That means
+    # request.remote_addr was originally ASCII, so I should be able to
+    # encode it back to ascii.  Also, RFC2617 says about nonces: "The
+    # contents of the nonce are implementation dependent"
+    nonce = H(b''.join([
+        getattr(request,'remote_addr',u'').encode('ascii'),
+        b':',
+        str(time.time()).encode('ascii'),
+        b':',
+        os.urandom(10)
+    ]))
+    opaque = H(os.urandom(10))
+
+    auth = WWWAuthenticate("digest")
+    auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
+                    qop=('auth', 'auth-int') if qop is None else (qop, ))
+    response.headers['WWW-Authenticate'] = auth.to_header()
+    response.headers['Set-Cookie'] = 'fake=fake_value'
+    return response
 
 def secure_cookie():
     """Return true if cookie should have secure attribute"""
