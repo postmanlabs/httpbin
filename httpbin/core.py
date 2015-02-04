@@ -144,7 +144,10 @@ def check_invalid_origin():
         invalid_ip = ipaddr.IPAddress(input_ip)
 
     if not isinstance(origin, list):
-        origin = [origin]
+        if ', ' in origin:
+            origin = origin.split(', ')
+        else:
+            origin = [origin]
 
     invalid = any([ipaddr.IPAddress(remote) in invalid_ip for remote in origin])
 
