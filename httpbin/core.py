@@ -74,6 +74,7 @@ if os.environ.get("BUGSNAG_API_KEY") is not None:
 def set_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
     response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Expose-Headers'] = 'WWW-Authenticate'
 
     if request.method == 'OPTIONS':
         # Both of these headers are only used for the "preflight request"
@@ -411,7 +412,7 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
     """Prompts the user for authorization using HTTP Digest auth"""
     if qop not in ('auth', 'auth-int'):
         qop = None
-    if 'Authorization' not in request.headers or  \
+    if 'Authorization' not in request.headers or \
                        not check_digest_auth(user, passwd) or \
                        not 'Cookie' in request.headers:
         response = app.make_response('')
@@ -434,7 +435,6 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
         auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
                         qop=('auth', 'auth-int') if qop is None else (qop, ))
         response.headers['WWW-Authenticate'] = auth.to_header()
-        response.headers['Access-Control-Expose-Headers'] = 'WWW-Authenticate'
         response.headers['Set-Cookie'] = 'fake=fake_value'
         return response
     return jsonify(authenticated=True, user=user)
