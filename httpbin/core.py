@@ -13,6 +13,7 @@ import os
 import random
 import time
 import uuid
+import ipaddr
 
 from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
@@ -129,6 +130,30 @@ def view_origin():
 
     return jsonify(origin=request.headers.get('X-Forwarded-For', request.remote_addr))
 
+
+@app.route('/ip/check_invalid', methods=('GET', 'HEAD',))
+def check_invalid_origin():
+    """Returns 200 OK if Origin IP does not match the invalid IP or IP range"""
+
+    input_ip = CaseInsensitiveDict(request.args.items()).get('invalid')
+    origin = request.headers.get('X-Forwarded-For', request.remote_addr)
+
+    if '/' in input_ip:
+        invalid_ip = ipaddr.IPNetwork(input_ip)
+    else:
+        invalid_ip = ipaddr.IPAddress(input_ip)
+
+    if not isinstance(origin, list):
+        origin = [origin]
+
+    invalid = any([ipaddr.IPAddress(remote) in invalid_ip for remote in origin])
+
+    response = make_response()
+    response.status_code = 200 if not invalid else 400
+    response.data = 'OK' if not invalid else 'BAD'
+    response.content_type = "text/plain"
+
+    return response
 
 @app.route('/headers')
 def view_headers():
