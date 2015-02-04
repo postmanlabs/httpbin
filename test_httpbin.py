@@ -37,7 +37,7 @@ def _test_digest_auth(self, path, expected_status_code):
     d = parse_dict_header(auth_info)
     a1 = b'user:' + d['realm'].encode('utf-8') + b':passwd'
     ha1 = md5(a1).hexdigest().encode('utf-8')
-    a2 = b'GET:' + uri
+    a2 = b'GET:' + uri.encode('utf-8')
     ha2 = md5(a2).hexdigest().encode('utf-8')
     a3 = ha1 + b':' + d['nonce'].encode('utf-8') + b':' + ha2
     auth_response = md5(a3).hexdigest()
