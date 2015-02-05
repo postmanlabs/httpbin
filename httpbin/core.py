@@ -22,7 +22,8 @@ from werkzeug.wrappers import BaseResponse
 from six.moves import range as xrange
 
 from . import filters
-from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, secure_cookie, H, ROBOT_TXT, ANGRY_ASCII
+from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, secure_cookie, H, \
+    ROBOT_TXT, ANGRY_ASCII, get_ip_network
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
@@ -131,29 +132,44 @@ def view_origin():
     return jsonify(origin=request.headers.get('X-Forwarded-For', request.remote_addr))
 
 
-@app.route('/ip/check_invalid', methods=('GET', 'HEAD',))
-def check_invalid_origin():
-    """Returns 200 OK if Origin IP does not match the invalid IP or IP range"""
+@app.route('/ip/check', methods=('GET', 'HEAD',))
+def check_origin():
+    """Returns 200 OK if Origin IP matches the "valid" IP and/or does not match the "invalid" IP.
+    Return 400 BAD REQUEST if Origin IP does not match the "valid" and/or matches the "invalid" IP."""
 
-    input_ip = CaseInsensitiveDict(request.args.items()).get('invalid')
+    args = CaseInsensitiveDict(request.args.items())
     origin = request.headers.get('X-Forwarded-For', request.remote_addr)
 
-    if '/' in input_ip:
-        invalid_ip = ipaddr.IPNetwork(input_ip)
-    else:
-        invalid_ip = ipaddr.IPAddress(input_ip)
+    valid_input_ip = args.get('valid', None)
+    invalid_input_ip = args.get('invalid', None)
 
+    # By default every origin is valid and invalid until proven otherwise
+    is_origin_valid = True
+    is_origin_invalid = True
+
+    # Transform the origin values into a list of IPs
     if not isinstance(origin, list):
         if ', ' in origin:
             origin = origin.split(', ')
         else:
             origin = [origin]
 
-    invalid = any([ipaddr.IPAddress(remote) in invalid_ip for remote in origin])
+    # Validate origin IPs against valid checks
+    if valid_input_ip:
+        network = get_ip_network(valid_input_ip)
+        is_origin_valid = any([ipaddr.IPAddress(remote) in network for remote in origin])
+
+    # Validate origin IPs against invalid checks
+    if invalid_input_ip:
+        network = get_ip_network(invalid_input_ip)
+        is_origin_invalid = not any([ipaddr.IPAddress(remote) in network for remote in origin])
+
+    # Aggregate the checks - both should be True for test to pass
+    check = all([is_origin_valid, is_origin_invalid])
 
     response = make_response()
-    response.status_code = 200 if not invalid else 400
-    response.data = 'OK' if not invalid else 'BAD'
+    response.status_code = 200 if check else 400
+    response.data = 'OK' if check else 'BAD'
     response.content_type = "text/plain"
 
     return response

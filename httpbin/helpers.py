@@ -10,6 +10,7 @@ This module provides helper functions for httpbin.
 import json
 import base64
 from hashlib import md5
+import ipaddr
 from werkzeug.http import parse_authorization_header
 
 from flask import request, make_response
@@ -337,6 +338,15 @@ def check_digest_auth(user, passwd):
             return True
     return False
 
+
 def secure_cookie():
     """Return true if cookie should have secure attribute"""
     return request.environ['wsgi.url_scheme'] == 'https'
+
+
+def get_ip_network(ip):
+    """Transform non-network IP into a network IP"""
+    if '/' not in ip:
+        ip = "%s/32" % ip
+    network = ipaddr.IPNetwork(ip)
+    return network
