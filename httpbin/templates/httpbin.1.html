@@ -7,6 +7,7 @@
 <ul>
 <li><a href="/" data-bare-link="true"><code>/</code></a> This page.</li>
 <li><a href="/ip" data-bare-link="true"><code>/ip</code></a> Returns Origin IP.</li>
+<li><a href="/ip/check?valid=127.0.0.1/32" data-bare-link="true"><code>/ip/check?valid=ip&invalid=ip</code></a> Returns 200 OK if Origin IP matches the *valid* IP and/or does not match the *invalid* IP.</li>
 <li><a href="/user-agent" data-bare-link="true"><code>/user-agent</code></a> Returns user-agent.</li>
 <li><a href="/headers" data-bare-link="true"><code>/headers</code></a> Returns header dict.</li>
 <li><a href="/get" data-bare-link="true"><code>/get</code></a> Returns GET data.</li>
@@ -60,6 +61,11 @@
 <h3 id="-curl-http-httpbin-org-ip">$ curl http://httpbin.org/ip</h3>
 
 <pre><code>{"origin": "24.127.96.129"}
+</code></pre>
+
+<h3 id="-curl-http-httpbin-org-ip-check">$ curl http://httpbin.org/ip/check?valid=127.0.0.1/32</h3>
+
+<pre><code>BAD
 </code></pre>
 
 <h3 id="-curl-http-httpbin-org-user-agent">$ curl http://httpbin.org/user-agent</h3>

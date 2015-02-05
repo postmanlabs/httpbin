@@ -15,6 +15,7 @@ Endpoint                                 Description
 --------------------------------------   ------------------------------------------------------------------------------------------------------------------
 `/`_                                     This page.
 `/ip`_                                   Returns Origin IP.
+`/ip/check?valid=ip&invalid=ip`_         Returns 200 OK if Origin IP matches the *valid* IP and/or does not match the *invalid* IP.
 `/user-agent`_                           Returns user-agent.
 `/headers`_                              Returns header dict.
 `/get`_                                  Returns GET data.
@@ -56,6 +57,7 @@ Endpoint                                 Description
 .. _/get: http://httpbin.org/get
 .. _/: http://httpbin.org/
 .. _/ip: http://httpbin.org/ip
+.. _/ip/check?valid=ip&invalid=ip: http://httpbin.org/ip/check?valid=127.0.0.1/32
 .. _/gzip: http://httpbin.org/gzip
 .. _/deflate: http://httpbin.org/deflate
 .. _/status/:code: http://httpbin.org/status/418
@@ -104,6 +106,13 @@ $ curl http://httpbin.org/ip
 ::
 
     {"origin": "24.127.96.129"}
+
+$ curl http://httpbin.org/ip/check?valid=127.0.0.1/32
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    BAD
 
 $ curl http://httpbin.org/user-agent
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
