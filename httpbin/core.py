@@ -21,7 +21,7 @@ from werkzeug.wrappers import BaseResponse
 from six.moves import range as xrange
 
 from . import filters
-from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, secure_cookie, H, ROBOT_TXT, ANGRY_ASCII
+from .helpers import get_headers, status_code, get_dict, check_basic_auth, check_digest_auth, digest_challenge_response, secure_cookie, H, ROBOT_TXT, ANGRY_ASCII
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
@@ -74,6 +74,7 @@ if os.environ.get("BUGSNAG_API_KEY") is not None:
 def set_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
     response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Expose-Headers'] = 'WWW-Authenticate'
 
     if request.method == 'OPTIONS':
         # Both of these headers are only used for the "preflight request"
@@ -409,35 +410,22 @@ def hidden_basic_auth(user='user', passwd='passwd'):
 @app.route('/digest-auth/<qop>/<user>/<passwd>')
 def digest_auth(qop=None, user='user', passwd='passwd'):
     """Prompts the user for authorization using HTTP Digest auth"""
-    if qop not in ('auth', 'auth-int'):
-        qop = None
-    if 'Authorization' not in request.headers or  \
+
+    if 'Authorization' not in request.headers or \
                        not check_digest_auth(user, passwd) or \
                        not 'Cookie' in request.headers:
-        response = app.make_response('')
-        response.status_code = 401
-
-        # RFC2616 Section4.2: HTTP headers are ASCII.  That means
-        # request.remote_addr was originally ASCII, so I should be able to
-        # encode it back to ascii.  Also, RFC2617 says about nonces: "The
-        # contents of the nonce are implementation dependent"
-        nonce = H(b''.join([
-            getattr(request,'remote_addr',u'').encode('ascii'),
-            b':',
-            str(time.time()).encode('ascii'),
-            b':',
-            os.urandom(10)
-        ]))
-        opaque = H(os.urandom(10))
-
-        auth = WWWAuthenticate("digest")
-        auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
-                        qop=('auth', 'auth-int') if qop is None else (qop, ))
-        response.headers['WWW-Authenticate'] = auth.to_header()
-        response.headers['Set-Cookie'] = 'fake=fake_value'
-        return response
+        return digest_challenge_response(qop, 401)
     return jsonify(authenticated=True, user=user)
 
+@app.route('/hidden-digest-auth/<qop>/<user>/<passwd>')
+def hidden_digest_auth(qop=None, user='user', passwd='passwd'):
+    """Prompts the user for authorization using HTTP Digest auth"""
+    
+    if 'Authorization' not in request.headers or \
+                       not check_digest_auth(user, passwd) or \
+                       not 'Cookie' in request.headers:
+        return digest_challenge_response(qop, 404)
+    return jsonify(authenticated=True, user=user)
 
 @app.route('/delay/<int:delay>')
 def delay_response(delay):
