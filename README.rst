@@ -57,7 +57,7 @@ Endpoint                                 Description
 .. _/get: http://httpbin.org/get
 .. _/: http://httpbin.org/
 .. _/ip: http://httpbin.org/ip
-.. _/ip/check: http://httpbin.org/ip/check?valid=127.0.0.1/32
+.. _/ip/check?valid=ip&invalid=ip: http://httpbin.org/ip/check?valid=127.0.0.1/32
 .. _/gzip: http://httpbin.org/gzip
 .. _/deflate: http://httpbin.org/deflate
 .. _/status/:code: http://httpbin.org/status/418
