@@ -64,7 +64,7 @@ ANGRY_ASCII ="""
        \  .-"`  `"-.  /
         '.          .'
           '-......-'
-      YOU SHOUDN'T BE HERE
+     YOU SHOULDN'T BE HERE
 """
 
 
