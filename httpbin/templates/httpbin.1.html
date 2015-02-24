@@ -32,6 +32,7 @@
 <li><a href="/stream/20"><code>/stream/:n</code></a> Streams <em>n</em>–100 lines.</li>
 <li><a href="/delay/3"><code>/delay/:n</code></a> Delays responding for <em>n</em>–10 seconds.</li>
 <li><a href="/drip?numbytes=5&amp;duration=5&amp;code=200"><code>/drip?numbytes=n&amp;duration=s&amp;delay=s&amp;code=code</code></a> Drips data over a duration after an optional initial delay, then (optionally) returns with the given status code.</li>
+<li><a href="/range/1024"><code>/range/1024?duration=s&amp;chunk_size=code</code></a> Streams <em>n</em> bytes, and allows specifying a <em>Range</em> header to select a subset of the data. Accepts a <em>chunk_size</em> and request <em>duration</em> parameter.</li>
 <li><a href="/html" data-bare-link="true"><code>/html</code></a> Renders an HTML Page.</li>
 <li><a href="/robots.txt" data-bare-link="true"><code>/robots.txt</code></a> Returns some robots.txt rules.</li>
 <li><a href="/deny" data-bare-link="true"><code>/deny</code></a> Denied by robots.txt file.</li>

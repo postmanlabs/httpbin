@@ -340,3 +340,60 @@ def check_digest_auth(user, passwd):
 def secure_cookie():
     """Return true if cookie should have secure attribute"""
     return request.environ['wsgi.url_scheme'] == 'https'
+
+def __parse_request_range(range_header_text):
+    """ Return a tuple describing the byte range requested in a GET request
+    If the range is open ended on the left or right side, then a value of None
+    will be set.
+    RFC7233: http://svn.tools.ietf.org/svn/wg/httpbis/specs/rfc7233.html#header.range
+    Examples:
+      Range : bytes=1024-
+      Range : bytes=10-20
+      Range : bytes=-999
+    """
+
+    left = None
+    right = None
+
+    if not range_header_text:
+        return left, right
+
+    range_header_text = range_header_text.strip()
+    if not range_header_text.startswith('bytes'):
+        return left, right
+
+    components = range_header_text.split("=")
+    if len(components) != 2:
+        return left, right
+
+    components = components[1].split("-")
+
+    try:
+        right = int(components[1])
+    except:
+        pass
+
+    try:
+        left = int(components[0])
+    except:
+        pass
+
+    return left, right
+
+def get_request_range(request_headers, upper_bound):
+    first_byte_pos, last_byte_pos = __parse_request_range(request_headers['range'])
+
+    if first_byte_pos is None and last_byte_pos is None:
+        # Request full range
+        first_byte_pos = 0
+        last_byte_pos = upper_bound - 1
+    elif first_byte_pos is None:
+        # Request the last X bytes
+        first_byte_pos = max(0, upper_bound - last_byte_pos)
+        last_byte_pos = upper_bound - 1
+    elif last_byte_pos is None:
+        # Request the last X bytes
+        last_byte_pos = upper_bound - 1
+
+    return first_byte_pos, last_byte_pos
+
