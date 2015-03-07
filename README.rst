@@ -210,7 +210,7 @@ Originally created by `Kenneth Reitz <http://kennethreitz.com/>`__.
 SEE ALSO
 --------
 
-- https://hurl.it
+- https://www.hurl.it
 - http://requestb.in
 - http://python-requests.org
 
