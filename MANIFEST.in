@@ -1,2 +1,2 @@
-include README.md LICENSE AUTHORS requirements.txt
-include httpbin/templates/*
+include README.rst LICENSE AUTHORS requirements.txt
+recursive-include httpbin/templates *
