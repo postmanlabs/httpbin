@@ -439,7 +439,7 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
     return jsonify(authenticated=True, user=user)
 
 
-@app.route('/delay/<int:delay>')
+@app.route('/delay/<int:delay>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
 def delay_response(delay):
     """Returns a delayed response"""
     delay = min(delay, 10)
