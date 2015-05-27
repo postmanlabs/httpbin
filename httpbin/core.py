@@ -698,7 +698,7 @@ def xml():
     response.headers["Content-Type"] = "application/xml"
     return response
 
-@app.route('/post/delay/<int:delay>')
+@app.route('/post/delay/<int:delay>', methods=('POST',))
 def post_delay_response(delay):
     """Returns a delayed POST response"""
     delay = min(delay, 10)
