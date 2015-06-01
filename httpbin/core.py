@@ -655,6 +655,9 @@ def image():
     """Returns a simple image of the type suggest by the Accept header."""
 
     headers = get_headers()
+    if 'accept' not in headers:
+        return image_png() # Default media type to png
+    
     accept = headers['accept'].lower()
 
     if 'image/webp' in accept:
