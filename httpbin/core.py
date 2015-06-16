@@ -407,34 +407,50 @@ def hidden_basic_auth(user='user', passwd='passwd'):
 
 
 @app.route('/digest-auth/<qop>/<user>/<passwd>')
-def digest_auth(qop=None, user='user', passwd='passwd'):
+@app.route('/digest-auth-nocookie/<qop>/<user>/<passwd>', defaults={'check_cookie':False})
+def digest_auth(qop=None, user='user', passwd='passwd', check_cookie=True):
     """Prompts the user for authorization using HTTP Digest auth"""
     if qop not in ('auth', 'auth-int'):
         qop = None
-    if 'Authorization' not in request.headers or  \
-                       not check_digest_auth(user, passwd) or \
-                       not 'Cookie' in request.headers:
-        response = app.make_response('')
-        response.status_code = 401
-
-        # RFC2616 Section4.2: HTTP headers are ASCII.  That means
-        # request.remote_addr was originally ASCII, so I should be able to
-        # encode it back to ascii.  Also, RFC2617 says about nonces: "The
-        # contents of the nonce are implementation dependent"
-        nonce = H(b''.join([
-            getattr(request,'remote_addr',u'').encode('ascii'),
-            b':',
-            str(time.time()).encode('ascii'),
-            b':',
-            os.urandom(10)
-        ]))
-        opaque = H(os.urandom(10))
-
-        auth = WWWAuthenticate("digest")
-        auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
-                        qop=('auth', 'auth-int') if qop is None else (qop, ))
-        response.headers['WWW-Authenticate'] = auth.to_header()
-        response.headers['Set-Cookie'] = 'fake=fake_value'
+    try:
+        remote_addr = request.remote_addr or u''
+        auth_in_headers = 'Authorization' in request.headers
+        digest_check = auth_in_headers and request.headers.get('Authorization').startswith('Digest ')
+        auth_check = auth_in_headers and digest_check and check_digest_auth(user, passwd)
+        if not all([auth_in_headers, digest_check, auth_check]):
+            # RFC2616 Section4.2: HTTP headers are ASCII.  That means
+            # request.remote_addr was originally ASCII, so I should be able to
+            # encode it back to ascii.  Also, RFC2617 says about nonces: "The
+            # contents of the nonce are implementation dependent"
+            nonce = H(b':'.join([
+                remote_addr.encode('ascii'),
+                str(time.time()).encode('ascii'),
+                os.urandom(10)
+            ]))
+            opaque = H(os.urandom(10))
+            
+            response = app.make_response(jsonify(
+                authenticated=False, user=user, auth_in_headers=auth_in_headers,
+                digest_check=digest_check, auth_check=auth_check,
+                headers=dict(request.headers)))
+            response.status_code = 401
+            
+            auth = WWWAuthenticate("digest")
+            auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
+                            qop=('auth', 'auth-int') if qop is None else (qop, ))
+            response.headers['WWW-Authenticate'] = auth.to_header()
+            if check_cookie is True:
+                response.headers['Set-Cookie'] = 'auth=%s' % remote_addr
+            return response
+        elif check_cookie is True and request.cookies.get('auth') != remote_addr:
+            # check for auth challange cookie per https://github.com/Runscope/httpbin/issues/124
+            response = app.make_response('Missing the cookie set in the 401 response. '
+                'This client seems broken. To bypass this check use the digest-auth-nocookie route.')
+            response.status_code = 403
+            return response
+    except Exception as e:
+        response = app.make_response('Error: %s' % str(e))
+        response.status_code = 500
         return response
     return jsonify(authenticated=True, user=user)
 
@@ -448,6 +464,7 @@ def delay_response(delay):
 
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
+
 
 @app.route('/drip')
 def drip():
