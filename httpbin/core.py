@@ -631,6 +631,9 @@ def link_page(n, offset):
     """Generate a page containing n links to other pages which do the same."""
     n = min(max(1, n), 200) # limit to between 1 and 200 links
 
+    if (offset >= n):
+        return status_code(404)
+
     link = "<a href='/links/{0}/{1}'>{2}</a> "
 
     html = ['<html><head><title>Links</title></head><body>']
