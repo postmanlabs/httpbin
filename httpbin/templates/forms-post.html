@@ -4,7 +4,7 @@
   </head>
   <body>
   <!-- Example form from HTML5 spec http://www.w3.org/TR/html5/forms.html#writing-a-form's-user-interface -->
-  <form method="post" action="/post">
+  <form method="post" action="{{ url_for('view_post') }}">
    <p><label>Customer name: <input name="custname"></label></p>
    <p><label>Telephone: <input type=tel name="custtel"></label></p>
    <p><label>E-mail address: <input type=email name="custemail"></label></p>

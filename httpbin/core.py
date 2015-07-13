@@ -249,10 +249,10 @@ def relative_redirect_n_times(n):
     response.status_code = 302
 
     if n == 1:
-        response.headers['Location'] = '/get'
+        response.headers['Location'] = url_for('view_get')
         return response
 
-    response.headers['Location'] = '/relative-redirect/{0}'.format(n - 1)
+    response.headers['Location'] = url_for('relative_redirect_n_times', n=n - 1)
     return response
 
 
@@ -357,7 +357,7 @@ def view_forms_post():
 def set_cookie(name, value):
     """Sets a cookie and redirects to cookie list."""
 
-    r = app.make_response(redirect('/cookies'))
+    r = app.make_response(redirect(url_for('view_cookies')))
     r.set_cookie(key=name, value=value, secure=secure_cookie())
 
     return r
@@ -368,7 +368,7 @@ def set_cookies():
     """Sets cookie(s) as provided by the query string and redirects to cookie list."""
 
     cookies = dict(request.args.items())
-    r = app.make_response(redirect('/cookies'))
+    r = app.make_response(redirect(url_for('view_cookies')))
     for key, value in cookies.items():
         r.set_cookie(key=key, value=value, secure=secure_cookie())
 
@@ -380,7 +380,7 @@ def delete_cookies():
     """Deletes cookie(s) as provided by the query string and redirects to cookie list."""
 
     cookies = dict(request.args.items())
-    r = app.make_response(redirect('/cookies'))
+    r = app.make_response(redirect(url_for('view_cookies')))
     for key, value in cookies.items():
         r.delete_cookie(key=key)
 
@@ -631,14 +631,14 @@ def link_page(n, offset):
     """Generate a page containing n links to other pages which do the same."""
     n = min(max(1, n), 200) # limit to between 1 and 200 links
 
-    link = "<a href='/links/{0}/{1}'>{2}</a> "
+    link = "<a href='{0}'>{1}</a> "
 
     html = ['<html><head><title>Links</title></head><body>']
     for i in xrange(n):
         if i == offset:
             html.append("{0} ".format(i))
         else:
-            html.append(link.format(n, i, i))
+            html.append(link.format(url_for('link_page', n=n, offset=i), i))
     html.append('</body></html>')
 
     return ''.join(html)
@@ -647,7 +647,7 @@ def link_page(n, offset):
 @app.route('/links/<int:n>')
 def links(n):
     """Redirect to first links page."""
-    return redirect("/links/{0}/0".format(n))
+    return redirect(url_for('link_page', n=n, offset=0))
 
 
 @app.route('/image')

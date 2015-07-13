@@ -330,7 +330,7 @@ def check_digest_auth(user, passwd):
         credentails = parse_authorization_header(request.headers.get('Authorization'))
         if not credentails:
             return
-        response_hash = response(credentails, passwd, dict(uri=request.path,
+        response_hash = response(credentails, passwd, dict(uri=request.script_root + request.path,
                                                            body=request.data,
                                                            method=request.method))
         if credentails.get('response') == response_hash:
