@@ -191,6 +191,37 @@ Or run it directly:
 
     $ python -m httpbin.core
 
+Running with a URL prefix
+-------------------------
+
+If you'd like to run httpbin with a url prefix
+
+.. code:: bash
+
+    $ HTTPBIN_URL_PREFIX="/httpbin" gunicorn httpbin:app
+
+Or
+
+.. code:: bash
+
+    $ HTTPBIN_URL_PREFIX="/httpbin" python -m httpbin.core
+
+Now all the routes act appropriately with the new prefix
+
+.. code:: bash
+
+    $ curl localhost:8080/httpbin/get
+    {
+      "args": {},
+      "headers": {
+        "Accept": "*/*",
+        "Host": "localhost:8000",
+        "User-Agent": "curl/7.35.0"
+      },
+      "origin": "127.0.0.1",
+      "url": "http://localhost:8000/httpbin/get"
+    }
+
 Changelog
 ---------
 
