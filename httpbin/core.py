@@ -14,7 +14,7 @@ import random
 import time
 import uuid
 
-from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
+from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for, Blueprint
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
@@ -48,29 +48,12 @@ BaseResponse.autocorrect_location_header = False
 # Find the correct template folder when running from a different location
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
-app = Flask(__name__, template_folder=tmpl_dir)
-
-# Set up Bugsnag exception tracking, if desired. To use Bugsnag, install the
-# Bugsnag Python client with the command "pip install bugsnag", and set the
-# environment variable BUGSNAG_API_KEY. You can also optionally set
-# BUGSNAG_RELEASE_STAGE.
-if os.environ.get("BUGSNAG_API_KEY") is not None:
-    try:
-        import bugsnag
-        import bugsnag.flask
-        release_stage = os.environ.get("BUGSNAG_RELEASE_STAGE") or "production"
-        bugsnag.configure(api_key=os.environ.get("BUGSNAG_API_KEY"),
-                          project_root=os.path.dirname(os.path.abspath(__file__)),
-                          use_ssl=True, release_stage=release_stage,
-                          ignore_classes=['werkzeug.exceptions.NotFound'])
-        bugsnag.flask.handle_exceptions(app)
-    except:
-        app.logger.warning("Unable to initialize Bugsnag exception handling.")
+blueprint = Blueprint('httpbin', __name__, template_folder=tmpl_dir)
 
 # -----------
 # Middlewares
 # -----------
-@app.after_request
+@blueprint.after_request
 def set_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
     response.headers['Access-Control-Allow-Credentials'] = 'true'
@@ -89,21 +72,21 @@ def set_cors_headers(response):
 # Routes
 # ------
 
-@app.route('/')
+@blueprint.route('/')
 def view_landing_page():
     """Generates Landing Page."""
 
     return render_template('index.html')
 
 
-@app.route('/html')
+@blueprint.route('/html')
 def view_html_page():
     """Simple Html Page"""
 
     return render_template('moby.html')
 
 
-@app.route('/robots.txt')
+@blueprint.route('/robots.txt')
 def view_robots_page():
     """Simple Html Page"""
 
@@ -113,7 +96,7 @@ def view_robots_page():
     return response
 
 
-@app.route('/deny')
+@blueprint.route('/deny')
 def view_deny_page():
     """Simple Html Page"""
     response = make_response()
@@ -123,21 +106,21 @@ def view_deny_page():
     # return "YOU SHOULDN'T BE HERE"
 
 
-@app.route('/ip')
+@blueprint.route('/ip')
 def view_origin():
     """Returns Origin IP."""
 
     return jsonify(origin=request.headers.get('X-Forwarded-For', request.remote_addr))
 
 
-@app.route('/headers')
+@blueprint.route('/headers')
 def view_headers():
     """Returns HTTP HEADERS."""
 
     return jsonify(get_dict('headers'))
 
 
-@app.route('/user-agent')
+@blueprint.route('/user-agent')
 def view_user_agent():
     """Returns User-Agent."""
 
@@ -146,14 +129,14 @@ def view_user_agent():
     return jsonify({'user-agent': headers['user-agent']})
 
 
-@app.route('/get', methods=('GET',))
+@blueprint.route('/get', methods=('GET',))
 def view_get():
     """Returns GET Data."""
 
     return jsonify(get_dict('url', 'args', 'headers', 'origin'))
 
 
-@app.route('/post', methods=('POST',))
+@blueprint.route('/post', methods=('POST',))
 def view_post():
     """Returns POST Data."""
 
@@ -161,7 +144,7 @@ def view_post():
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
 
 
-@app.route('/put', methods=('PUT',))
+@blueprint.route('/put', methods=('PUT',))
 def view_put():
     """Returns PUT Data."""
 
@@ -169,7 +152,7 @@ def view_put():
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
 
 
-@app.route('/patch', methods=('PATCH',))
+@blueprint.route('/patch', methods=('PATCH',))
 def view_patch():
     """Returns PATCH Data."""
 
@@ -177,7 +160,7 @@ def view_patch():
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
 
 
-@app.route('/delete', methods=('DELETE',))
+@blueprint.route('/delete', methods=('DELETE',))
 def view_delete():
     """Returns DETLETE Data."""
 
@@ -185,7 +168,7 @@ def view_delete():
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
 
 
-@app.route('/gzip')
+@blueprint.route('/gzip')
 @filters.gzip
 def view_gzip_encoded_content():
     """Returns GZip-Encoded Data."""
@@ -194,7 +177,7 @@ def view_gzip_encoded_content():
         'origin', 'headers', method=request.method, gzipped=True))
 
 
-@app.route('/deflate')
+@blueprint.route('/deflate')
 @filters.deflate
 def view_deflate_encoded_content():
     """Returns Deflate-Encoded Data."""
@@ -203,7 +186,7 @@ def view_deflate_encoded_content():
         'origin', 'headers', method=request.method, deflated=True))
 
 
-@app.route('/redirect/<int:n>')
+@blueprint.route('/redirect/<int:n>')
 def redirect_n_times(n):
     """302 Redirects n times."""
     assert n > 0
@@ -211,7 +194,7 @@ def redirect_n_times(n):
     absolute = request.args.get('absolute', 'false').lower() == 'true'
 
     if n == 1:
-        return redirect(url_for('view_get', _external=absolute))
+        return redirect(url_for('httpbin.view_get', _external=absolute))
 
     if absolute:
         return _redirect('absolute', n, True)
@@ -220,10 +203,10 @@ def redirect_n_times(n):
 
 
 def _redirect(kind, n, external):
-    return redirect(url_for('{0}_redirect_n_times'.format(kind), n=n - 1, _external=external))
+    return redirect(url_for('httpbin.{0}_redirect_n_times'.format(kind), n=n - 1, _external=external))
 
 
-@app.route('/redirect-to')
+@blueprint.route('/redirect-to')
 def redirect_to():
     """302 Redirects to the given URL."""
 
@@ -239,7 +222,7 @@ def redirect_to():
     return response
 
 
-@app.route('/relative-redirect/<int:n>')
+@blueprint.route('/relative-redirect/<int:n>')
 def relative_redirect_n_times(n):
     """302 Redirects n times."""
 
@@ -249,26 +232,26 @@ def relative_redirect_n_times(n):
     response.status_code = 302
 
     if n == 1:
-        response.headers['Location'] = url_for('view_get')
+        response.headers['Location'] = url_for('httpbin.view_get')
         return response
 
-    response.headers['Location'] = url_for('relative_redirect_n_times', n=n - 1)
+    response.headers['Location'] = url_for('httpbin.relative_redirect_n_times', n=n - 1)
     return response
 
 
-@app.route('/absolute-redirect/<int:n>')
+@blueprint.route('/absolute-redirect/<int:n>')
 def absolute_redirect_n_times(n):
     """302 Redirects n times."""
 
     assert n > 0
 
     if n == 1:
-        return redirect(url_for('view_get', _external=True))
+        return redirect(url_for('httpbin.view_get', _external=True))
 
     return _redirect('absolute', n, True)
 
 
-@app.route('/stream/<int:n>')
+@blueprint.route('/stream/<int:n>')
 def stream_n_messages(n):
     """Stream n JSON messages"""
     response = get_dict('url', 'args', 'headers', 'origin')
@@ -285,7 +268,7 @@ def stream_n_messages(n):
         })
 
 
-@app.route('/status/<codes>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
+@blueprint.route('/status/<codes>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
 def view_status_code(codes):
     """Return status code or random status code if more than one are given"""
 
@@ -308,7 +291,7 @@ def view_status_code(codes):
     return status_code(code)
 
 
-@app.route('/response-headers')
+@blueprint.route('/response-headers')
 def response_headers():
     """Returns a set of response headers from the query string """
     headers = MultiDict(request.args.items(multi=True))
@@ -330,7 +313,7 @@ def response_headers():
     return response
 
 
-@app.route('/cookies')
+@blueprint.route('/cookies')
 def view_cookies(hide_env=True):
     """Returns cookie data."""
 
@@ -346,48 +329,48 @@ def view_cookies(hide_env=True):
     return jsonify(cookies=cookies)
 
 
-@app.route('/forms/post')
+@blueprint.route('/forms/post')
 def view_forms_post():
     """Simple HTML form."""
 
     return render_template('forms-post.html')
 
 
-@app.route('/cookies/set/<name>/<value>')
+@blueprint.route('/cookies/set/<name>/<value>')
 def set_cookie(name, value):
     """Sets a cookie and redirects to cookie list."""
 
-    r = app.make_response(redirect(url_for('view_cookies')))
+    r = app.make_response(redirect(url_for('httpbin.view_cookies')))
     r.set_cookie(key=name, value=value, secure=secure_cookie())
 
     return r
 
 
-@app.route('/cookies/set')
+@blueprint.route('/cookies/set')
 def set_cookies():
     """Sets cookie(s) as provided by the query string and redirects to cookie list."""
 
     cookies = dict(request.args.items())
-    r = app.make_response(redirect(url_for('view_cookies')))
+    r = app.make_response(redirect(url_for('httpbin.view_cookies')))
     for key, value in cookies.items():
         r.set_cookie(key=key, value=value, secure=secure_cookie())
 
     return r
 
 
-@app.route('/cookies/delete')
+@blueprint.route('/cookies/delete')
 def delete_cookies():
     """Deletes cookie(s) as provided by the query string and redirects to cookie list."""
 
     cookies = dict(request.args.items())
-    r = app.make_response(redirect(url_for('view_cookies')))
+    r = app.make_response(redirect(url_for('httpbin.view_cookies')))
     for key, value in cookies.items():
         r.delete_cookie(key=key)
 
     return r
 
 
-@app.route('/basic-auth/<user>/<passwd>')
+@blueprint.route('/basic-auth/<user>/<passwd>')
 def basic_auth(user='user', passwd='passwd'):
     """Prompts the user for authorization using HTTP Basic Auth."""
 
@@ -397,7 +380,7 @@ def basic_auth(user='user', passwd='passwd'):
     return jsonify(authenticated=True, user=user)
 
 
-@app.route('/hidden-basic-auth/<user>/<passwd>')
+@blueprint.route('/hidden-basic-auth/<user>/<passwd>')
 def hidden_basic_auth(user='user', passwd='passwd'):
     """Prompts the user for authorization using HTTP Basic Auth."""
 
@@ -406,7 +389,7 @@ def hidden_basic_auth(user='user', passwd='passwd'):
     return jsonify(authenticated=True, user=user)
 
 
-@app.route('/digest-auth/<qop>/<user>/<passwd>')
+@blueprint.route('/digest-auth/<qop>/<user>/<passwd>')
 def digest_auth(qop=None, user='user', passwd='passwd'):
     """Prompts the user for authorization using HTTP Digest auth"""
     if qop not in ('auth', 'auth-int'):
@@ -439,7 +422,7 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
     return jsonify(authenticated=True, user=user)
 
 
-@app.route('/delay/<int:delay>')
+@blueprint.route('/delay/<int:delay>')
 def delay_response(delay):
     """Returns a delayed response"""
     delay = min(delay, 10)
@@ -449,7 +432,7 @@ def delay_response(delay):
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
 
-@app.route('/drip')
+@blueprint.route('/drip')
 def drip():
     """Drips data over a duration after an optional initial delay."""
     args = CaseInsensitiveDict(request.args.items())
@@ -476,14 +459,14 @@ def drip():
 
     return response
 
-@app.route('/base64/<value>')
+@blueprint.route('/base64/<value>')
 def decode_base64(value):
     """Decodes base64url-encoded string"""
     encoded = value.encode('utf-8') # base64 expects binary string as input
     return base64.urlsafe_b64decode(encoded).decode('utf-8')
 
 
-@app.route('/cache', methods=('GET',))
+@blueprint.route('/cache', methods=('GET',))
 def cache():
     """Returns a 304 if an If-Modified-Since header or If-None-Match is present. Returns the same as a GET otherwise."""
     is_conditional = request.headers.get('If-Modified-Since') or request.headers.get('If-None-Match')
@@ -497,7 +480,7 @@ def cache():
         return status_code(304)
 
 
-@app.route('/cache/<int:value>')
+@blueprint.route('/cache/<int:value>')
 def cache_control(value):
     """Sets a Cache-Control header."""
     response = view_get()
@@ -505,12 +488,12 @@ def cache_control(value):
     return response
 
 
-@app.route('/encoding/utf8')
+@blueprint.route('/encoding/utf8')
 def encoding():
     return render_template('UTF-8-demo.txt')
 
 
-@app.route('/bytes/<int:n>')
+@blueprint.route('/bytes/<int:n>')
 def random_bytes(n):
     """Returns n random bytes generated with given seed."""
     n = min(n, 100 * 1024) # set 100KB limit
@@ -527,7 +510,7 @@ def random_bytes(n):
     return response
 
 
-@app.route('/stream-bytes/<int:n>')
+@blueprint.route('/stream-bytes/<int:n>')
 def stream_random_bytes(n):
     """Streams n random bytes generated with given seed, at given chunk size per packet."""
     n = min(n, 100 * 1024) # set 100KB limit
@@ -558,7 +541,7 @@ def stream_random_bytes(n):
 
     return Response(generate_bytes(), headers=headers)
 
-@app.route('/range/<int:numbytes>')
+@blueprint.route('/range/<int:numbytes>')
 def range_request(numbytes):
     """Streams n random bytes generated with given seed, at given chunk size per packet."""
 
@@ -626,7 +609,7 @@ def range_request(numbytes):
 
     return response
 
-@app.route('/links/<int:n>/<int:offset>')
+@blueprint.route('/links/<int:n>/<int:offset>')
 def link_page(n, offset):
     """Generate a page containing n links to other pages which do the same."""
     n = min(max(1, n), 200) # limit to between 1 and 200 links
@@ -638,19 +621,19 @@ def link_page(n, offset):
         if i == offset:
             html.append("{0} ".format(i))
         else:
-            html.append(link.format(url_for('link_page', n=n, offset=i), i))
+            html.append(link.format(url_for('httpbin.link_page', n=n, offset=i), i))
     html.append('</body></html>')
 
     return ''.join(html)
 
 
-@app.route('/links/<int:n>')
+@blueprint.route('/links/<int:n>')
 def links(n):
     """Redirect to first links page."""
-    return redirect(url_for('link_page', n=n, offset=0))
+    return redirect(url_for('httpbin.link_page', n=n, offset=0))
 
 
-@app.route('/image')
+@blueprint.route('/image')
 def image():
     """Returns a simple image of the type suggest by the Accept header."""
 
@@ -670,19 +653,19 @@ def image():
         return status_code(404)
 
 
-@app.route('/image/png')
+@blueprint.route('/image/png')
 def image_png():
     data = resource('images/pig_icon.png')
     return Response(data, headers={'Content-Type': 'image/png'})
 
 
-@app.route('/image/jpeg')
+@blueprint.route('/image/jpeg')
 def image_jpeg():
     data = resource('images/jackal.jpg')
     return Response(data, headers={'Content-Type': 'image/jpeg'})
 
 
-@app.route('/image/webp')
+@blueprint.route('/image/webp')
 def image_webp():
     data = resource('images/wolf_1.webp')
     return Response(data, headers={'Content-Type': 'image/webp'})
@@ -695,12 +678,32 @@ def resource(filename):
     return open(path, 'rb').read()
 
 
-@app.route("/xml")
+@blueprint.route("/xml")
 def xml():
     response = make_response(render_template("sample.xml"))
     response.headers["Content-Type"] = "application/xml"
     return response
 
+app = Flask(__name__)
+url_prefix = os.environ.get('HTTPBIN_URL_PREFIX', None)
+app.register_blueprint(blueprint, url_prefix=url_prefix)
+
+# Set up Bugsnag exception tracking, if desired. To use Bugsnag, install the
+# Bugsnag Python client with the command "pip install bugsnag", and set the
+# environment variable BUGSNAG_API_KEY. You can also optionally set
+# BUGSNAG_RELEASE_STAGE.
+if os.environ.get("BUGSNAG_API_KEY") is not None:
+    try:
+        import bugsnag
+        import bugsnag.flask
+        release_stage = os.environ.get("BUGSNAG_RELEASE_STAGE") or "production"
+        bugsnag.configure(api_key=os.environ.get("BUGSNAG_API_KEY"),
+                          project_root=os.path.dirname(os.path.abspath(__file__)),
+                          use_ssl=True, release_stage=release_stage,
+                          ignore_classes=['werkzeug.exceptions.NotFound'])
+        bugsnag.flask.handle_exceptions(app)
+    except:
+        app.logger.warning("Unable to initialize Bugsnag exception handling.")
 
 if __name__ == '__main__':
     app.run()
