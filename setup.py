@@ -34,4 +34,10 @@ setup(
     packages=find_packages(),
     include_package_data = True, # include files listed in MANIFEST.in
     install_requires=['Flask','MarkupSafe','decorator','itsdangerous','six'],
+
+    entry_points={
+        'console_scripts': [
+            'httpbin = httpbin.core:main',
+        ],
+    }
 )
