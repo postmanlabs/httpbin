@@ -702,5 +702,9 @@ def xml():
     return response
 
 
-if __name__ == '__main__':
+def main():
     app.run()
+
+
+if __name__ == '__main__':
+    main()
