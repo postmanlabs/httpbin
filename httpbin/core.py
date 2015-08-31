@@ -92,8 +92,8 @@ def set_cors_headers(response):
 @app.route('/')
 def view_landing_page():
     """Generates Landing Page."""
-
-    return render_template('index.html', env=os.environ)
+    tracking_enabled = 'HTTPBIN_TRACKING' in os.environ
+    return render_template('index.html', tracking_enabled=tracking_enabled)
 
 
 @app.route('/html')
