@@ -93,7 +93,7 @@ def set_cors_headers(response):
 def view_landing_page():
     """Generates Landing Page."""
 
-    return render_template('index.html')
+    return render_template('index.html', env=os.environ)
 
 
 @app.route('/html')

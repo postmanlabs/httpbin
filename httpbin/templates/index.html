@@ -56,7 +56,9 @@
 
 {% include 'httpbin.1.html' %}
 
-{% include 'trackingscripts.html' %}
+{% if env.get('HTTPBIN_TRACKING', '0') == '1' %}
+    {% include 'trackingscripts.html' %}
+{% endif %}
 
 </body>
 </html>
