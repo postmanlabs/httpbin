@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 import base64
 import unittest
-import six
 import json
+import sys
 from werkzeug.http import parse_dict_header
 from hashlib import md5
-from six import BytesIO
+from io import BytesIO
 
 import httpbin
 
@@ -227,7 +227,7 @@ class HttpbinTestCase(unittest.TestCase):
         # The RNG changed in python3, so even though we are
         # setting the seed, we can't expect the value to be the
         # same across both interpreters.
-        if six.PY3:
+        if sys.version_info[0] > 2:
             self.assertEqual(
                 response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
             )
@@ -246,7 +246,7 @@ class HttpbinTestCase(unittest.TestCase):
         # The RNG changed in python3, so even though we are
         # setting the seed, we can't expect the value to be the
         # same across both interpreters.
-        if six.PY3:
+        if sys.version_info[0] > 2:
             self.assertEqual(
                 response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
             )

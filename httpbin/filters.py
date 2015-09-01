@@ -10,9 +10,9 @@ This module provides response filter decorators.
 import gzip as gzip2
 import zlib
 
-from six import BytesIO
 from decimal import Decimal
 from time import time as now
+from io import BytesIO
 
 from decorator import decorator
 from flask import Flask, Response
