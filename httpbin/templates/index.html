@@ -56,7 +56,9 @@
 
 {% include 'httpbin.1.html' %}
 
-{% include 'trackingscripts.html' %}
+{% if tracking_enabled %}
+    {% include 'trackingscripts.html' %}
+{% endif %}
 
 </body>
 </html>

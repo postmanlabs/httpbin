@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
 import base64
 import unittest
+import contextlib
 import six
 import json
 from werkzeug.http import parse_dict_header
@@ -9,6 +11,24 @@ from hashlib import md5
 from six import BytesIO
 
 import httpbin
+
+
+@contextlib.contextmanager
+def _setenv(key, value):
+    """Context manager to set an environment variable temporarily."""
+    old_value = os.environ.get(key, None)
+    if value is None:
+        os.environ.pop(key, None)
+    else:
+        os.environ[key] = value
+
+    yield
+
+    if old_value is None:
+        os.environ.pop(key, None)
+    else:
+        os.environ[key] = value
+
 
 
 def _string_to_base64(string):
@@ -418,6 +438,21 @@ class HttpbinTestCase(unittest.TestCase):
             }
         )
         self.assertEqual(response.status_code, 416)
+
+    def test_tracking_disabled(self):
+        with _setenv('HTTPBIN_TRACKING', None):
+            response = self.app.get('/')
+        data = response.data.decode('utf-8')
+        self.assertNotIn('google-analytics', data)
+        self.assertNotIn('perfectaudience', data)
+
+    def test_tracking_enabled(self):
+        with _setenv('HTTPBIN_TRACKING', '1'):
+            response = self.app.get('/')
+        data = response.data.decode('utf-8')
+        self.assertIn('google-analytics', data)
+        self.assertIn('perfectaudience', data)
+
 
 if __name__ == '__main__':
     unittest.main()
