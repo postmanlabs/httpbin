@@ -194,6 +194,8 @@ Or run it directly:
 Changelog
 ---------
 
+-  0.3.0: A number of new features, including a /range endpoint, lots of
+   bugfixes, and a /encoding/utf8 endpoint
 -  0.2.0: Added an XML endpoint. Also fixes several bugs with unicode,
    CORS headers, digest auth, and more.
 -  0.1.2: Fix a couple Python3 bugs with the random byte endpoints, fix

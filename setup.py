@@ -8,7 +8,7 @@ long_description = open(
 
 setup(
     name="httpbin",
-    version="0.2.1",
+    version="0.3.0",
     description="HTTP Request and Response Service",
     long_description=long_description,
 
