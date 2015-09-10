@@ -657,11 +657,13 @@ def image():
     headers = get_headers()
     if 'accept' not in headers:
         return image_png() # Default media type to png
-    
+
     accept = headers['accept'].lower()
 
     if 'image/webp' in accept:
         return image_webp()
+    elif 'image/svg+xml' in accept:
+        return image_svg()
     elif 'image/jpeg' in accept:
         return image_jpeg()
     elif 'image/png' in accept or 'image/*' in accept:
@@ -686,6 +688,12 @@ def image_jpeg():
 def image_webp():
     data = resource('images/wolf_1.webp')
     return Response(data, headers={'Content-Type': 'image/webp'})
+
+
+@app.route('/image/svg')
+def image_svg():
+    data = resource('images/svg_logo.svg')
+    return Response(data, headers={'Content-Type': 'image/svg+xml'})
 
 
 def resource(filename):
