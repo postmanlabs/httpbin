@@ -12,7 +12,7 @@ import base64
 from hashlib import md5
 from werkzeug.http import parse_authorization_header
 
-from flask import request, make_response
+from flask import request, make_response, render_template
 from six.moves.urllib.parse import urlparse, urlunparse
 
 
@@ -209,6 +209,7 @@ def status_code(code):
                 'x-more-info': 'http://vimeo.com/22053820'
             }
         ),
+        404: dict(data=render_template('404.html')),
         407: dict(headers={'Proxy-Authenticate': 'Basic realm="Fake Realm"'}),
         418: dict(  # I'm a teapot!
             data=ASCII_ART,
