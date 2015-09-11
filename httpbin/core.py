@@ -669,7 +669,7 @@ def image():
     elif 'image/png' in accept or 'image/*' in accept:
         return image_png()
     else:
-        return status_code(404)
+        return status_code(406) # Unsupported media type
 
 
 @app.route('/image/png')
