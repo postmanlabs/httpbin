@@ -54,6 +54,14 @@ ROBOT_TXT = """User-agent: *
 Disallow: /deny
 """
 
+ACCEPTED_MEDIA_TYPES = [
+    'image/webp',
+    'image/svg+xml',
+    'image/jpeg',
+    'image/png',
+    'image/*'
+]
+
 ANGRY_ASCII ="""
           .-''''''-.
         .' _      _ '.
@@ -209,6 +217,13 @@ def status_code(code):
                 'x-more-info': 'http://vimeo.com/22053820'
             }
         ),
+        406: dict(data=json.dumps({
+                'message': 'Client did not request a supported media type.',
+                'accept': ACCEPTED_MEDIA_TYPES
+            }),
+            headers={
+                'Content-Type': 'application/json'
+            }),
         407: dict(headers={'Proxy-Authenticate': 'Basic realm="Fake Realm"'}),
         418: dict(  # I'm a teapot!
             data=ASCII_ART,
