@@ -10,6 +10,8 @@ This module provides response filter decorators.
 import gzip as gzip2
 import zlib
 
+import brotli as _brotli
+
 from six import BytesIO
 from decimal import Decimal
 from time import time as now
@@ -83,6 +85,29 @@ def deflate(f, *args, **kwargs):
     if isinstance(data, Response):
         data.data = deflated_data
         data.headers['Content-Encoding'] = 'deflate'
+        data.headers['Content-Length'] = str(len(data.data))
+
+        return data
+
+    return deflated_data
+
+
+@decorator
+def brotli(f, *args, **kwargs):
+    """Brotli Flask Response Decorator"""
+
+    data = f(*args, **kwargs)
+
+    if isinstance(data, Response):
+        content = data.data
+    else:
+        content = data
+
+    deflated_data = _brotli.compress(content)
+
+    if isinstance(data, Response):
+        data.data = deflated_data
+        data.headers['Content-Encoding'] = 'brotli'
         data.headers['Content-Length'] = str(len(data.data))
 
         return data
