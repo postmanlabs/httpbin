@@ -713,7 +713,7 @@ def xml():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int)
-    parser.add_argument("--host")
+    parser.add_argument("--port", type=int, default=5000)
+    parser.add_argument("--host", default="127.0.0.1")
     args = parser.parse_args()
-    app.run(port=args.port if args.port else 5000, host=args.host if args.host else "127.0.0.1")
+    app.run(port=args.port, host=args.host)
