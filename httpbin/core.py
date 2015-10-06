@@ -13,7 +13,7 @@ import os
 import random
 import time
 import uuid
-import sys
+import argparse
 
 from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
@@ -712,4 +712,8 @@ def xml():
 
 
 if __name__ == '__main__':
-    app.run(port=int(sys.argv[1]) if (len(sys.argv) > 1) else 5000, host=sys.argv[2] if (len(sys.argv) > 2) else "127.0.0.1")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", type=int)
+    parser.add_argument("--host")
+    args = parser.parse_args()
+    app.run(port=args.port if args.port else 5000, host=args.host if args.host else "127.0.0.1")
