@@ -107,7 +107,7 @@ def brotli(f, *args, **kwargs):
 
     if isinstance(data, Response):
         data.data = deflated_data
-        data.headers['Content-Encoding'] = 'brotli'
+        data.headers['Content-Encoding'] = 'br'
         data.headers['Content-Length'] = str(len(data.data))
 
         return data
