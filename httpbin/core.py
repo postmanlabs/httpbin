@@ -450,8 +450,8 @@ def delay_response(delay):
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
 
 @app.route('/delayf/<delay>')
-def delay_response2(delay):
-    """Returns a delayed response. Can use decimal delays"""
+def delay_response_float(delay):
+    """Returns a delayed response. Can use floating-point delays"""
     delay = min(float(delay), 10)
 
     time.sleep(delay)
