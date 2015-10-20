@@ -7,6 +7,8 @@ flavors by `Runscope <https://www.runscope.com/>`__
 
 |Build Status|
 
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/runscope/httpbin)
+
 ENDPOINTS
 ---------
 
