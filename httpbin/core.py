@@ -280,7 +280,6 @@ def stream_n_messages(n):
             yield json.dumps(response) + '\n'
 
     return Response(generate_stream(), headers={
-        "Transfer-Encoding": "chunked",
         "Content-Type": "application/json",
         })
 
@@ -553,8 +552,7 @@ def stream_random_bytes(n):
         if chunks:
             yield(bytes(chunks))
 
-    headers = {'Transfer-Encoding': 'chunked',
-               'Content-Type': 'application/octet-stream'}
+    headers = {'Content-Type': 'application/octet-stream'}
 
     return Response(generate_bytes(), headers=headers)
 
@@ -570,7 +568,7 @@ def range_request(numbytes):
         response.status_code = 404
         response.data = 'number of bytes must be in the range (0, 10240]'
         return response
-    
+
     params = CaseInsensitiveDict(request.args.items())
     if 'chunk_size' in params:
         chunk_size = max(1, int(params['chunk_size']))
@@ -611,7 +609,6 @@ def range_request(numbytes):
 
     content_range = 'bytes %d-%d/%d' % (first_byte_pos, last_byte_pos, numbytes)
     response_headers = {
-        'Transfer-Encoding': 'chunked',
         'Content-Type': 'application/octet-stream',
         'ETag' : 'range%d' % numbytes,
         'Accept-Ranges' : 'bytes',
