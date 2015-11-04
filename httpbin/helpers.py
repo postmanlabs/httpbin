@@ -9,7 +9,7 @@ This module provides helper functions for httpbin.
 
 import json
 import base64
-from hashlib import md5
+from hashlib import md5, sha256
 from werkzeug.http import parse_authorization_header
 
 from flask import request, make_response
@@ -260,11 +260,14 @@ def check_basic_auth(user, passwd):
 # Digest auth helpers
 # qop is a quality of protection
 
-def H(data):
-    return md5(data).hexdigest()
+def H(data, algorithm):
+    if algorithm == 'SHA-256':
+        return sha256(data).hexdigest()
+    else:
+        return md5(data).hexdigest()
 
 
-def HA1(realm, username, password):
+def HA1(realm, username, password, algorithm):
     """Create HA1 hash by realm, username, password
 
     HA1 = md5(A1) = MD5(username:realm:password)
@@ -273,10 +276,10 @@ def HA1(realm, username, password):
         realm = u''
     return H(b":".join([username.encode('utf-8'),
                            realm.encode('utf-8'),
-                           password.encode('utf-8')]))
+                           password.encode('utf-8')]), algorithm)
 
 
-def HA2(credentails, request):
+def HA2(credentails, request, algorithm):
     """Create HA2 md5 hash
 
     If the qop directive's value is "auth" or is unspecified, then HA2:
@@ -285,14 +288,14 @@ def HA2(credentails, request):
         HA2 = md5(A2) = MD5(method:digestURI:MD5(entityBody))
     """
     if credentails.get("qop") == "auth" or credentails.get('qop') is None:
-        return H(b":".join([request['method'].encode('utf-8'), request['uri'].encode('utf-8')]))
+        return H(b":".join([request['method'].encode('utf-8'), request['uri'].encode('utf-8')]), algorithm)
     elif credentails.get("qop") == "auth-int":
         for k in 'method', 'uri', 'body':
             if k not in request:
                 raise ValueError("%s required" % k)
         return H("%s:%s:%s" % (request['method'],
                                request['uri'],
-                               H(request['body'])))
+                               H(request['body'])), algorithm)
     raise ValueError
 
 
@@ -310,18 +313,20 @@ def response(credentails, password, request):
     - `request`: request dict
     """
     response = None
+    algorithm = credentails.get('algorithm')
     HA1_value = HA1(
         credentails.get('realm'),
         credentails.get('username'),
-        password
+        password,
+        algorithm
     )
-    HA2_value = HA2(credentails, request)
+    HA2_value = HA2(credentails, request, algorithm)
     if credentails.get('qop') is None:
         response = H(b":".join([
             HA1_value.encode('utf-8'), 
             credentails.get('nonce', '').encode('utf-8'),
             HA2_value.encode('utf-8')
-        ]))
+        ]), algorithm)
     elif credentails.get('qop') == 'auth' or credentails.get('qop') == 'auth-int':
         for k in 'nonce', 'nc', 'cnonce', 'qop':
             if k not in credentails:
@@ -331,7 +336,7 @@ def response(credentails, password, request):
                                credentails.get('nc').encode('utf-8'),
                                credentails.get('cnonce').encode('utf-8'),
                                credentails.get('qop').encode('utf-8'),
-                               HA2_value.encode('utf-8')]))
+                               HA2_value.encode('utf-8')]), algorithm)
     else:
         raise ValueError("qop value are wrong")
 
