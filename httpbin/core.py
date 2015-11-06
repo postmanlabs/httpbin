@@ -405,8 +405,12 @@ def hidden_basic_auth(user='user', passwd='passwd'):
     return jsonify(authenticated=True, user=user)
 
 
-@app.route('/digest-auth/<algorithm>/<qop>/<user>/<passwd>')
-def digest_auth(algorithm='MD5', qop=None, user='user', passwd='passwd'):
+@app.route('/digest-auth/<qop>/<user>/<passwd>')
+def digest_auth_md5(qop=None, user='user', passwd='passwd'):
+    return digest_auth(qop, user, passwd, "MD5")
+
+@app.route('/digest-auth/<qop>/<user>/<passwd>/<algorithm>')
+def digest_auth(qop=None, user='user', passwd='passwd', algorithm='MD5'):
     """Prompts the user for authorization using HTTP Digest auth"""
     if algorithm not in ('MD5', 'SHA-256'):
         algorithm = 'MD5'
