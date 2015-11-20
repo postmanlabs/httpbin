@@ -449,6 +449,7 @@ def delay_response(delay):
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
 
+
 @app.route('/drip')
 def drip():
     """Drips data over a duration after an optional initial delay."""
@@ -570,7 +571,7 @@ def range_request(numbytes):
         response.status_code = 404
         response.data = 'number of bytes must be in the range (0, 10240]'
         return response
-    
+
     params = CaseInsensitiveDict(request.args.items())
     if 'chunk_size' in params:
         chunk_size = max(1, int(params['chunk_size']))
