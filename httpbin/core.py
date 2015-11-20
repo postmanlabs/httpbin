@@ -439,7 +439,7 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
     return jsonify(authenticated=True, user=user)
 
 
-@app.route('/delay/<int:delay>')
+@app.route('/delay/<delay>')
 def delay_response(delay):
     """Returns a delayed response"""
     delay = min(delay, 10)
@@ -449,15 +449,6 @@ def delay_response(delay):
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
 
-@app.route('/delayf/<delay>')
-def delay_response_float(delay):
-    """Returns a delayed response. Can use floating-point delays"""
-    delay = min(float(delay), 10)
-
-    time.sleep(delay)
-
-    return jsonify(get_dict(
-        'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
 
 @app.route('/drip')
 def drip():
