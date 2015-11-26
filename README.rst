@@ -198,7 +198,7 @@ Or run it directly:
 
 Changelog
 ---------
-
+-  0.4.1: Added floating-point support for /delay endpoint
 -  0.4.0: New /image/svg endpoint, add deploy to heroku button, add 406 response to /image, and don't always emit the transfer-encoding header for stream endpoint.
 -  0.3.0: A number of new features, including a /range endpoint, lots of
    bugfixes, and a /encoding/utf8 endpoint
