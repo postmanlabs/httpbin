@@ -1,6 +1,6 @@
 decorator==3.4.0
 Flask==0.10.1
-gevent==1.0.1
+gevent==1.0.2
 greenlet==0.4.2
 gunicorn==19.2
 itsdangerous==0.24
