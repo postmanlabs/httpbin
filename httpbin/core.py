@@ -288,13 +288,13 @@ def stream_n_messages(n):
 def view_status_code(codes):
     """Return status code or random status code if more than one are given"""
 
-    if not ',' in codes:
+    if ',' not in codes:
         code = int(codes)
         return status_code(code)
 
     choices = []
     for choice in codes.split(','):
-        if not ':' in choice:
+        if ':' not in choice:
             code = choice
             weight = 1
         else:
@@ -412,7 +412,7 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
         qop = None
     if 'Authorization' not in request.headers or  \
                        not check_digest_auth(user, passwd) or \
-                       not 'Cookie' in request.headers:
+                       'Cookie' not in request.headers:
         response = app.make_response('')
         response.status_code = 401
 
