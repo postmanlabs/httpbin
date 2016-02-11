@@ -89,7 +89,7 @@ def json_safe(string, content_type='application/octet-stream'):
     """
     try:
         string = string.decode('utf-8')
-        _encoded = json.dumps(string)
+        json.dumps(string)
         return string
     except (ValueError, TypeError):
         return b''.join([
