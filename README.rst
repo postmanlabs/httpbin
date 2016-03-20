@@ -194,7 +194,7 @@ Or run it directly:
 
 .. code:: bash
 
-    $ python -m httpbin.core
+    $ python -m httpbin.core [--port=PORT] [--host=HOST]
 
 Changelog
 ---------
