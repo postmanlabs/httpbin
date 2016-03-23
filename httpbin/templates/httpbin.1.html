@@ -31,6 +31,7 @@
 <li><a href="{{ url_for('digest_auth', qop='auth', user='user', passwd='passwd') }}"><code>/digest-auth/:qop/:user/:passwd</code></a> Challenges HTTP Digest Auth.</li>
 <li><a href="{{ url_for('stream_n_messages', n=20) }}"><code>/stream/:n</code></a> Streams <em>min(n, 100)</em> lines.</li>
 <li><a href="{{ url_for('delay_response', delay=3) }}"><code>/delay/:n</code></a> Delays responding for <em>min(n, 10)</em> seconds.</li>
+<li><a href="{{ url_for('longdelay_response', delay=30) }}"><code>/longdelay/:n</code></a> Delays responding for <em>min(n, 60)</em> seconds.</li>
 <li><a href="{{ url_for('drip', numbytes=5, duration=5, code=200) }}"><code>/drip?numbytes=n&amp;duration=s&amp;delay=s&amp;code=code</code></a> Drips data over a duration after an optional initial delay, then (optionally) returns with the given status code.</li>
 <li><a href="{{ url_for('range_request', numbytes=1024) }}"><code>/range/1024?duration=s&amp;chunk_size=code</code></a> Streams <em>n</em> bytes, and allows specifying a <em>Range</em> header to select a subset of the data. Accepts a <em>chunk_size</em> and request <em>duration</em> parameter.</li>
 <li><a href="{{ url_for('view_html_page') }}" data-bare-link="true"><code>/html</code></a> Renders an HTML Page.</li>
