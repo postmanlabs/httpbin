@@ -450,6 +450,18 @@ def delay_response(delay):
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
 
 
+		
+@app.route('/longdelay/<delay>')
+def longdelay_response(delay):
+	"""Returns a longer delayed response"""
+	delay = min(float(delay),60)
+	
+	time.sleep(delay)
+	
+    return jsonify(get_dict(
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
+	
+		
 @app.route('/drip')
 def drip():
     """Drips data over a duration after an optional initial delay."""
