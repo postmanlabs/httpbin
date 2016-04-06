@@ -1,6 +1,8 @@
 httpbin(1): HTTP Request & Response Service
 ===========================================
 
+*NOTE:* This is a forked version of httpbin from Runscope.
+
 Freely hosted in `HTTP <http://httpbin.org>`__,
 `HTTPS <https://httpbin.org>`__ & `EU <http://eu.httpbin.org/>`__
 flavors by `Runscope <https://www.runscope.com/>`__
@@ -55,6 +57,8 @@ Endpoint                                 Description
 `/forms/post`_                           HTML form that submits to */post*
 `/xml`_                                  Returns some XML
 `/encoding/utf8`_                        Returns page containing UTF-8 data.
+`/file/:path?name=filename`              Creates a new file with *name* in *path* directory.  Creates intermediate directories if necessary.  If *name* is not provided, a unique name is assigned.
+`/file/:path`                            Returns the content of all files in *path* directory as a multipart/form-data response
 ======================================   ==================================================================================================================
 
 .. _/user-agent: http://httpbin.org/user-agent
@@ -101,6 +105,9 @@ requests, but doesn't let you control the response. This exists to cover
 all kinds of HTTP scenarios. Additional endpoints are being considered.
 
 All endpoint responses are JSON-encoded.
+
+This is a forked version of httpbin with some additional functionality.
+It forks off version 0.4.1
 
 EXAMPLES
 --------
@@ -179,6 +186,62 @@ $ curl https://httpbin.org/get?show\_env=1
       "url": "http://httpbin.org/get?show_env=1"
     }
 
+$ curl -XPOST https://httpbin.org/file/dir1/dir2?name=myfile.json
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    {
+      "file_path": "/tmp/dir1/dir2/myfile.json"
+    }
+
+$ curl https://httpbin.org/file/dir1/dir2?name=myfile.json
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    {
+      "content1": "foo bar",
+      "content2": "fizz buzz"
+    }
+
+$ curl https://httpbin.org/file/dir1/dir2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    GET /file/event/180 HTTP/1.1
+    Host: 127.0.0.1:5000
+    User-Agent: curl/7.43.0
+    Accept: */*
+
+    HTTP 1.0, assume close after body
+    HTTP/1.0 200 OK
+    Content-Length: 1110
+    Content-Type: multipart/form-data; boundary=p5jzGj614zq3BEJaCXCZs8avaXHLEZ
+    Access-Control-Allow-Origin: *
+    Access-Control-Allow-Credentials: true
+    Server: Werkzeug/0.9.4 Python/2.7.10
+    Date: Wed, 06 Apr 2016 06:10:13 GMT
+
+    --p5jzGj614zq3BEJaCXCZs8avaXHLEZ
+    Content-Disposition: form-data; name="ce0ceadd-1fd7-4b75-9ad7-063188065651"; filename="ce0ceadd-1fd7-4b75-9ad7-063188065651.json"
+    Content-Type: application/json
+
+    {"file1content1":"foo bar","file1content2":"fizz buzz"}
+    --p5jzGj614zq3BEJaCXCZs8avaXHLEZ
+    Content-Disposition: form-data; name="d4b39517-69d3-4074-8010-74dcfa1b8606"; filename="d4b39517-69d3-4074-8010-74dcfa1b8606.json"
+    Content-Type: application/json
+
+    {"file2content1":"foo bar","file2content2":"fizz buzz"}
+    --p5jzGj614zq3BEJaCXCZs8avaXHLEZ
+    Content-Disposition: form-data; name="event1"; filename="event1.txt"
+    Content-Type: plain/text
+
+    foo bar fizz buzz
+    --p5jzGj614zq3BEJaCXCZs8avaXHLEZ--
+
+
 Installing and running from PyPI
 --------------------------------
 
@@ -194,10 +257,11 @@ Or run it directly:
 
 .. code:: bash
 
-    $ python -m httpbin.core [--port=PORT] [--host=HOST]
+    $ python -m httpbin.core [--port=PORT] [--host=HOST] [--enable-file-endpoint] [--disable-file-endpoint]
 
 Changelog
 ---------
+-  0.5.0: Added /file endpoint to create, get or delete a file
 -  0.4.1: Added floating-point support for /delay endpoint
 -  0.4.0: New /image/svg endpoint, add deploy to heroku button, add 406 response to /image, and don't always emit the transfer-encoding header for stream endpoint.
 -  0.3.0: A number of new features, including a /range endpoint, lots of
