@@ -15,14 +15,14 @@ import time
 import uuid
 import argparse
 
-from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
+from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for, send_from_directory
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
 from six.moves import range as xrange
 
 from . import filters
-from .helpers import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, secure_cookie, H, ROBOT_TXT, ANGRY_ASCII
+from .helpers import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, secure_cookie, create_file, get_all_files_in_dir, encode_multipart, H, ROBOT_TXT, ANGRY_ASCII
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
@@ -121,7 +121,6 @@ def view_deny_page():
     response.data = ANGRY_ASCII
     response.content_type = "text/plain"
     return response
-    # return "YOU SHOULDN'T BE HERE"
 
 
 @app.route('/ip')
@@ -649,6 +648,72 @@ def links(n):
     return redirect(url_for('link_page', n=n, offset=0))
 
 
+@app.route('/file/<path:p>', methods=('GET', 'POST',))
+def file(p):
+    """ File operations - create a new file, get a file or delete a file
+    :param p: directory path of the file for POST, full file path for GET and DELETE
+    :return:
+        GET: Returns a multi-part response with requested file(s)
+        POST: Returns the full path of the created file on success, error on error
+    """
+    if not args.file_endpoint:
+        return status_code(501) # Not Implemented
+
+    root_dir = os.path.join(app.config['SPOOL_DIR'], 'files')
+    if root_dir in ("", "/") or root_dir.startswith("/root"):
+        return status_code(500)
+
+    p = os.path.join(root_dir, p)
+    filename = request.args.get("name", None)
+
+    # for security
+    if '..' in p or (filename is not None and '..' in filename):
+        return status_code(404)
+
+    if request.method == 'GET':
+        created_since = request.args.get("created_since")
+        limit = request.args.get("limit")
+
+        # add options:
+        ## grep for an expression in the file content
+
+        return return_files(dir_path=p, name=filename, created_since=created_since, limit=limit)
+
+    elif request.method == 'POST':
+        # A file of name 'filename' will be created in 'p' directory
+        # If the file already exists, create_file() will fail
+        data = request.data
+        ctype = request.headers.get('Content-Type', None)
+
+        res = create_file(path=p, content=data, filename=filename, ctype=ctype)
+        r = make_response()
+        if res:
+            r = status_code(201)
+            r.data = dict(file_path=res)
+        else:
+            r = status_code(500)
+            r.data = dict(error='Error creating the file or the file already exists')
+        return r
+
+
+def return_files(dir_path, name=None, created_since=None, limit=None):
+    """Returns a single file or multiple files from the directory as multipart/form-data"""
+    limit = app.config['MAX_FILES_TO_RETURN']
+    limit = int(limit) if limit is not None else limit
+
+    if name is not None:
+        return send_from_directory(dir_path, name)
+    else:
+        # get all the files from the directory
+        fields = {}
+        files = get_all_files_in_dir(dir_path=dir_path, created_since=created_since, limit=limit)
+
+        data, headers = encode_multipart(fields, files)
+        response = make_response(data, 200)
+        response.headers = headers
+        return response
+
+
 @app.route('/image')
 def image():
     """Returns a simple image of the type suggest by the Accept header."""
@@ -713,5 +778,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=5000)
     parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--enable-file-endpoint", dest='file_endpoint', action='store_true')
+    parser.add_argument("--disable-file-endpoint", dest='file_endpoint', action='store_false')
+    parser.set_defaults(file_endpoint=False) # disable file endpoint by default
     args = parser.parse_args()
+
+    app.config['SPOOL_DIR'] = '/var/spool/httpbin'
+    app.config['MAX_FILES_TO_RETURN'] = 10
     app.run(port=args.port, host=args.host)

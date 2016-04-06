@@ -7,8 +7,14 @@ httpbin.helpers
 This module provides helper functions for httpbin.
 """
 
-import json
 import base64
+import datetime as dt
+import errno
+import json
+import random
+import string
+import os
+import uuid
 from hashlib import md5
 from werkzeug.http import parse_authorization_header
 
@@ -204,6 +210,7 @@ def status_code(code):
     redirect = dict(headers=dict(location=REDIRECT_LOCATION))
 
     code_map = {
+        201: dict(data=''),
         301: redirect,
         302: redirect,
         303: redirect,
@@ -217,6 +224,7 @@ def status_code(code):
                 'x-more-info': 'http://vimeo.com/22053820'
             }
         ),
+        404: dict(data=''),
         406: dict(data=json.dumps({
                 'message': 'Client did not request a supported media type.',
                 'accept': ACCEPTED_MEDIA_TYPES
@@ -231,6 +239,7 @@ def status_code(code):
                 'x-more-info': 'http://tools.ietf.org/html/rfc2324'
             }
         ),
+        501: dict(data='')
 
     }
 
@@ -412,3 +421,152 @@ def get_request_range(request_headers, upper_bound):
 
     return first_byte_pos, last_byte_pos
 
+
+## FILE operations
+def _mkdir_p(path):
+    path = path.rstrip("/")
+
+    # Method used from this SO response: http://stackoverflow.com/a/600612
+    try:
+        os.makedirs(path)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+
+
+def _generate_filename(ctype=None):
+    """Returns a unique file name with an extension corresponding to given ctype
+    If ctype is None, return a file name with no extension"""
+    name = str(uuid.uuid4())
+
+    if ctype is None:
+        return name
+    elif ctype == "plain/text":
+        return name + ".txt"
+    elif ctype == "application/json":
+        return name + ".json"
+    else:
+        return name
+
+
+def create_file(path, content, filename=None, ctype=None):
+    """Creates a file at 'path' with 'content'"""
+    # return empty string if the file already exists
+    filename = '' if filename is None else filename
+    if os.path.isfile(os.path.join(path,filename)):
+        return ''
+
+    _mkdir_p(path)
+
+    if not filename:
+        filename = _generate_filename(ctype)
+    path = os.path.join(path, filename)
+
+    fo = open(path, 'w+')
+    fo.write(content)
+    fo.close()
+
+    return path
+
+def get_all_files_in_dir(dir_path, created_since, limit):
+    """Returns at max 'limit' number of files from the given directory
+    If created_since is passed, it will only return the files that were created
+    in last created_since seconds"""
+
+    return_files = []
+    now = dt.datetime.now()
+
+    for root, dir, files in os.walk(dir_path):
+        for fname in files:
+            full_path = os.path.join(root,fname)
+            if os.path.isfile(full_path):
+                stat = os.stat(full_path)
+                ctime = dt.datetime.fromtimestamp(stat.st_ctime)
+
+                if created_since is not None:
+                    if ctime >= now - int(created_since):
+                        return_files.append(full_path)
+                else:
+                    return_files.append(full_path)
+
+                # only return up to limit number of files
+                if len(return_files) >= limit:
+                    return return_files
+
+    return return_files
+
+
+## MIME
+def encode_multipart(fields, files, boundary=None):
+    """
+    Taken from: http://code.activestate.com/recipes/578668-encode-multipart-form-data-for-uploading-files-via/
+
+    Encode dict of form fields and content of files as multipart/form-data.
+    Return tuple of (body_string, headers_dict). Each value in files is a full path
+    to the file.  If not specified, tries to guess mime type or uses
+    'application/octet-stream')
+    """
+    _BOUNDARY_CHARS = string.digits + string.ascii_letters
+
+    if boundary is None:
+        boundary = ''.join(random.choice(_BOUNDARY_CHARS) for i in range(30))
+
+    def escape_quote(s):
+        return s.replace('"', '\\"')
+
+    lines=[]
+
+    for name, value in fields.items():
+        lines.extend((
+            '--{0}'.format(boundary),
+            'Content-Disposition: form-data; name="{0}"'.format(escape_quote(name)),
+            '',
+            str(value),
+        ))
+
+    for file in files:
+        filename, name, mimetype = _get_file_details(file)
+        content = ''
+
+        with open(file, 'r') as fo:
+            content = fo.read()
+        fo.close()
+
+        lines.extend((
+            '--{0}'.format(boundary),
+            'Content-Disposition: form-data; name="{0}"; filename="{1}"'.format(
+                escape_quote(name), escape_quote(filename)),
+            'Content-Type: {0}'.format(mimetype),
+            '',
+            str(content),
+        ))
+
+    lines.extend((
+        '--{0}--'.format(boundary),
+        '',
+    ))
+    body = '\r\n'.join(lines)
+
+    headers = {
+        'Content-Type': 'multipart/form-data; boundary={0}'.format(boundary),
+        'Content-Length': str(len(body)),
+    }
+    return (body, headers)
+
+
+def _get_file_details(fpath):
+    """A very rudimentary method that returns mime-type based on the extension"""
+
+    parts = fpath.rsplit('/', 1)
+    filename = parts[len(parts)-1]
+    name, ext = filename.rsplit('.',1)
+
+    mimetype = 'application/octet-stream'
+    if ext in ["txt", "text"]:
+        mimetype = 'text/plain'
+    elif ext == "json":
+        mimetype = 'application/json'
+
+    return (filename, name, mimetype)
