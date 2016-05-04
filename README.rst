@@ -190,10 +190,13 @@ For example, using Gunicorn:
     $ pip install httpbin
     $ gunicorn httpbin:app
 
-Or run it directly:
+Or install and run it directly:
 
 .. code:: bash
 
+    $ git clone git@github.com:Runscope/httpbin.git
+    $ cd httpbin
+    $ [sudo] python setup.py install
     $ python -m httpbin.core [--port=PORT] [--host=HOST]
 
 Changelog
