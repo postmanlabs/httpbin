@@ -195,8 +195,7 @@ Or install and run it directly:
 .. code:: bash
 
     $ git clone git@github.com:Runscope/httpbin.git
-    $ cd httpbin
-    $ python setup.py install
+    $ pip install -e httpbin
     $ python -m httpbin.core [--port=PORT] [--host=HOST]
 
 Changelog
