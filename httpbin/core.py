@@ -412,8 +412,7 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
     if qop not in ('auth', 'auth-int'):
         qop = None
     if 'Authorization' not in request.headers or  \
-                       not check_digest_auth(user, passwd) or \
-                       'Cookie' not in request.headers:
+                       not check_digest_auth(user, passwd):
         response = app.make_response('')
         response.status_code = 401
 
@@ -434,7 +433,6 @@ def digest_auth(qop=None, user='user', passwd='passwd'):
         auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
                         qop=('auth', 'auth-int') if qop is None else (qop, ))
         response.headers['WWW-Authenticate'] = auth.to_header()
-        response.headers['Set-Cookie'] = 'fake=fake_value'
         return response
     return jsonify(authenticated=True, user=user)
 
