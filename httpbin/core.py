@@ -14,12 +14,13 @@ import random
 import time
 import uuid
 import argparse
+import six
 
 from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
-from six.moves import range as xrange
+from six.moves import range
 
 from . import filters
 from .helpers import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, secure_cookie, H, ROBOT_TXT, ANGRY_ASCII
@@ -464,8 +465,8 @@ def drip():
         time.sleep(delay)
 
     def generate_bytes():
-        for i in xrange(numbytes):
-            yield u"*".encode('utf-8')
+        for i in range(numbytes):
+            yield six.text_type("*".encode('utf-8'))
             time.sleep(pause)
 
     response = Response(generate_bytes(), headers={
@@ -545,7 +546,7 @@ def stream_random_bytes(n):
     def generate_bytes():
         chunks = bytearray()
 
-        for i in xrange(n):
+        for i in range(n):
             chunks.append(random.randint(0, 255))
             if len(chunks) == chunk_size:
                 yield(bytes(chunks))
@@ -583,7 +584,7 @@ def range_request(numbytes):
     request_headers = get_headers()
     first_byte_pos, last_byte_pos = get_request_range(request_headers, numbytes)
 
-    if first_byte_pos > last_byte_pos or first_byte_pos not in xrange(0, numbytes) or last_byte_pos not in xrange(0, numbytes):
+    if first_byte_pos > last_byte_pos or first_byte_pos not in range(0, numbytes) or last_byte_pos not in range(0, numbytes):
         response = Response(headers={
             'ETag' : 'range%d' % numbytes,
             'Accept-Ranges' : 'bytes',
@@ -595,7 +596,7 @@ def range_request(numbytes):
     def generate_bytes():
         chunks = bytearray()
 
-        for i in xrange(first_byte_pos, last_byte_pos + 1):
+        for i in range(first_byte_pos, last_byte_pos + 1):
 
             # We don't want the resource to change across requests, so we need
             # to use a predictable data generation function
@@ -633,7 +634,7 @@ def link_page(n, offset):
     link = "<a href='{0}'>{1}</a> "
 
     html = ['<html><head><title>Links</title></head><body>']
-    for i in xrange(n):
+    for i in range(n):
         if i == offset:
             html.append("{0} ".format(i))
         else:
