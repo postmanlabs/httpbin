@@ -9,7 +9,7 @@ import json
 from werkzeug.http import parse_dict_header
 from hashlib import md5
 from six import BytesIO
-
+import time
 import httpbin
 
 
@@ -452,6 +452,28 @@ class HttpbinTestCase(unittest.TestCase):
         data = response.data.decode('utf-8')
         self.assertIn('google-analytics', data)
         self.assertIn('perfectaudience', data)
+
+    def test_delay_get(self):
+        start_time = time.time()
+        response = self.app.get('/delay/2')
+        end_time = time.time()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertGreater(end_time - start_time, 2)
+
+    def test_delay_post(self):
+        start_time = time.time()
+        response = self.app.post('/delay/2')
+        end_time = time.time()
+        self.assertEqual(response.status_code, 200)
+        self.assertGreater(end_time - start_time, 2)
+
+    def test_delay_put(self):
+        start_time = time.time()
+        response = self.app.put('/delay/2')
+        end_time = time.time()
+        self.assertEqual(response.status_code, 200)
+        self.assertGreater(end_time - start_time, 2)
 
 
 if __name__ == '__main__':
