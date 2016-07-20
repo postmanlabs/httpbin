@@ -315,7 +315,7 @@ def response_headers():
     response = jsonify(headers.lists())
 
     while True:
-        content_len_shown = response.headers['Content-Length']
+        original_data = response.data
         d = {}
         for key in response.headers.keys():
             value = response.headers.get_all(key)
@@ -325,7 +325,8 @@ def response_headers():
         response = jsonify(d)
         for key, value in headers.items(multi=True):
             response.headers.add(key, value)
-        if response.headers['Content-Length'] == content_len_shown:
+        response_has_changed = response.data != original_data
+        if not response_has_changed:
             break
     return response
 
