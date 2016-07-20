@@ -312,7 +312,7 @@ def view_status_code(codes):
 def response_headers():
     """Returns a set of response headers from the query string """
     headers = MultiDict(request.args.items(multi=True))
-    response = jsonify(headers.lists())
+    response = jsonify(list(headers.lists()))
 
     while True:
         original_data = response.data
