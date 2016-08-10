@@ -224,9 +224,9 @@ def _redirect(kind, n, external):
     return redirect(url_for('{0}_redirect_n_times'.format(kind), n=n - 1, _external=external))
 
 
-@app.route('/redirect-to')
+@app.route('/redirect-to', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
 def redirect_to():
-    """302 Redirects to the given URL."""
+    """302/3XX Redirects to the given URL."""
 
     args = CaseInsensitiveDict(request.args.items())
 
@@ -235,6 +235,10 @@ def redirect_to():
     # header to the exact string supplied.
     response = app.make_response('')
     response.status_code = 302
+    if 'status_code' in args:
+        status_code = int(args['status_code'])
+        if status_code >= 300 and status_code < 400:
+            response.status_code = status_code
     response.headers['Location'] = args['url'].encode('utf-8')
 
     return response
