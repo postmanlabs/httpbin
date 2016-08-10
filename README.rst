@@ -33,6 +33,7 @@ Endpoint                                 Description
 `/response-headers`_                     Returns given response headers.
 `/redirect/:n`_                          302 Redirects *n* times.
 `/redirect-to?url=foo`_                  302 Redirects to the *foo* URL.
+`/redirect-to?url=foo&status_code=307`_  307 Redirects to the *foo* URL.
 `/relative-redirect/:n`_                 302 Relative redirects *n* times.
 `/cookies`_                              Returns cookie data.
 `/cookies/set?name=value`_               Sets one or more simple cookies.
@@ -68,6 +69,8 @@ Endpoint                                 Description
 .. _/response-headers: http://httpbin.org/response-headers?Content-Type=text/plain;%20charset=UTF-8&Server=httpbin
 .. _/redirect/:n: http://httpbin.org/redirect/6
 .. _/redirect-to?url=foo: http://httpbin.org/redirect-to?url=http://example.com/
+.. _/redirect-to?url=foo&status_code=307:
+    http://httpbin.org/redirect-to?url=http://example.com/&status_code=307
 .. _/relative-redirect/:n: http://httpbin.org/relative-redirect/6
 .. _/cookies: http://httpbin.org/cookies
 .. _/cookies/set?name=value: http://httpbin.org/cookies/set?k1=v1&k2=v2
