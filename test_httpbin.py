@@ -164,9 +164,9 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_digest_auth_with_wrong_password(self):
-        auth_header = 'Digest username="user",realm="wrong",nonce="wrong",uri="/digest-auth/user/passwd",response="wrong",opaque="wrong"'
+        auth_header = 'Digest username="user",realm="wrong",nonce="wrong",uri="/digest-auth/user/passwd/MD5",response="wrong",opaque="wrong"'
         response = self.app.get(
-            '/digest-auth/auth/user/passwd',
+            '/digest-auth/auth/user/passwd/MD5',
             environ_base={
                 # httpbin's digest auth implementation uses the remote addr to
                 # build the nonce
@@ -181,7 +181,7 @@ class HttpbinTestCase(unittest.TestCase):
     def test_digest_auth(self):
         # make first request
         unauthorized_response = self.app.get(
-            '/digest-auth/auth/user/passwd',
+            '/digest-auth/auth/user/passwd/MD5',
             environ_base={
                 # digest auth uses the remote addr to build the nonce
                 'REMOTE_ADDR': '127.0.0.1',
@@ -196,7 +196,7 @@ class HttpbinTestCase(unittest.TestCase):
         d = parse_dict_header(auth_info)
         a1 = b'user:' + d['realm'].encode('utf-8') + b':passwd'
         ha1 = md5(a1).hexdigest().encode('utf-8')
-        a2 = b'GET:/digest-auth/auth/user/passwd'
+        a2 = b'GET:/digest-auth/auth/user/passwd/MD5'
         ha2 = md5(a2).hexdigest().encode('utf-8')
         a3 = ha1 + b':' + d['nonce'].encode('utf-8') + b':' + ha2
         auth_response = md5(a3).hexdigest()
@@ -204,14 +204,14 @@ class HttpbinTestCase(unittest.TestCase):
             d['realm'] + \
             '",nonce="' + \
             d['nonce'] + \
-            '",uri="/digest-auth/auth/user/passwd",response="' + \
+            '",uri="/digest-auth/auth/user/passwd/MD5",response="' + \
             auth_response + \
             '",opaque="' + \
             d['opaque'] + '"'
 
         # make second request
         authorized_response = self.app.get(
-            '/digest-auth/auth/user/passwd',
+            '/digest-auth/auth/user/passwd/MD5',
             environ_base={
                 # httpbin's digest auth implementation uses the remote addr to
                 # build the nonce

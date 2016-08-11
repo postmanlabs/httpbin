@@ -29,6 +29,7 @@
 <li><a href="{{ url_for('delete_cookies', k1='', k2='') }}"><code>/cookies/delete?name</code></a> Deletes one or more simple cookies.</li>
 <li><a href="{{ url_for('basic_auth', user='user', passwd='passwd') }}"><code>/basic-auth/:user/:passwd</code></a> Challenges HTTPBasic Auth.</li>
 <li><a href="{{ url_for('hidden_basic_auth', user='user', passwd='passwd') }}"><code>/hidden-basic-auth/:user/:passwd</code></a> 404'd BasicAuth.</li>
+<li><a href="{{ url_for('digest_auth', qop='auth', user='user', passwd='passwd', algorithm='MD5') }}"><code>/digest-auth/:qop/:user/:passwd/:algorithm</code></a> Challenges HTTP Digest Auth.</li>
 <li><a href="{{ url_for('digest_auth', qop='auth', user='user', passwd='passwd') }}"><code>/digest-auth/:qop/:user/:passwd</code></a> Challenges HTTP Digest Auth.</li>
 <li><a href="{{ url_for('stream_n_messages', n=20) }}"><code>/stream/:n</code></a> Streams <em>min(n, 100)</em> lines.</li>
 <li><a href="{{ url_for('delay_response', delay=3) }}"><code>/delay/:n</code></a> Delays responding for <em>min(n, 10)</em> seconds.</li>
