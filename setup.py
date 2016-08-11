@@ -1,14 +1,12 @@
 from setuptools import setup, find_packages
-import codecs
 import os
-import re
 
 long_description = open(
     os.path.join(os.path.dirname(__file__), 'README.rst')).read()
 
 setup(
     name="httpbin",
-    version="0.4.1",
+    version="0.5.0",
     description="HTTP Request and Response Service",
     long_description=long_description,
 
