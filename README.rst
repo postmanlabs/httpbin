@@ -41,9 +41,9 @@ Endpoint                                 Description
 `/basic-auth/:user/:passwd`_             Challenges HTTPBasic Auth.
 `/hidden-basic-auth/:user/:passwd`_      404'd BasicAuth.
 `/digest-auth/:qop/:user/:passwd`_       Challenges HTTP Digest Auth.
-`/stream/:n`_                            Streams *n* - 100 lines.
-`/delay/:n`_                             Delays responding for *n* - 10 seconds.
-`/drip`_                                 Drips data over a duration after an optional initial delay, then (optionally) returns with the given status code.
+`/stream/:n`_                            Streams *n* – 100 lines.
+`/delay/:n`_                             Delays responding for *n* – 10 seconds.
+`/drip`_                                 Drips up to 10MB data over a duration after an optional initial delay, then (optionally) returns with the given status code.
 `/range/:n`_                             Streams *n* bytes, and allows specifying a *Range* header to select a subset of the data. Accepts a *chunk\_size* and request *duration* parameter.
 `/html`_                                 Renders an HTML Page.
 `/robots.txt`_                           Returns some robots.txt rules.

@@ -460,7 +460,7 @@ def drip():
     """Drips data over a duration after an optional initial delay."""
     args = CaseInsensitiveDict(request.args.items())
     duration = float(args.get('duration', 2))
-    numbytes = int(args.get('numbytes', 10))
+    numbytes = min(int(args.get('numbytes', 10)),(10 * 1024 * 1024)) # set 10MB limit
     code = int(args.get('code', 200))
     pause = duration / numbytes
 
