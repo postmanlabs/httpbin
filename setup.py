@@ -1,8 +1,9 @@
 from setuptools import setup, find_packages
 import os
+import io
 
-long_description = open(
-    os.path.join(os.path.dirname(__file__), 'README.rst')).read()
+long_description = io.open(
+    os.path.join(os.path.dirname(__file__), 'README.rst'), encoding='utf-8').read()
 
 setup(
     name="httpbin",
