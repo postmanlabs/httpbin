@@ -2,7 +2,8 @@ httpbin(1): HTTP Request & Response Service
 ===========================================
 
 Freely hosted in `HTTP <http://httpbin.org>`__,
-`HTTPS <https://httpbin.org>`__ & `EU <http://eu.httpbin.org/>`__
+`HTTPS <https://httpbin.org>`__,
+`HTTP/2 <https://http2bin.org>`__ & `EU <http://eu.httpbin.org/>`__
 flavors by `Runscope <https://www.runscope.com/>`__
 
 |Deploy|_
