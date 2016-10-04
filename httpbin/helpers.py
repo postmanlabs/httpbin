@@ -169,7 +169,6 @@ def get_dict(*keys, **extras):
 
     assert all(map(_keys.__contains__, keys))
     data = request.data
-    form = request.form
     form = semiflatten(request.form)
 
     try:
