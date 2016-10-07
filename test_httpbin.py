@@ -463,8 +463,14 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertIn('perfectaudience', data)
 
     def test_http_version(self):
-        response = self.app.get('/version')
-        assert '"version": "HTTP/1.1"' in response.get_data()
+        response = self.app.get(
+            '/version',
+            environ_overrides={
+                'SERVER_PROTOCOL': 'HTTP/3.1',
+            }
+        )
+
+        assert '"version": "HTTP/3.1"' in response.get_data()
 
 if __name__ == '__main__':
     unittest.main()
