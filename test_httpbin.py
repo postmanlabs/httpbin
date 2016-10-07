@@ -470,7 +470,8 @@ class HttpbinTestCase(unittest.TestCase):
             }
         )
 
-        assert '"version": "HTTP/3.1"' in response.get_data()
+        data = response.data.decode('utf-8')
+        self.assertIn('"version": "HTTP/3.1"', data)
 
 if __name__ == '__main__':
     unittest.main()
