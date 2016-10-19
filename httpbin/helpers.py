@@ -294,7 +294,7 @@ def HA2(credentails, request, algorithm):
                 raise ValueError("%s required" % k)
         return H("%s:%s:%s" % (request['method'],
                                request['uri'],
-                               H(request['body'])), algorithm)
+                               H(request['body'], algorithm)), algorithm)
     raise ValueError
 
 
