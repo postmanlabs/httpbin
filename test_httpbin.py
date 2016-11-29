@@ -462,6 +462,15 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertIn('google-analytics', data)
         self.assertIn('perfectaudience', data)
 
+    def test_echo_returns_request_body_in_response(self):
+        response = self.app.post('/echo', data='post body')
+
+        self.assertEqual(response.get_data(), b'post body')
+
+    def test_echo_supports_get_and_post_methods(self):
+        responses = [self.app.post('/echo'), self.app.get('/echo')]
+
+        self.assertEqual([resp.status_code for resp in responses], [200, 200])
 
 if __name__ == '__main__':
     unittest.main()
