@@ -37,7 +37,7 @@ def _string_to_base64(string):
     return base64.urlsafe_b64encode(utf8_encoded)
 
 def _hash(data, algorithm):
-    """Encode binary data according to specified algorithm"""
+    """Encode binary data according to specified algorithm, use MD5 by default"""
     if algorithm == 'SHA-256':
         return sha256(data).hexdigest()
     else:
@@ -46,17 +46,17 @@ def _hash(data, algorithm):
 def _make_digest_auth_header(username, password, method, uri, nonce,
                              realm=None, opaque=None, algorithm=None,
                              qop=None, cnonce=None, nc=None, body=None):
-    """Compile a digest authentication header string
+    """Compile a digest authentication header string.
 
     Arguments:
-    - `nonce': nonce string, received within "WWW-Authenticate" header
+    - `nonce`: nonce string, received within "WWW-Authenticate" header
     - `realm`: realm string, received within "WWW-Authenticate" header
     - `opaque`: opaque string, received within "WWW-Authenticate" header
     - `algorithm`: type of hashing algorithm, used by the client
     - `qop`: type of quality-of-protection, used by the client
     - `cnonce`: client nonce, required if qop is "auth" or "auth-int"
     - `nc`: client nonce count, required if qop is "auth" or "auth-int"
-    - `body`: body of the outgoing request
+    - `body`: body of the outgoing request, used if qop is "auth-int"
     """
 
     assert username
@@ -89,6 +89,7 @@ def _make_digest_auth_header(username, password, method, uri, nonce,
         'Digest username="{0}", response="{1}", uri="{2}", nonce="{3}"'\
             .format(username, auth_response, uri, nonce)
 
+    # 'realm' and 'opaque' should be returned unchanged, even if empty
     if realm != None:
         auth_header += ', realm="{0}"'.format(realm)
     if opaque != None:
