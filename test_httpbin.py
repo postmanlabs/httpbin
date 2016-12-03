@@ -244,7 +244,8 @@ class HttpbinTestCase(unittest.TestCase):
                 'Authorization': auth_header,
             }
         )
-        assert 'Digest' in response.headers.get('WWW-Authenticate')
+        self.assertTrue('Digest' in response.headers.get('WWW-Authenticate'))
+        self.assertEqual(response.status_code, 401)
 
     def test_digest_auth(self):
         # make first request
