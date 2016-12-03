@@ -73,7 +73,7 @@ def _make_digest_auth_header(username, password, method, uri, nonce,
 
     a2 = b':'.join([method.encode('utf-8'), uri.encode('utf-8')])
     if qop == 'auth-int':
-        a2 = b':'.join(a2, _hash(body, algorithm))
+        a2 = b':'.join([a2, _hash(body, algorithm)])
     ha2 = _hash(a2, algorithm)
 
     a3 = b':'.join([ha1, nonce.encode('utf-8')])
@@ -248,8 +248,18 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_digest_auth(self):
-        # make first request
-        uri = '/digest-auth/auth/user/passwd/MD5'
+        """Test different combinations of digest auth parameters"""
+        username = 'user'
+        password = 'passwd'
+        for qop in None, 'auth', 'auth-int',:
+            for algorithm in None, 'MD5', 'SHA-256':
+                self._test_digest_auth(username, password, qop, algorithm)
+
+    def _test_digest_auth(self, username, password, qop=None, algorithm=None):
+        uri = '/digest-auth/{0}/{1}/{2}'.format(qop or 'wrong-qop', username, password)
+        if algorithm:
+            uri += '/' + algorithm
+
         unauthorized_response = self.app.get(
             uri,
             environ_base={
@@ -265,15 +275,13 @@ class HttpbinTestCase(unittest.TestCase):
 
         d = parse_dict_header(auth_info)
 
-        username = 'user'
-        password = 'passwd'
-        method = 'GET'
         nonce = d['nonce']
         realm = d['realm']
         opaque = d['opaque']
+        cnonce, nc = (_hash(os.urandom(10), "MD5"), '00000001') if qop in ('auth', 'auth-int') else (None, None)
 
         auth_header = _make_digest_auth_header(
-            username, password, method, uri, nonce, realm, opaque)
+            username, password, 'GET', uri, nonce, realm, opaque, algorithm, qop, cnonce, nc)
 
         # make second request
         authorized_response = self.app.get(
