@@ -292,9 +292,10 @@ def HA2(credentails, request, algorithm):
         for k in 'method', 'uri', 'body':
             if k not in request:
                 raise ValueError("%s required" % k)
-        return H("%s:%s:%s" % (request['method'],
-                               request['uri'],
-                               H(request['body'], algorithm)), algorithm)
+        A2 = b":".join([request['method'].encode('utf-8'),
+                        request['uri'].encode('utf-8'),
+                        H(request['body'], algorithm).encode('utf-8')])
+        return H(A2, algorithm)
     raise ValueError
 
 
