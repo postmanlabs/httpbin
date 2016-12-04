@@ -56,7 +56,7 @@ def _make_digest_auth_header(username, password, method, uri, nonce,
     - `qop`: type of quality-of-protection, used by the client
     - `cnonce`: client nonce, required if qop is "auth" or "auth-int"
     - `nc`: client nonce count, required if qop is "auth" or "auth-int"
-    - `body`: body of the outgoing request, used if qop is "auth-int"
+    - `body`: body of the outgoing request (bytes), used if qop is "auth-int"
     """
 
     assert username
@@ -66,24 +66,22 @@ def _make_digest_auth_header(username, password, method, uri, nonce,
     assert uri
     assert algorithm in ('MD5', 'SHA-256', None)
 
-    a1 = b':'.join([username.encode('utf-8'),
-                    (realm or '').encode('utf-8'),
-                    password.encode('utf-8')])
-    ha1 = _hash(a1, algorithm)
+    a1 = ':'.join([username, realm or '', password])
+    ha1 = _hash(a1.encode('utf-8'), algorithm)
 
-    a2 = b':'.join([method.encode('utf-8'), uri.encode('utf-8')])
+    a2 = ':'.join([method, uri])
     if qop == 'auth-int':
-        a2 = b':'.join([a2, _hash(body or '', algorithm)])
-    ha2 = _hash(a2, algorithm)
+        a2 = ':'.join([a2, _hash(body or b'', algorithm)])
+    ha2 = _hash(a2.encode('utf-8'), algorithm)
 
-    a3 = b':'.join([ha1, nonce.encode('utf-8')])
+    a3 = ':'.join([ha1, nonce])
     if qop in ('auth', 'auth-int'):
         assert cnonce
         assert nc
-        a3 = b':'.join([a3, nc.encode('utf-8'), cnonce.encode('utf-8'), qop.encode('utf-8')])
+        a3 = ':'.join([a3, nc, cnonce, qop])
 
-    a3 = b':'.join([a3, ha2])
-    auth_response = _hash(a3, algorithm)
+    a3 = ':'.join([a3, ha2])
+    auth_response = _hash(a3.encode('utf-8'), algorithm)
 
     auth_header = \
         'Digest username="{0}", response="{1}", uri="{2}", nonce="{3}"'\
@@ -254,7 +252,7 @@ class HttpbinTestCase(unittest.TestCase):
         password = 'passwd'
         for qop in None, 'auth', 'auth-int',:
             for algorithm in None, 'MD5', 'SHA-256':
-                for body in None, '', 'request payload':
+                for body in None, b'', b'request payload':
                     self._test_digest_auth(username, password, qop, algorithm, body)
 
     def _test_digest_auth(self, username, password, qop=None, algorithm=None, body=None):
