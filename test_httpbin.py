@@ -7,7 +7,7 @@ import contextlib
 import six
 import json
 from werkzeug.http import parse_dict_header
-from hashlib import md5
+from hashlib import md5, sha256
 from six import BytesIO
 
 import httpbin
@@ -36,6 +36,73 @@ def _string_to_base64(string):
     utf8_encoded = string.encode('utf-8')
     return base64.urlsafe_b64encode(utf8_encoded)
 
+def _hash(data, algorithm):
+    """Encode binary data according to specified algorithm, use MD5 by default"""
+    if algorithm == 'SHA-256':
+        return sha256(data).hexdigest()
+    else:
+        return md5(data).hexdigest()
+
+def _make_digest_auth_header(username, password, method, uri, nonce,
+                             realm=None, opaque=None, algorithm=None,
+                             qop=None, cnonce=None, nc=None, body=None):
+    """Compile a digest authentication header string.
+
+    Arguments:
+    - `nonce`: nonce string, received within "WWW-Authenticate" header
+    - `realm`: realm string, received within "WWW-Authenticate" header
+    - `opaque`: opaque string, received within "WWW-Authenticate" header
+    - `algorithm`: type of hashing algorithm, used by the client
+    - `qop`: type of quality-of-protection, used by the client
+    - `cnonce`: client nonce, required if qop is "auth" or "auth-int"
+    - `nc`: client nonce count, required if qop is "auth" or "auth-int"
+    - `body`: body of the outgoing request (bytes), used if qop is "auth-int"
+    """
+
+    assert username
+    assert password
+    assert nonce
+    assert method
+    assert uri
+    assert algorithm in ('MD5', 'SHA-256', None)
+
+    a1 = ':'.join([username, realm or '', password])
+    ha1 = _hash(a1.encode('utf-8'), algorithm)
+
+    a2 = ':'.join([method, uri])
+    if qop == 'auth-int':
+        a2 = ':'.join([a2, _hash(body or b'', algorithm)])
+    ha2 = _hash(a2.encode('utf-8'), algorithm)
+
+    a3 = ':'.join([ha1, nonce])
+    if qop in ('auth', 'auth-int'):
+        assert cnonce
+        assert nc
+        a3 = ':'.join([a3, nc, cnonce, qop])
+
+    a3 = ':'.join([a3, ha2])
+    auth_response = _hash(a3.encode('utf-8'), algorithm)
+
+    auth_header = \
+        'Digest username="{0}", response="{1}", uri="{2}", nonce="{3}"'\
+            .format(username, auth_response, uri, nonce)
+
+    # 'realm' and 'opaque' should be returned unchanged, even if empty
+    if realm != None:
+        auth_header += ', realm="{0}"'.format(realm)
+    if opaque != None:
+        auth_header += ', opaque="{0}"'.format(opaque)
+
+    if algorithm:
+        auth_header += ', algorithm="{0}"'.format(algorithm)
+    if cnonce:
+        auth_header += ', cnonce="{0}"'.format(cnonce)
+    if nc:
+        auth_header += ', nc={0}'.format(nc)
+    if qop:
+        auth_header += ', qop={0}'.format(qop)
+
+    return auth_header
 
 class HttpbinTestCase(unittest.TestCase):
     """Httpbin tests"""
@@ -176,12 +243,25 @@ class HttpbinTestCase(unittest.TestCase):
                 'Authorization': auth_header,
             }
         )
-        assert 'Digest' in response.headers.get('WWW-Authenticate')
+        self.assertTrue('Digest' in response.headers.get('WWW-Authenticate'))
+        self.assertEqual(response.status_code, 401)
 
     def test_digest_auth(self):
-        # make first request
+        """Test different combinations of digest auth parameters"""
+        username = 'user'
+        password = 'passwd'
+        for qop in None, 'auth', 'auth-int',:
+            for algorithm in None, 'MD5', 'SHA-256':
+                for body in None, b'', b'request payload':
+                    self._test_digest_auth(username, password, qop, algorithm, body)
+
+    def _test_digest_auth(self, username, password, qop=None, algorithm=None, body=None):
+        uri = '/digest-auth/{0}/{1}/{2}'.format(qop or 'wrong-qop', username, password)
+        if algorithm:
+            uri += '/' + algorithm
+
         unauthorized_response = self.app.get(
-            '/digest-auth/auth/user/passwd/MD5',
+            uri,
             environ_base={
                 # digest auth uses the remote addr to build the nonce
                 'REMOTE_ADDR': '127.0.0.1',
@@ -191,27 +271,21 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(unauthorized_response.status_code, 401)
         header = unauthorized_response.headers.get('WWW-Authenticate')
         auth_type, auth_info = header.split(None, 1)
+        self.assertEqual(auth_type, 'Digest')
 
-        # Begin crappy digest-auth implementation
         d = parse_dict_header(auth_info)
-        a1 = b'user:' + d['realm'].encode('utf-8') + b':passwd'
-        ha1 = md5(a1).hexdigest().encode('utf-8')
-        a2 = b'GET:/digest-auth/auth/user/passwd/MD5'
-        ha2 = md5(a2).hexdigest().encode('utf-8')
-        a3 = ha1 + b':' + d['nonce'].encode('utf-8') + b':' + ha2
-        auth_response = md5(a3).hexdigest()
-        auth_header = 'Digest username="user",realm="' + \
-            d['realm'] + \
-            '",nonce="' + \
-            d['nonce'] + \
-            '",uri="/digest-auth/auth/user/passwd/MD5",response="' + \
-            auth_response + \
-            '",opaque="' + \
-            d['opaque'] + '"'
+
+        nonce = d['nonce']
+        realm = d['realm']
+        opaque = d['opaque']
+        cnonce, nc = (_hash(os.urandom(10), "MD5"), '00000001') if qop in ('auth', 'auth-int') else (None, None)
+
+        auth_header = _make_digest_auth_header(
+            username, password, 'GET', uri, nonce, realm, opaque, algorithm, qop, cnonce, nc, body)
 
         # make second request
         authorized_response = self.app.get(
-            '/digest-auth/auth/user/passwd/MD5',
+            uri,
             environ_base={
                 # httpbin's digest auth implementation uses the remote addr to
                 # build the nonce
@@ -219,7 +293,8 @@ class HttpbinTestCase(unittest.TestCase):
             },
             headers={
                 'Authorization': auth_header,
-            }
+            },
+            data=body
         )
 
         # done!
