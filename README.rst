@@ -57,6 +57,7 @@ Endpoint                                 Description
 `/forms/post`_                           HTML form that submits to */post*
 `/xml`_                                  Returns some XML
 `/encoding/utf8`_                        Returns page containing UTF-8 data.
+`/version`_                              Returns the used HTTP version
 ======================================   ==================================================================================================================
 
 .. _/user-agent: http://httpbin.org/user-agent
@@ -94,6 +95,7 @@ Endpoint                                 Description
 .. _/forms/post: http://httpbin.org/forms/post
 .. _/xml: http://httpbin.org/xml
 .. _/encoding/utf8: http://httpbin.org/encoding/utf8
+.. _/version: http://httpbin.org/version
 
 
 DESCRIPTION

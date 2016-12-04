@@ -719,6 +719,12 @@ def xml():
     response.headers["Content-Type"] = "application/xml"
     return response
 
+@app.route('/version')
+def view_http_version():
+    """Returns HTTP Version."""
+
+    return jsonify({'version': request.environ.get('SERVER_PROTOCOL')})
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

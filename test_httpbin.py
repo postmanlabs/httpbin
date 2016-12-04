@@ -537,6 +537,16 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertIn('google-analytics', data)
         self.assertIn('perfectaudience', data)
 
+    def test_http_version(self):
+        response = self.app.get(
+            '/version',
+            environ_overrides={
+                'SERVER_PROTOCOL': 'HTTP/3.1',
+            }
+        )
+
+        data = response.data.decode('utf-8')
+        self.assertIn('"version": "HTTP/3.1"', data)
 
 if __name__ == '__main__':
     unittest.main()
