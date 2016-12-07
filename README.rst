@@ -57,6 +57,7 @@ Endpoint                                 Description
 `/forms/post`_                           HTML form that submits to */post*
 `/xml`_                                  Returns some XML
 `/encoding/utf8`_                        Returns page containing UTF-8 data.
+`/echo`_                                 Echoes request body.
 ======================================   ==================================================================================================================
 
 .. _/user-agent: http://httpbin.org/user-agent
@@ -94,6 +95,7 @@ Endpoint                                 Description
 .. _/forms/post: http://httpbin.org/forms/post
 .. _/xml: http://httpbin.org/xml
 .. _/encoding/utf8: http://httpbin.org/encoding/utf8
+.. _/echo: http://httpbin/echo
 
 
 DESCRIPTION
@@ -182,6 +184,13 @@ $ curl https://httpbin.org/get?show\_env=1
       "origin": "109.60.101.240",
       "url": "http://httpbin.org/get?show_env=1"
     }
+
+$ curl https://httpbin.org/echo -d "request body"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    request body
 
 Installing and running from PyPI
 --------------------------------
