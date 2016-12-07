@@ -719,6 +719,14 @@ def xml():
     response.headers["Content-Type"] = "application/xml"
     return response
 
+@app.route("/short")
+def short():
+    response = Response(['*'], headers={
+        "Content-Type": "application/octet-stream",
+        "Content-Length": 2,
+    })
+    response.status_code = 200
+    return response
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

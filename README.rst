@@ -57,6 +57,7 @@ Endpoint                                 Description
 `/forms/post`_                           HTML form that submits to */post*
 `/xml`_                                  Returns some XML
 `/encoding/utf8`_                        Returns page containing UTF-8 data.
+`/short`_                                Returns a page with wrong content-length.
 ======================================   ==================================================================================================================
 
 .. _/user-agent: http://httpbin.org/user-agent
