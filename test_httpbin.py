@@ -350,15 +350,6 @@ class HttpbinTestCase(unittest.TestCase):
                 response.data, b'\xd8\xc2kB\x82g\xc8Mz\x95'
             )
 
-    def test_delete_endpoint_returns_body(self):
-        response = self.app.delete(
-            '/delete',
-            data={'name': 'kevin'},
-            content_type='application/x-www-form-urlencoded'
-        )
-        form_data = json.loads(response.data.decode('utf-8'))['form']
-        self.assertEqual(form_data, {'name': 'kevin'})
-
     def test_methods__to_status_endpoint(self):
         methods = [
             'GET',
