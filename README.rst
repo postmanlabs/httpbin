@@ -31,11 +31,12 @@ Endpoint                                 Description
 `/gzip`_                                 Returns gzip-encoded data.
 `/deflate`_                              Returns deflate-encoded data.
 `/status/:code`_                         Returns given HTTP Status code or random if more than one are given.
-`/response-headers`_                     Returns given response headers.
+`/response-headers?header=val`_          Returns given response headers.
 `/redirect/:n`_                          302 Redirects *n* times.
 `/redirect-to?url=foo`_                  302 Redirects to the *foo* URL.
 `/redirect-to?url=foo&status_code=307`_  307 Redirects to the *foo* URL.
 `/relative-redirect/:n`_                 302 Relative redirects *n* times.
+`/absolute-redirect/:n`_                 302 Absolute redirects *n* times.
 `/cookies`_                              Returns cookie data.
 `/cookies/set?name=value`_               Sets one or more simple cookies.
 `/cookies/delete?name`_                  Deletes one or more simple cookies.
@@ -54,6 +55,11 @@ Endpoint                                 Description
 `/bytes/:n`_                             Generates *n* random bytes of binary data, accepts optional *seed* integer parameter.
 `/stream-bytes/:n`_                      Streams *n* random bytes of binary data, accepts optional *seed* and *chunk\_size* integer parameters.
 `/links/:n`_                             Returns page containing *n* HTML links.
+`/image`_                                Returns an image based on sent Accept header.
+`/image/png`_                            Returns a PNG image.
+`/image/jpeg`_                           Returns a JPEG image.
+`/image/webp`_                           Returns a WEBP image.
+`/image/svg`_                            Returns a SVG image.
 `/forms/post`_                           HTML form that submits to */post*
 `/xml`_                                  Returns some XML
 `/encoding/utf8`_                        Returns page containing UTF-8 data.
@@ -67,12 +73,13 @@ Endpoint                                 Description
 .. _/gzip: http://httpbin.org/gzip
 .. _/deflate: http://httpbin.org/deflate
 .. _/status/:code: http://httpbin.org/status/418
-.. _/response-headers: http://httpbin.org/response-headers?Content-Type=text/plain;%20charset=UTF-8&Server=httpbin
+.. _/response-headers?header=val: http://httpbin.org/response-headers?Content-Type=text/plain;%20charset=UTF-8&Server=httpbin
 .. _/redirect/:n: http://httpbin.org/redirect/6
 .. _/redirect-to?url=foo: http://httpbin.org/redirect-to?url=http://example.com/
 .. _/redirect-to?url=foo&status_code=307:
     http://httpbin.org/redirect-to?url=http://example.com/&status_code=307
 .. _/relative-redirect/:n: http://httpbin.org/relative-redirect/6
+.. _/absolute-redirect/:n: http://httpbin.org/absolute-redirect/6
 .. _/cookies: http://httpbin.org/cookies
 .. _/cookies/set?name=value: http://httpbin.org/cookies/set?k1=v1&k2=v2
 .. _/cookies/delete?name: http://httpbin.org/cookies/delete?k1&k2
@@ -91,6 +98,11 @@ Endpoint                                 Description
 .. _/bytes/:n: http://httpbin.org/bytes/1024
 .. _/stream-bytes/:n: http://httpbin.org/stream-bytes/1024
 .. _/links/:n: http://httpbin.org/links/10
+.. _/image: http://httpbin.org/image
+.. _/image/png: http://httpbin.org/image/png
+.. _/image/jpeg: http://httpbin.org/image/jpeg
+.. _/image/webp: http://httpbin.org/image/webp
+.. _/image/svg: http://httpbin.org/image/svg
 .. _/forms/post: http://httpbin.org/forms/post
 .. _/xml: http://httpbin.org/xml
 .. _/encoding/utf8: http://httpbin.org/encoding/utf8
