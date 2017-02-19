@@ -294,7 +294,10 @@ def view_status_code(codes):
     """Return status code or random status code if more than one are given"""
 
     if ',' not in codes:
-        code = int(codes)
+        try:
+            code = int(codes)
+        except ValueError:
+            return Response('Invalid status code', status=400)
         return status_code(code)
 
     choices = []
@@ -305,7 +308,10 @@ def view_status_code(codes):
         else:
             code, weight = choice.split(':')
 
-        choices.append((int(code), float(weight)))
+        try:
+            choices.append((int(code), float(weight)))
+        except ValueError:
+            return Response('Invalid status code', status=400)
 
     code = weighted_choice(choices)
 
