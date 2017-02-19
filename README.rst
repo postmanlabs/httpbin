@@ -30,7 +30,7 @@ Endpoint                                 Description
 `/delete`                                Returns DELETE data
 `/gzip`_                                 Returns gzip-encoded data.
 `/deflate`_                              Returns deflate-encoded data.
-`/status/:code`_                         Returns given HTTP Status code.
+`/status/:code`_                         Returns given HTTP Status code or random if more than one are given.
 `/response-headers`_                     Returns given response headers.
 `/redirect/:n`_                          302 Redirects *n* times.
 `/redirect-to?url=foo`_                  302 Redirects to the *foo* URL.
