@@ -111,6 +111,12 @@ class HttpbinTestCase(unittest.TestCase):
         httpbin.app.debug = True
         self.app = httpbin.app.test_client()
 
+    def get_data(self, response):
+        if 'get_data' in dir(response):
+            return response.get_data()
+        else:
+            return response.data
+
     def test_response_headers_simple(self):
         response = self.app.get('/response-headers?animal=dog')
         self.assertEqual(response.status_code, 200)
@@ -303,18 +309,18 @@ class HttpbinTestCase(unittest.TestCase):
     def test_drip(self):
         response = self.app.get('/drip?numbytes=400&duration=2&delay=1')
         self.assertEqual(response.content_length, 400)
-        self.assertEqual(len(response.get_data()), 400)
+        self.assertEqual(len(self.get_data(response)), 400)
         self.assertEqual(response.status_code, 200)
 
     def test_drip_with_custom_code(self):
         response = self.app.get('/drip?numbytes=400&duration=2&code=500')
         self.assertEqual(response.content_length, 400)
-        self.assertEqual(len(response.get_data()), 400)
+        self.assertEqual(len(self.get_data(response)), 400)
         self.assertEqual(response.status_code, 500)
 
     def test_get_bytes(self):
         response = self.app.get('/bytes/1024')
-        self.assertEqual(len(response.get_data()), 1024)
+        self.assertEqual(len(self.get_data(response)), 1024)
         self.assertEqual(response.status_code, 200)
 
     def test_bytes_with_seed(self):
@@ -333,7 +339,7 @@ class HttpbinTestCase(unittest.TestCase):
 
     def test_stream_bytes(self):
         response = self.app.get('/stream-bytes/1024')
-        self.assertEqual(len(response.get_data()), 1024)
+        self.assertEqual(len(self.get_data(response)), 1024)
         self.assertEqual(response.status_code, 200)
 
     def test_stream_bytes_with_seed(self):
@@ -453,12 +459,12 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response1.headers.get('ETag'), 'range1234')
         self.assertEqual(response1.headers.get('Content-range'), 'bytes 0-1233/1234')
         self.assertEqual(response1.headers.get('Accept-ranges'), 'bytes')
-        self.assertEqual(len(response1.get_data()), 1234)
+        self.assertEqual(len(self.get_data(response1)), 1234)
         
         response2 = self.app.get('/range/1234')
         self.assertEqual(response2.status_code, 200)
         self.assertEqual(response2.headers.get('ETag'), 'range1234')
-        self.assertEqual(response1.get_data(), response2.get_data())
+        self.assertEqual(self.get_data(response1), self.get_data(response2))
     
     def test_request_range_with_parameters(self):
         response = self.app.get(
@@ -470,7 +476,7 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.headers.get('ETag'), 'range100')
         self.assertEqual(response.headers.get('Content-range'), 'bytes 10-24/100')
         self.assertEqual(response.headers.get('Accept-ranges'), 'bytes')
-        self.assertEqual(response.get_data(), 'klmnopqrstuvwxy'.encode('utf8'))
+        self.assertEqual(self.get_data(response), 'klmnopqrstuvwxy'.encode('utf8'))
     
     def test_request_range_first_15_bytes(self):
         response = self.app.get(
@@ -480,7 +486,7 @@ class HttpbinTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 206)
         self.assertEqual(response.headers.get('ETag'), 'range1000')
-        self.assertEqual(response.get_data(), 'abcdefghijklmnop'.encode('utf8'))
+        self.assertEqual(self.get_data(response), 'abcdefghijklmnop'.encode('utf8'))
         self.assertEqual(response.headers.get('Content-range'), 'bytes 0-15/1000')
     
     def test_request_range_open_ended_last_6_bytes(self):
@@ -491,7 +497,7 @@ class HttpbinTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 206)
         self.assertEqual(response.headers.get('ETag'), 'range26')
-        self.assertEqual(response.get_data(), 'uvwxyz'.encode('utf8'))
+        self.assertEqual(self.get_data(response), 'uvwxyz'.encode('utf8'))
         self.assertEqual(response.headers.get('Content-range'), 'bytes 20-25/26')
     
     def test_request_range_suffix(self):
@@ -502,7 +508,7 @@ class HttpbinTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 206)
         self.assertEqual(response.headers.get('ETag'), 'range26')
-        self.assertEqual(response.get_data(), 'vwxyz'.encode('utf8'))
+        self.assertEqual(self.get_data(response), 'vwxyz'.encode('utf8'))
         self.assertEqual(response.headers.get('Content-range'), 'bytes 21-25/26')
     
     def test_request_out_of_bounds(self):
@@ -514,7 +520,7 @@ class HttpbinTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 416)
         self.assertEqual(response.headers.get('ETag'), 'range26')
-        self.assertEqual(len(response.get_data()), 0)
+        self.assertEqual(len(self.get_data(response)), 0)
         self.assertEqual(response.headers.get('Content-range'), 'bytes */26')
         
         response = self.app.get(
