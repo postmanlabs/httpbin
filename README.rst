@@ -235,8 +235,7 @@ Changelog
 AUTHOR
 ------
 
-A `Runscope Community Project <https://www.runscope.com/community>`__.
-Originally created by `Kenneth Reitz <http://kennethreitz.com/>`__.
+A `Kenneth Reitz <http://kennethreitz.org/>`__ Project.
 
 SEE ALSO
 --------
