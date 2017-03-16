@@ -2,14 +2,13 @@ httpbin(1): HTTP Request & Response Service
 ===========================================
 
 Freely hosted in `HTTP <http://httpbin.org>`__,
-`HTTPS <https://httpbin.org>`__,
-`HTTP/2 <https://http2bin.org>`__ & `EU <http://eu.httpbin.org/>`__
-flavors by `Runscope <https://www.runscope.com/>`__
+`HTTPS <https://httpbin.org>`__, & `EU <http://eu.httpbin.org/>`__
+flavors by `Heroku <https://www.heroku.com/>`__
 
 |Deploy|_
 
 .. |Deploy| image:: https://www.herokucdn.com/deploy/button.svg
-.. _Deploy: https://heroku.com/deploy?template=https://github.com/runscope/httpbin
+.. _Deploy: https://heroku.com/deploy?template=https://github.com/kennethreitz/httpbin
 
 |Build Status|
 
@@ -244,5 +243,5 @@ SEE ALSO
 - http://requestb.in
 - http://python-requests.org
 
-.. |Build Status| image:: https://travis-ci.org/Runscope/httpbin.svg
+.. |Build Status| image:: https://travis-ci.org/kennethreitz/httpbin.svg
    :target: https://travis-ci.org/Runscope/httpbin
