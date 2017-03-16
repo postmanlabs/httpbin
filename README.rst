@@ -217,9 +217,9 @@ Changelog
 ---------
 
 -  0.5.0:
-  - Allow /redirect-to to work with multiple methods
-  - Allow MD5 or SHA-256 to be chosen as algorithms for HTTP Digest Auth
-  - Set a 10MB limit on /drip
+    - Allow /redirect-to to work with multiple methods
+    - Allow MD5 or SHA-256 to be chosen as algorithms for HTTP Digest Auth
+    - Set a 10MB limit on /drip
 -  0.4.1: Added floating-point support for /delay endpoint
 -  0.4.0: New /image/svg endpoint, add deploy to heroku button, add 406 response to /image, and don't always emit the transfer-encoding header for stream endpoint.
 -  0.3.0: A number of new features, including a /range endpoint, lots of
