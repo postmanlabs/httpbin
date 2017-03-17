@@ -115,7 +115,7 @@ Or install and run it directly:
 
 .. code:: bash
 
-    $ git clone https://github.com/Runscope/httpbin.git
+    $ git clone https://github.com/kennethreitz/httpbin.git
     $ pip install -e httpbin
     $ python -m httpbin.core [--port=PORT] [--host=HOST]
 
@@ -133,4 +133,4 @@ SEE ALSO
 - http://python-requests.org
 
 .. |Build Status| image:: https://travis-ci.org/kennethreitz/httpbin.svg
-   :target: https://travis-ci.org/Runscope/httpbin
+   :target: https://travis-ci.org/kennethreitz/httpbin
