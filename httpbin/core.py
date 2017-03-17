@@ -204,6 +204,15 @@ def view_deflate_encoded_content():
         'origin', 'headers', method=request.method, deflated=True))
 
 
+@app.route('/brotli')
+@filters.brotli
+def view_brotli_encoded_content():
+    """Returns Brotli-Encoded Data."""
+
+    return jsonify(get_dict(
+        'origin', 'headers', method=request.method, brotli=True))
+
+
 @app.route('/redirect/<int:n>')
 def redirect_n_times(n):
     """302 Redirects n times."""
