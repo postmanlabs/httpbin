@@ -2,14 +2,14 @@ from setuptools import setup, find_packages
 import os
 import io
 
-long_description = io.open(
-    os.path.join(os.path.dirname(__file__), 'README.rst'), encoding='utf-8').read()
+# long_description = io.open(
+    # os.path.join(os.path.dirname(__file__), 'README.rst'), encoding='utf-8').read()
 
 setup(
     name="httpbin",
     version="0.5.0",
     description="HTTP Request and Response Service",
-    long_description=long_description,
+    # long_description=long_description,
 
     # The project URL.
     url='https://github.com/Runscope/httpbin',
