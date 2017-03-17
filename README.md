@@ -13,6 +13,7 @@ See http://httpbin.org for more information.
 - https://httpbin.org
 - http://eu.httpbin.org
 - https://eu.httpbin.org
+- https://hub.docker.com/r/kennethreitz/httpbin/
 
 
 ## SEE ALSO
