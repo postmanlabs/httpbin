@@ -17,6 +17,7 @@
 <li><a href="{{ url_for('encoding') }}"><code>/encoding/utf8</code></a> Returns page containing UTF-8 data.</li>
 <li><a href="{{ url_for('view_gzip_encoded_content') }}" data-bare-link="true"><code>/gzip</code></a> Returns gzip-encoded data.</li>
 <li><a href="{{ url_for('view_deflate_encoded_content') }}" data-bare-link="true"><code>/deflate</code></a> Returns deflate-encoded data.</li>
+<li><a href="{{ url_for('view_brotli_encoded_content') }}" data-bare-link="true"><code>/brotli</code></a> Returns brotili-encoded data.</li>
 <li><a href="{{ url_for('view_status_code', codes='418') }}"><code>/status/:code</code></a> Returns given HTTP Status code.</li>
 <li><a href="{{ url_for('response_headers', **{'Content-Type': 'text/plain; charset=UTF-8', 'Server': 'httpbin'}) }}"><code>/response-headers?key=val</code></a> Returns given response headers.</li>
 <li><a href="{{ url_for('redirect_n_times', n=6) }}"><code>/redirect/:n</code></a> 302 Redirects <em>n</em> times.</li>
