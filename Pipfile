@@ -6,3 +6,4 @@ verify_ssl = true
 gunicorn = "*"
 Flask = "*"
 decorator = "*"
+brotlipy = "*"
