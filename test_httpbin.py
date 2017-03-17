@@ -558,7 +558,6 @@ class HttpbinTestCase(unittest.TestCase):
         with _setenv('HTTPBIN_TRACKING', '1'):
             response = self.app.get('/')
         data = response.data.decode('utf-8')
-        self.assertIn('google-analytics', data)
         self.assertIn('perfectaudience', data)
 
 
