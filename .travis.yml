@@ -3,8 +3,7 @@ language: python
 sudo: false
 env:
     - TOXENV=py27
-    - TOXENV=py34
-    - TOXENV=pypy
+    - TOXENV=py36
 
 install:
     - travis_retry pip install tox
