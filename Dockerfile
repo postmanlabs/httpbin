@@ -1,10 +1,12 @@
-FROM ubuntu:trusty
+FROM alpine:3.5
 
 ENV WEB_CONCURRENCY=4
 
 ADD . /httpbin
 
-RUN apt-get update -y && apt-get -y install python-pip && pip install gunicorn && pip install /httpbin
+RUN apk add --update python python-dev py-pip build-base ca-certificates libffi-dev
+RUN pip install --upgrade pip
+RUN pip install gunicorn && pip install /httpbin
 
 EXPOSE 8080
 
