@@ -474,12 +474,16 @@ def drip():
     duration = float(args.get('duration', 2))
     numbytes = min(int(args.get('numbytes', 10)),(10 * 1024 * 1024)) # set 10MB limit
     code = int(args.get('code', 200))
-    pause = duration / numbytes
+
+    if numbytes <= 0:
+        response = Response('number of bytes must be positive', status=400)
+        return response
 
     delay = float(args.get('delay', 0))
     if delay > 0:
         time.sleep(delay)
 
+    pause = duration / numbytes
     def generate_bytes():
         for i in xrange(numbytes):
             yield u"*".encode('utf-8')
