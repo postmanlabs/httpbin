@@ -604,7 +604,8 @@ def range_request(numbytes):
         response = Response(headers={
             'ETag' : 'range%d' % numbytes,
             'Accept-Ranges' : 'bytes',
-            'Content-Range' : 'bytes */%d' % numbytes
+            'Content-Range' : 'bytes */%d' % numbytes,
+            "Content-Length": str(numbytes),
             })
         response.status_code = 416
         return response
@@ -631,7 +632,9 @@ def range_request(numbytes):
         'Content-Type': 'application/octet-stream',
         'ETag' : 'range%d' % numbytes,
         'Accept-Ranges' : 'bytes',
-        'Content-Range' : content_range }
+        "Content-Length": str(numbytes),
+        'Content-Range' : content_range
+    }
 
     response = Response(generate_bytes(), headers=response_headers)
 
