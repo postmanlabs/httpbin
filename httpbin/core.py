@@ -17,7 +17,7 @@ import argparse
 
 from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
 from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+from flask_limiter.util import get_ipaddr
 from six.moves import range as xrange
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
@@ -66,7 +66,7 @@ if 'REDIS_URL' in os.environ:
 
     limiter = Limiter(
         app,
-        key_func=get_remote_address,
+        key_func=get_ipaddr,
         global_limits=["100000 per day", "10000 per hour"]
     )
 
