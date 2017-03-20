@@ -6,6 +6,7 @@ verify_ssl = true
 gunicorn = "*"
 decorator = "*"
 brotlipy = "*"
+gevent = "*"
 Flask = "*"
 
 [packages.raven]

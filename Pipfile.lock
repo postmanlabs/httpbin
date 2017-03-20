@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "53116ad7b310b08706e5c73063a39d06acc144ee22cf0dc9783758e69556b76a"
+            "sha256": "972fd2dc19c6b6f8a5b832bf8f656be3971b6e096d09af9926d049c046629ef6"
         },
         "requires": {},
         "sources": [
@@ -44,6 +44,12 @@
         },
         "enum34": {
             "version": "==1.1.6"
+        },
+        "gevent": {
+            "version": "==1.2.1"
+        },
+        "greenlet": {
+            "version": "==0.4.12"
         },
         "gunicorn": {
             "version": "==19.7.0"
