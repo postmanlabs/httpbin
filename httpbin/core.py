@@ -16,6 +16,8 @@ import uuid
 import argparse
 
 from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
+from flask_limiter import Limiter
+from flask_limiter.util import get_ipaddr
 from six.moves import range as xrange
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
@@ -56,6 +58,20 @@ app.debug = bool(os.environ.get('DEBUG'))
 # Send app errors to Sentry.
 if 'SENTRY_DSN' in os.environ:
     sentry = Sentry(app, dsn=os.environ['SENTRY_DSN'])
+
+# Setup rate-limiting.
+if 'REDIS_URL' in os.environ:
+    app.config['RATELIMIT_STORAGE_URL'] = os.environ['REDIS_URL']
+    app.config['RATELIMIT_HEADERS_ENABLED'] = True
+
+    limiter = Limiter(
+        app,
+        key_func=get_ipaddr,
+        global_limits=["100000 per day", "10000 per hour"]
+    )
+
+
+
 
 # Set up Bugsnag exception tracking, if desired. To use Bugsnag, install the
 # Bugsnag Python client with the command "pip install bugsnag", and set the
