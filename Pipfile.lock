@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "972fd2dc19c6b6f8a5b832bf8f656be3971b6e096d09af9926d049c046629ef6"
+            "sha256": "1f9f2e0fc8779b7c234101d7b6ee0e8802a12b81e07f9d356ae9b7fb710af2bc"
         },
         "requires": {},
         "sources": [
@@ -14,6 +14,9 @@
     "default": {
         "Flask": {
             "version": "==0.12"
+        },
+        "Flask-Limiter": {
+            "version": "==0.9.3"
         },
         "Jinja2": {
             "version": "==2.9.5"
@@ -54,14 +57,26 @@
         "gunicorn": {
             "version": "==19.7.0"
         },
+        "hiredis": {
+            "version": "==0.2.0"
+        },
         "itsdangerous": {
             "version": "==0.24"
+        },
+        "limits": {
+            "version": "==1.2.1"
         },
         "pycparser": {
             "version": "==2.17"
         },
         "raven": {
             "version": "==6.0.0"
+        },
+        "redis": {
+            "version": "==2.10.5"
+        },
+        "six": {
+            "version": "==1.10.0"
         }
     },
     "develop": {}
