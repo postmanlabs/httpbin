@@ -55,7 +55,7 @@ app.debug = bool(os.environ.get('DEBUG'))
 
 # Send app errors to Sentry.
 if 'SENTRY_DSN' in os.environ:
-    sentry = Sentry(app, dsn=os.environ('SENTRY_DSN'))
+    sentry = Sentry(app, dsn=os.environ['SENTRY_DSN'])
 
 
 # Set up Bugsnag exception tracking, if desired. To use Bugsnag, install the
