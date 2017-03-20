@@ -12,11 +12,11 @@ setup(
     # long_description=long_description,
 
     # The project URL.
-    url='https://github.com/Runscope/httpbin',
+    url='https://github.com/kennethreitz/httpbin',
 
     # Author details
-    author='Runscope',
-    author_email='httpbin@runscope.com',
+    author='Kenneth Reitz',
+    author_email='me@kennethreitz.org',
 
     # Choose your license
     license='MIT',
