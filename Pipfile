@@ -4,6 +4,9 @@ verify_ssl = true
 
 [packages]
 gunicorn = "*"
-Flask = "*"
 decorator = "*"
 brotlipy = "*"
+Flask = "*"
+
+[packages.raven]
+extras = [ "flask",]

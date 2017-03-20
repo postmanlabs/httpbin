@@ -16,10 +16,11 @@ import uuid
 import argparse
 
 from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
+from six.moves import range as xrange
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
-from six.moves import range as xrange
+from raven.contrib.flask import Sentry
 
 from . import filters
 from .helpers import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, secure_cookie, H, ROBOT_TXT, ANGRY_ASCII
@@ -50,6 +51,12 @@ BaseResponse.autocorrect_location_header = False
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 app = Flask(__name__, template_folder=tmpl_dir)
+app.debug = bool(os.environ.get('DEBUG'))
+
+# Send app errors to Sentry.
+if 'SENTRY_DSN' in os.environ:
+    sentry = Sentry(app, dsn=os.environ('SENTRY_DSN'))
+
 
 # Set up Bugsnag exception tracking, if desired. To use Bugsnag, install the
 # Bugsnag Python client with the command "pip install bugsnag", and set the

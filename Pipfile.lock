@@ -1,0 +1,62 @@
+{
+    "_meta": {
+        "hash": {
+            "sha256": "53116ad7b310b08706e5c73063a39d06acc144ee22cf0dc9783758e69556b76a"
+        },
+        "requires": {},
+        "sources": [
+            {
+                "url": "https://pypi.python.org/simple",
+                "verify_ssl": true
+            }
+        ]
+    },
+    "default": {
+        "Flask": {
+            "version": "==0.12"
+        },
+        "Jinja2": {
+            "version": "==2.9.5"
+        },
+        "MarkupSafe": {
+            "version": "==1.0"
+        },
+        "Werkzeug": {
+            "version": "==0.12.1"
+        },
+        "blinker": {
+            "version": "==1.4"
+        },
+        "brotlipy": {
+            "version": "==0.6.0"
+        },
+        "cffi": {
+            "version": "==1.9.1"
+        },
+        "click": {
+            "version": "==6.7"
+        },
+        "contextlib2": {
+            "version": "==0.5.4"
+        },
+        "decorator": {
+            "version": "==4.0.11"
+        },
+        "enum34": {
+            "version": "==1.1.6"
+        },
+        "gunicorn": {
+            "version": "==19.7.0"
+        },
+        "itsdangerous": {
+            "version": "==0.24"
+        },
+        "pycparser": {
+            "version": "==2.17"
+        },
+        "raven": {
+            "version": "==6.0.0"
+        }
+    },
+    "develop": {}
+}

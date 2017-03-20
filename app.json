@@ -4,5 +4,6 @@
   "repository": "https://github.com/Runscope/httpbin",
   "website": "https://httpbin.org",
   "logo": "https://s3.amazonaws.com/f.cl.ly/items/333Y191Z2C0G2J3m3Y0b/httpbin.svg",
-  "keywords": ["http", "rest", "API", "testing", "integration", "python", "flask"]
+  "keywords": ["http", "rest", "API", "testing", "integration", "python", "flask"],
+  "addons": "sentry"
 }
