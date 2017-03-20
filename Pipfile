@@ -7,10 +7,7 @@ gunicorn = "*"
 decorator = "*"
 brotlipy = "*"
 gevent = "*"
-redis = "*"
-hiredis = "*"
 Flask = "*"
-Flask-Limiter = "*"
 
 [packages.raven]
 extras = [ "flask",]
