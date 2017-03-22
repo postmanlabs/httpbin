@@ -47,7 +47,8 @@ ENV_HEADERS = (
     'X-Forwarded-For',
     'X-Forwarded-Protocol',
     'X-Forwarded-Port',
-    'X-Request-Id'
+    'X-Request-Id',
+    'Via'
 )
 
 ROBOT_TXT = """User-agent: *
