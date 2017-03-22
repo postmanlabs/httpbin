@@ -48,6 +48,7 @@ ENV_HEADERS = (
     'X-Forwarded-Protocol',
     'X-Forwarded-Port',
     'Runscope-Service'
+    'X-Request-Id'
 )
 
 ROBOT_TXT = """User-agent: *
@@ -323,7 +324,7 @@ def response(credentails, password, request):
     HA2_value = HA2(credentails, request, algorithm)
     if credentails.get('qop') is None:
         response = H(b":".join([
-            HA1_value.encode('utf-8'), 
+            HA1_value.encode('utf-8'),
             credentails.get('nonce', '').encode('utf-8'),
             HA2_value.encode('utf-8')
         ]), algorithm)
