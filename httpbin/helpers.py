@@ -47,7 +47,6 @@ ENV_HEADERS = (
     'X-Forwarded-For',
     'X-Forwarded-Protocol',
     'X-Forwarded-Port',
-    'Runscope-Service'
     'X-Request-Id'
 )
 
