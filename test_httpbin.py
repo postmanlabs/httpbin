@@ -486,6 +486,7 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.headers.get('ETag'), 'range100')
         self.assertEqual(response.headers.get('Content-range'), 'bytes 10-24/100')
         self.assertEqual(response.headers.get('Accept-ranges'), 'bytes')
+        self.assertEqual(response.headers.get('Content-Length'), '15')
         self.assertEqual(self.get_data(response), 'klmnopqrstuvwxy'.encode('utf8'))
 
     def test_request_range_first_15_bytes(self):
@@ -509,6 +510,7 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.headers.get('ETag'), 'range26')
         self.assertEqual(self.get_data(response), 'uvwxyz'.encode('utf8'))
         self.assertEqual(response.headers.get('Content-range'), 'bytes 20-25/26')
+        self.assertEqual(response.headers.get('Content-Length'), '6')
 
     def test_request_range_suffix(self):
         response = self.app.get(
@@ -520,6 +522,7 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.headers.get('ETag'), 'range26')
         self.assertEqual(self.get_data(response), 'vwxyz'.encode('utf8'))
         self.assertEqual(response.headers.get('Content-range'), 'bytes 21-25/26')
+        self.assertEqual(response.headers.get('Content-Length'), '5')
 
     def test_request_out_of_bounds(self):
         response = self.app.get(
@@ -532,6 +535,7 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.headers.get('ETag'), 'range26')
         self.assertEqual(len(self.get_data(response)), 0)
         self.assertEqual(response.headers.get('Content-range'), 'bytes */26')
+        self.assertEqual(response.headers.get('Content-Length'), '0')
 
         response = self.app.get(
             '/range/26',
