@@ -7,7 +7,6 @@ httpbin.core
 This module provides the core HttpBin experience.
 """
 
-import base64
 import json
 import os
 import random
