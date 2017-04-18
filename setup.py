@@ -18,6 +18,11 @@ setup(
     author='Kenneth Reitz',
     author_email='me@kennethreitz.org',
 
+    entry_points = """\
+      [console_scripts]
+      httpbin = httpbin.core:app.run
+    """,
+
     # Choose your license
     license='MIT',
 
