@@ -23,7 +23,7 @@ from werkzeug.wrappers import BaseResponse
 from raven.contrib.flask import Sentry
 
 from . import filters
-from .helpers import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, secure_cookie, H, ROBOT_TXT, ANGRY_ASCII
+from .helpers import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, secure_cookie, H, ROBOT_TXT, ANGRY_ASCII, parse_multi_value_header
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
@@ -533,6 +533,23 @@ def cache():
     else:
         return status_code(304)
 
+@app.route('/etag/<etag>', methods=('GET',))
+def etag(etag):
+    """Assumes the resource has the given etag and responds to If-None-Match and If-Match headers appropriately."""
+    if_none_match = parse_multi_value_header(request.headers.get('If-None-Match'))
+    if_match = parse_multi_value_header(request.headers.get('If-Match'))
+
+    if if_none_match:
+        if etag in if_none_match or '*' in if_none_match:
+            return status_code(304)
+    elif if_match:
+        if etag not in if_match and '*' not in if_match:
+            return status_code(412)
+
+    # Special cases don't apply, return normal response
+    response = view_get()
+    response.headers['ETag'] = etag
+    return response
 
 @app.route('/cache/<int:value>')
 def cache_control(value):
