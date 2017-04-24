@@ -9,6 +9,7 @@ This module provides helper functions for httpbin.
 
 import json
 import base64
+import re
 from hashlib import md5, sha256
 from werkzeug.http import parse_authorization_header
 
@@ -420,3 +421,13 @@ def get_request_range(request_headers, upper_bound):
 
     return first_byte_pos, last_byte_pos
 
+def parse_multi_value_header(header_str):
+    """Break apart an HTTP header string that is potentially a quoted, comma separated list as used in entity headers in RFC2616."""
+    parsed_parts = []
+    if header_str:
+        parts = header_str.split(',')
+        for part in parts:
+            match = re.search('\s*(W/)?\"?([^"]*)\"?\s*', part)
+            if match is not None:
+                parsed_parts.append(match.group(2))
+    return parsed_parts

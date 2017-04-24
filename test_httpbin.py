@@ -11,6 +11,7 @@ from hashlib import md5, sha256
 from six import BytesIO
 
 import httpbin
+from httpbin.helpers import parse_multi_value_header
 
 
 @contextlib.contextmanager
@@ -564,6 +565,83 @@ class HttpbinTestCase(unittest.TestCase):
         data = response.data.decode('utf-8')
         self.assertIn('perfectaudience', data)
 
+    def test_etag_if_none_match_matches(self):
+        response = self.app.get(
+            '/etag/abc',
+            headers={ 'If-None-Match': 'abc' }
+        )
+        self.assertEqual(response.status_code, 304)
+
+    def test_etag_if_none_match_matches_list(self):
+        response = self.app.get(
+            '/etag/abc',
+            headers={ 'If-None-Match': '"123", "abc"' }
+        )
+        self.assertEqual(response.status_code, 304)
+
+    def test_etag_if_none_match_matches_star(self):
+        response = self.app.get(
+            '/etag/abc',
+            headers={ 'If-None-Match': '*' }
+        )
+        self.assertEqual(response.status_code, 304)
+
+    def test_etag_if_none_match_w_prefix(self):
+        response = self.app.get(
+            '/etag/c3piozzzz',
+            headers={ 'If-None-Match': 'W/"xyzzy", W/"r2d2xxxx", W/"c3piozzzz"' }
+        )
+        self.assertEqual(response.status_code, 304)
+
+    def test_etag_if_none_match_has_no_match(self):
+        response = self.app.get(
+            '/etag/abc',
+            headers={ 'If-None-Match': '123' }
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_etag_if_match_matches(self):
+        response = self.app.get(
+            '/etag/abc',
+            headers={ 'If-Match': 'abc' }
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_etag_if_match_matches_list(self):
+        response = self.app.get(
+            '/etag/abc',
+            headers={ 'If-Match': '"123", "abc"' }
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_etag_if_match_matches_star(self):
+        response = self.app.get(
+            '/etag/abc',
+            headers={ 'If-Match': '*' }
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_etag_if_match_has_no_match(self):
+        response = self.app.get(
+            '/etag/abc',
+            headers={ 'If-Match': '123' }
+        )
+        self.assertEqual(response.status_code, 412)
+
+    def test_etag_with_no_headers(self):
+        response = self.app.get(
+            '/etag/abc'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get('ETag'), 'abc')
+
+    def test_parse_multi_value_header(self):
+        self.assertEqual(parse_multi_value_header('xyzzy'), [ "xyzzy" ])
+        self.assertEqual(parse_multi_value_header('"xyzzy"'), [ "xyzzy" ])
+        self.assertEqual(parse_multi_value_header('W/"xyzzy"'), [ "xyzzy" ])
+        self.assertEqual(parse_multi_value_header('"xyzzy", "r2d2xxxx", "c3piozzzz"'), [ "xyzzy", "r2d2xxxx", "c3piozzzz" ])
+        self.assertEqual(parse_multi_value_header('W/"xyzzy", W/"r2d2xxxx", W/"c3piozzzz"'), [ "xyzzy", "r2d2xxxx", "c3piozzzz" ])
+        self.assertEqual(parse_multi_value_header('*'), [ "*" ])
 
 if __name__ == '__main__':
     unittest.main()
