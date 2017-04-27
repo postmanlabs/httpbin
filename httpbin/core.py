@@ -765,6 +765,16 @@ def xml():
     response.headers["Content-Type"] = "application/xml"
     return response
 
+@app.route('/post/delay/<int:delay>', methods=('POST',))
+def post_delay_response(delay):
+    """Returns a delayed POST response"""
+
+    time.sleep(delay)
+
+    return jsonify(get_dict(
+        'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
