@@ -1,1 +1,1 @@
-web: gunicorn httpbin:app --log-file - -k gevent
+web: gunicorn httpbin:app --log-file - --worker-class="egg:meinheld#gunicorn_worker"

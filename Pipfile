@@ -8,6 +8,8 @@ decorator = "*"
 brotlipy = "*"
 gevent = "*"
 Flask = "*"
+Flask-Common = "*"
+meinheld = "*"
 
 [packages.raven]
 extras = [ "flask",]

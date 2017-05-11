@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "1f9f2e0fc8779b7c234101d7b6ee0e8802a12b81e07f9d356ae9b7fb710af2bc"
+            "sha256": "97e396c7726d277f4655e49b458c18b8d1c2fa4f5e774e502c3a5f9bf4aae7d4"
         },
         "requires": {},
         "sources": [
@@ -13,13 +13,16 @@
     },
     "default": {
         "Flask": {
-            "version": "==0.12"
+            "version": "==0.12.1"
         },
-        "Flask-Limiter": {
-            "version": "==0.9.3"
+        "Flask-Cache": {
+            "version": "==0.13.1"
+        },
+        "Flask-Common": {
+            "version": "==0.1.0"
         },
         "Jinja2": {
-            "version": "==2.9.5"
+            "version": "==2.9.6"
         },
         "MarkupSafe": {
             "version": "==1.0"
@@ -34,13 +37,22 @@
             "version": "==0.6.0"
         },
         "cffi": {
-            "version": "==1.9.1"
+            "version": "==1.10.0"
         },
         "click": {
             "version": "==6.7"
         },
+        "colorama": {
+            "version": "==0.3.9"
+        },
         "contextlib2": {
-            "version": "==0.5.4"
+            "version": "==0.5.5"
+        },
+        "crayons": {
+            "version": "==0.1.2"
+        },
+        "dateparser": {
+            "version": "==0.6.0"
         },
         "decorator": {
             "version": "==4.0.11"
@@ -55,28 +67,55 @@
             "version": "==0.4.12"
         },
         "gunicorn": {
-            "version": "==19.7.0"
+            "version": "==19.7.1"
         },
-        "hiredis": {
-            "version": "==0.2.0"
+        "humanize": {
+            "version": "==0.5.1"
         },
         "itsdangerous": {
             "version": "==0.24"
         },
-        "limits": {
-            "version": "==1.2.1"
+        "maya": {
+            "version": "==0.1.8"
+        },
+        "meinheld": {
+            "version": "==0.6.1"
+        },
+        "pendulum": {
+            "version": "==1.2.0"
         },
         "pycparser": {
             "version": "==2.17"
         },
+        "python-dateutil": {
+            "version": "==2.6.0"
+        },
+        "pytz": {
+            "version": "==2017.2"
+        },
+        "pytzdata": {
+            "version": "==2017.2"
+        },
         "raven": {
             "version": "==6.0.0"
         },
-        "redis": {
-            "version": "==2.10.5"
+        "regex": {
+            "version": "==2017.04.29"
+        },
+        "ruamel.ordereddict": {
+            "version": "==0.4.9"
+        },
+        "ruamel.yaml": {
+            "version": "==0.14.11"
         },
         "six": {
             "version": "==1.10.0"
+        },
+        "tzlocal": {
+            "version": "==1.4"
+        },
+        "whitenoise": {
+            "version": "==3.3.0"
         }
     },
     "develop": {}
