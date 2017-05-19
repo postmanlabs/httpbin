@@ -427,6 +427,18 @@ def basic_auth(user='user', passwd='passwd'):
     return jsonify(authenticated=True, user=user)
 
 
+@app.route('/basic-auth-post/<user>/<passwd>', methods=('POST',))
+def basic_auth_post(user='user', passwd='passwd'):
+    """Prompts the user for authorization using HTTP Basic Auth and returns
+    POST data."""
+
+    if not check_basic_auth(user, passwd):
+        return status_code(401)
+
+    return jsonify(get_dict('url', 'args', 'form', 'data', 'origin', 'headers',
+        'files', 'json'), authenticated=True, user=user)
+
+
 @app.route('/hidden-basic-auth/<user>/<passwd>')
 def hidden_basic_auth(user='user', passwd='passwd'):
     """Prompts the user for authorization using HTTP Basic Auth."""
