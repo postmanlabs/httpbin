@@ -49,7 +49,7 @@
 <li><a href="{{ url_for('etag', etag='etag') }}"><code>/etag/:etag</code></a> Assumes the resource has the given etag and responds to If-None-Match header with a 200 or 304 and If-Match with a 200 or 412 as appropriate.</li>
 <li><a href="{{ url_for('cache_control', value=60) }}"><code>/cache/:n</code></a> Sets a Cache-Control header for <em>n</em> seconds.</li>
 <li><a href="{{ url_for('random_bytes', n=1024) }}"><code>/bytes/:n</code></a> Generates <em>n</em> random bytes of binary data, accepts optional <em>seed</em> integer parameter.</li>
-<li><a href="{{ url_for('stream_random_bytes', n=1024) }}"><code>/stream-bytes/:n</code></a> Streams <em>n</em> random bytes of binary data, accepts optional <em>seed</em> and <em>chunk_size</em> integer parameters.</li>
+<li><a href="{{ url_for('stream_random_bytes', n=1024) }}"><code>/stream-bytes/:n</code></a> Streams <em>n</em> random bytes of binary data in chunked encoding, accepts optional <em>seed</em> and <em>chunk_size</em> integer parameters.</li>
 <li><a href="{{ url_for('links', n=10) }}"><code>/links/:n</code></a> Returns page containing <em>n</em> HTML links.</li>
 <li><a href="{{ url_for('image') }}"><code>/image</code></a> Returns page containing an image based on sent Accept header.</li>
 <li><a href="{{ url_for('image_png') }}"><code>/image/png</code></a> Returns a PNG image.</li>
