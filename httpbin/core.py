@@ -337,7 +337,7 @@ def view_status_code(codes):
     return status_code(code)
 
 
-@app.route('/response-headers')
+@app.route('/response-headers', methods=['GET', 'POST'])
 def response_headers():
     """Returns a set of response headers from the query string """
     headers = MultiDict(request.args.items(multi=True))

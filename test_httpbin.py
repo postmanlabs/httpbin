@@ -119,16 +119,22 @@ class HttpbinTestCase(unittest.TestCase):
             return response.data
 
     def test_response_headers_simple(self):
-        response = self.app.get('/response-headers?animal=dog')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.headers.get_all('animal'), ['dog'])
-        assert json.loads(response.data.decode('utf-8'))['animal'] == 'dog'
+        supported_verbs = ['get', 'post']
+        for verb in supported_verbs:
+            method = getattr(self.app, verb)
+            response = method('/response-headers?animal=dog')
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.headers.get_all('animal'), ['dog'])
+            assert json.loads(response.data.decode('utf-8'))['animal'] == 'dog'
 
     def test_response_headers_multi(self):
-        response = self.app.get('/response-headers?animal=dog&animal=cat')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.headers.get_all('animal'), ['dog', 'cat'])
-        assert json.loads(response.data.decode('utf-8'))['animal'] == ['dog', 'cat']
+        supported_verbs = ['get', 'post']
+        for verb in supported_verbs:
+            method = getattr(self.app, verb)
+            response = method('/response-headers?animal=dog&animal=cat')
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.headers.get_all('animal'), ['dog', 'cat'])
+            assert json.loads(response.data.decode('utf-8'))['animal'] == ['dog', 'cat']
 
     def test_get(self):
         response = self.app.get('/get', headers={'User-Agent': 'test'})
