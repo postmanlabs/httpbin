@@ -193,7 +193,7 @@ def view_delete():
     """Returns DELETE Data."""
 
     return jsonify(get_dict(
-        'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
+        'url', 'args', 'data', 'origin', 'headers', 'files', 'json'))
 
 
 @app.route('/gzip')
