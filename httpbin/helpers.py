@@ -169,7 +169,7 @@ def get_url(request):
 def get_dict(*keys, **extras):
     """Returns request dict of given keys."""
 
-    _keys = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json')
+    _keys = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json', 'method')
 
     assert all(map(_keys.__contains__, keys))
     data = request.data
@@ -188,7 +188,8 @@ def get_dict(*keys, **extras):
         origin=request.headers.get('X-Forwarded-For', request.remote_addr),
         headers=get_headers(),
         files=get_files(),
-        json=_json
+        json=_json,
+        method=request.method,
     )
 
     out_d = dict()
