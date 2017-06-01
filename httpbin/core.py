@@ -164,6 +164,14 @@ def view_get():
     return jsonify(get_dict('url', 'args', 'headers', 'origin'))
 
 
+@app.route('/anything')
+@app.route('/anything/<path:anything>')
+def view_anything(anything=None):
+    """Returns request data."""
+
+    return jsonify(get_dict('url', 'args', 'headers', 'origin', 'method'))
+
+
 @app.route('/post', methods=('POST',))
 def view_post():
     """Returns POST Data."""

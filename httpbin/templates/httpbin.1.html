@@ -20,6 +20,8 @@
 <li><code>/patch</code> Returns PATCH data.</li>
 <li><code>/put</code> Returns PUT data.</li>
 <li><code>/delete</code> Returns DELETE data</li>
+<li><a href="{{ url_for('view_anything') }}" data-bare-link="true"><code>/anything</code></a> Returns request data, including method used.</li>
+<li><code>/anything/:anything</code> Returns request data, including the URL.</li>
 <li><a href="{{ url_for('encoding') }}"><code>/encoding/utf8</code></a> Returns page containing UTF-8 data.</li>
 <li><a href="{{ url_for('view_gzip_encoded_content') }}" data-bare-link="true"><code>/gzip</code></a> Returns gzip-encoded data.</li>
 <li><a href="{{ url_for('view_deflate_encoded_content') }}" data-bare-link="true"><code>/deflate</code></a> Returns deflate-encoded data.</li>
