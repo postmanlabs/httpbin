@@ -482,6 +482,75 @@ def digest_auth(qop=None, user='user', passwd='passwd', algorithm='MD5'):
         return response
     return jsonify(authenticated=True, user=user)
 
+@app.route('/digest-auth-stale/<qop>/<user>/<passwd>/<algorithm>')
+def digest_auth_stale(qop=None, user='user', passwd='passwd', algorithm='MD5'):
+	"""Prompts the user for authorization using HTTP Digest auth"""
+
+	if algorithm not in ('MD5', 'SHA-256'):
+		algorithm = 'MD5'
+
+	if qop not in ('auth', 'auth-int'):
+		qop = None
+
+	if 'Authorization' not in request.headers or  \
+		not check_digest_auth(user, passwd) or \
+			'Cookie' not in request.headers:
+		response = app.make_response('')
+		response.status_code = 401
+
+		# RFC2616 Section4.2: HTTP headers are ASCII.  That means
+		# request.remote_addr was originally ASCII, so I should be able to
+		# encode it back to ascii.  Also, RFC2617 says about nonces: "The
+		# contents of the nonce are implementation dependent"
+		nonce = H(b''.join([
+			getattr(request,'remote_addr',u'').encode('ascii'),
+			b':',
+			str(time.time()).encode('ascii'),
+			b':',
+			os.urandom(10)
+		]), "MD5")
+
+		opaque = H(os.urandom(10), "MD5")
+
+		auth = WWWAuthenticate("digest")
+		auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
+		qop=('auth', 'auth-int') if qop is None else (qop, ), algorithm=algorithm)
+		response.headers['WWW-Authenticate'] = auth.to_header()
+		response.headers['Set-Cookie'] = 'stale=no; Path=/'
+		return response
+
+	if not 'stale=yes' in request.headers['Cookie'] :
+		response = app.make_response('')
+		response.status_code = 401
+
+		# RFC2616 Section4.2: HTTP headers are ASCII.  That means
+		# request.remote_addr was originally ASCII, so I should be able to
+		# encode it back to ascii.  Also, RFC2617 says about nonces: "The
+		# contents of the nonce are implementation dependent"
+		nonce = H(b''.join([
+							getattr(request,'remote_addr',u'').encode('ascii'),
+							b':',
+							str(time.time()).encode('ascii'),
+							b':',
+							os.urandom(10)
+							]), "MD5")
+
+		opaque = H(os.urandom(10), "MD5")
+
+		auth = WWWAuthenticate("digest")
+		auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
+		qop=('auth', 'auth-int') if qop is None else (qop, ), algorithm=algorithm)
+		auth.stale = True;
+		response.headers['WWW-Authenticate'] = auth.to_header()
+		response.headers['Set-Cookie'] = 'stale=yes; Path=/'
+
+		return response
+	
+	response = jsonify(authenticated=True, user=user)
+	response.headers['Set-Cookie'] = 'stale=no; Path=/'
+
+	return response
+
 
 @app.route('/delay/<delay>')
 def delay_response(delay):
