@@ -10,8 +10,11 @@ This module provides helper functions for httpbin.
 import json
 import base64
 import re
+import time
+import os
 from hashlib import md5, sha256
 from werkzeug.http import parse_authorization_header
+from werkzeug.datastructures import WWWAuthenticate
 
 from flask import request, make_response
 from six.moves.urllib.parse import urlparse, urlunparse
@@ -432,3 +435,36 @@ def parse_multi_value_header(header_str):
             if match is not None:
                 parsed_parts.append(match.group(2))
     return parsed_parts
+
+
+def next_stale_after_value(stale_after):
+    try:
+        stal_after_count = int(stale_after) - 1
+        return str(stal_after_count)
+    except ValueError:
+        return 'never'
+
+
+def digest_challenge_response(app, qop, algorithm, stale = False):
+    response = app.make_response('')
+    response.status_code = 401
+
+    # RFC2616 Section4.2: HTTP headers are ASCII.  That means
+    # request.remote_addr was originally ASCII, so I should be able to
+    # encode it back to ascii.  Also, RFC2617 says about nonces: "The
+    # contents of the nonce are implementation dependent"
+    nonce = H(b''.join([
+        getattr(request, 'remote_addr', u'').encode('ascii'),
+        b':',
+        str(time.time()).encode('ascii'),
+        b':',
+        os.urandom(10)
+    ]), "MD5")
+    opaque = H(os.urandom(10), "MD5")
+
+    auth = WWWAuthenticate("digest")
+    auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
+                    qop=('auth', 'auth-int') if qop is None else (qop,), algorithm=algorithm)
+    auth.stale = stale
+    response.headers['WWW-Authenticate'] = auth.to_header()
+    return response

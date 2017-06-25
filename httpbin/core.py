@@ -24,7 +24,9 @@ from werkzeug.wrappers import BaseResponse
 from raven.contrib.flask import Sentry
 
 from . import filters
-from .helpers import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, secure_cookie, H, ROBOT_TXT, ANGRY_ASCII, parse_multi_value_header
+from .helpers import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, \
+    secure_cookie, H, ROBOT_TXT, ANGRY_ASCII, parse_multi_value_header, next_stale_after_value, \
+    digest_challenge_response
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
@@ -446,110 +448,45 @@ def hidden_basic_auth(user='user', passwd='passwd'):
 
 @app.route('/digest-auth/<qop>/<user>/<passwd>')
 def digest_auth_md5(qop=None, user='user', passwd='passwd'):
-    return digest_auth(qop, user, passwd, "MD5")
+    return digest_auth(qop, user, passwd, "MD5", 'never')
+
 
 @app.route('/digest-auth/<qop>/<user>/<passwd>/<algorithm>')
-def digest_auth(qop=None, user='user', passwd='passwd', algorithm='MD5'):
+def digest_auth_nostale(qop=None, user='user', passwd='passwd', algorithm='MD5'):
+    return digest_auth(qop, user, passwd, algorithm, 'never')
+
+
+@app.route('/digest-auth/<qop>/<user>/<passwd>/<algorithm>/<stale_after>')
+def digest_auth(qop=None, user='user', passwd='passwd', algorithm='MD5', stale_after='never'):
     """Prompts the user for authorization using HTTP Digest auth"""
     if algorithm not in ('MD5', 'SHA-256'):
         algorithm = 'MD5'
+
     if qop not in ('auth', 'auth-int'):
         qop = None
-    if 'Authorization' not in request.headers or  \
-                       not check_digest_auth(user, passwd) or \
-                       'Cookie' not in request.headers:
-        response = app.make_response('')
-        response.status_code = 401
 
-        # RFC2616 Section4.2: HTTP headers are ASCII.  That means
-        # request.remote_addr was originally ASCII, so I should be able to
-        # encode it back to ascii.  Also, RFC2617 says about nonces: "The
-        # contents of the nonce are implementation dependent"
-        nonce = H(b''.join([
-            getattr(request,'remote_addr',u'').encode('ascii'),
-            b':',
-            str(time.time()).encode('ascii'),
-            b':',
-            os.urandom(10)
-        ]), "MD5")
-        opaque = H(os.urandom(10), "MD5")
-
-        auth = WWWAuthenticate("digest")
-        auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
-                        qop=('auth', 'auth-int') if qop is None else (qop, ), algorithm=algorithm)
-        response.headers['WWW-Authenticate'] = auth.to_header()
-        response.headers['Set-Cookie'] = 'fake=fake_value'
+    if 'Authorization' not in request.headers or \
+            not check_digest_auth(user, passwd) or \
+                    'Cookie' not in request.headers:
+        response = digest_challenge_response(app, qop, algorithm)
+        response.set_cookie('stale_after', value=stale_after)
         return response
-    return jsonify(authenticated=True, user=user)
 
-@app.route('/digest-auth-stale/<qop>/<user>/<passwd>/<algorithm>')
-def digest_auth_stale(qop=None, user='user', passwd='passwd', algorithm='MD5'):
-	"""Prompts the user for authorization using HTTP Digest auth"""
+    if 'stale_after' in request.cookies:
+        stale_after_value = request.cookies.get('stale_after')
 
-	if algorithm not in ('MD5', 'SHA-256'):
-		algorithm = 'MD5'
+        if stale_after_value == '0':
+            response = digest_challenge_response(app, qop, algorithm, True)
+            response.set_cookie('stale_after', value=stale_after)
+            return response
 
-	if qop not in ('auth', 'auth-int'):
-		qop = None
+        response = jsonify(authenticated=True, user=user)
+        response.set_cookie('stale_after', value=next_stale_after_value(stale_after_value))
+        return response
 
-	if 'Authorization' not in request.headers or  \
-		not check_digest_auth(user, passwd) or \
-			'Cookie' not in request.headers:
-		response = app.make_response('')
-		response.status_code = 401
-
-		# RFC2616 Section4.2: HTTP headers are ASCII.  That means
-		# request.remote_addr was originally ASCII, so I should be able to
-		# encode it back to ascii.  Also, RFC2617 says about nonces: "The
-		# contents of the nonce are implementation dependent"
-		nonce = H(b''.join([
-			getattr(request,'remote_addr',u'').encode('ascii'),
-			b':',
-			str(time.time()).encode('ascii'),
-			b':',
-			os.urandom(10)
-		]), "MD5")
-
-		opaque = H(os.urandom(10), "MD5")
-
-		auth = WWWAuthenticate("digest")
-		auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
-		qop=('auth', 'auth-int') if qop is None else (qop, ), algorithm=algorithm)
-		response.headers['WWW-Authenticate'] = auth.to_header()
-		response.headers['Set-Cookie'] = 'stale=no; Path=/'
-		return response
-
-	if not 'stale=yes' in request.headers['Cookie'] :
-		response = app.make_response('')
-		response.status_code = 401
-
-		# RFC2616 Section4.2: HTTP headers are ASCII.  That means
-		# request.remote_addr was originally ASCII, so I should be able to
-		# encode it back to ascii.  Also, RFC2617 says about nonces: "The
-		# contents of the nonce are implementation dependent"
-		nonce = H(b''.join([
-							getattr(request,'remote_addr',u'').encode('ascii'),
-							b':',
-							str(time.time()).encode('ascii'),
-							b':',
-							os.urandom(10)
-							]), "MD5")
-
-		opaque = H(os.urandom(10), "MD5")
-
-		auth = WWWAuthenticate("digest")
-		auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
-		qop=('auth', 'auth-int') if qop is None else (qop, ), algorithm=algorithm)
-		auth.stale = True;
-		response.headers['WWW-Authenticate'] = auth.to_header()
-		response.headers['Set-Cookie'] = 'stale=yes; Path=/'
-
-		return response
-	
-	response = jsonify(authenticated=True, user=user)
-	response.headers['Set-Cookie'] = 'stale=no; Path=/'
-
-	return response
+    response = jsonify(authenticated=True, user=user)
+    response.set_cookie('stale_after', value=stale_after)
+    return response
 
 
 @app.route('/delay/<delay>')
