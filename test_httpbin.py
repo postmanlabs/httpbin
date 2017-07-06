@@ -286,7 +286,7 @@ class HttpbinTestCase(unittest.TestCase):
                 for body in None, b'', b'request payload':
                     self._test_digest_auth(username, password, qop, algorithm, body)
 
-    def _test_digest_auth(self, username, password, qop=None, algorithm=None, body=None):
+    def _test_digest_auth(self, username, password, qop, algorithm=None, body=None):
         uri = '/digest-auth/{0}/{1}/{2}'.format(qop or 'wrong-qop', username, password)
         if algorithm:
             uri += '/' + algorithm
@@ -300,22 +300,34 @@ class HttpbinTestCase(unittest.TestCase):
         )
         # make sure it returns a 401
         self.assertEqual(unauthorized_response.status_code, 401)
+
         header = unauthorized_response.headers.get('WWW-Authenticate')
+
+        authorized_response = self._test_digest_response_for_auth_request(header, username, password, qop, uri, body)
+
+        # done!
+        self.assertEqual(authorized_response.status_code, 200)
+
+    def _test_digest_response_for_auth_request(self, header, username, password, qop, uri, body, nonce=None):
         auth_type, auth_info = header.split(None, 1)
         self.assertEqual(auth_type, 'Digest')
 
         d = parse_dict_header(auth_info)
 
-        nonce = d['nonce']
+        nonce = nonce or d['nonce']
         realm = d['realm']
         opaque = d['opaque']
+        if qop :
+            self.assertIn(qop, d['qop'].split(', '), 'Challenge should contains expected qop')
+        algorithm = d['algorithm']
+
         cnonce, nc = (_hash(os.urandom(10), "MD5"), '00000001') if qop in ('auth', 'auth-int') else (None, None)
 
         auth_header = _make_digest_auth_header(
             username, password, 'GET', uri, nonce, realm, opaque, algorithm, qop, cnonce, nc, body)
 
         # make second request
-        authorized_response = self.app.get(
+        return self.app.get(
             uri,
             environ_base={
                 # httpbin's digest auth implementation uses the remote addr to
@@ -327,9 +339,6 @@ class HttpbinTestCase(unittest.TestCase):
             },
             data=body
         )
-
-        # done!
-        self.assertEqual(authorized_response.status_code, 200)
 
     def test_drip(self):
         response = self.app.get('/drip?numbytes=400&duration=2&delay=1')
