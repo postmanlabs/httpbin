@@ -21,6 +21,7 @@ from six.moves import range as xrange
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
+from werkzeug.http import parse_authorization_header
 from raven.contrib.flask import Sentry
 
 from . import filters
@@ -466,26 +467,40 @@ def digest_auth(qop=None, user='user', passwd='passwd', algorithm='MD5', stale_a
         qop = None
 
     if 'Authorization' not in request.headers or \
-            not check_digest_auth(user, passwd) or \
-                    'Cookie' not in request.headers:
+            'Cookie' not in request.headers:
         response = digest_challenge_response(app, qop, algorithm)
         response.set_cookie('stale_after', value=stale_after)
         return response
 
-    if 'stale_after' in request.cookies:
+    credentails = parse_authorization_header(request.headers.get('Authorization'))
+    if not credentails :
+        response = digest_challenge_response(app, qop, algorithm)
+        response.set_cookie('stale_after', value=stale_after)
+        return response
+
+    current_nonce = credentails.get('nonce')
+
+    stale_after_value = None
+    if 'stale_after' in request.cookies :
         stale_after_value = request.cookies.get('stale_after')
 
-        if stale_after_value == '0':
-            response = digest_challenge_response(app, qop, algorithm, True)
-            response.set_cookie('stale_after', value=stale_after)
-            return response
+    if 'last_nonce' in request.cookies and current_nonce == request.cookies.get('last_nonce') or \
+            stale_after_value == '0' :
+        response = digest_challenge_response(app, qop, algorithm, True)
+        response.set_cookie('stale_after', value=stale_after)
+        response.set_cookie('last_nonce',  value=current_nonce)
+        return response
 
-        response = jsonify(authenticated=True, user=user)
-        response.set_cookie('stale_after', value=next_stale_after_value(stale_after_value))
+    if not check_digest_auth(user, passwd) :
+        response = digest_challenge_response(app, qop, algorithm, False)
+        response.set_cookie('stale_after', value=stale_after)
+        response.set_cookie('last_nonce', value=current_nonce)
         return response
 
     response = jsonify(authenticated=True, user=user)
-    response.set_cookie('stale_after', value=stale_after)
+    if stale_after_value :
+        response.set_cookie('stale_after', value=next_stale_after_value(stale_after_value))
+
     return response
 
 
