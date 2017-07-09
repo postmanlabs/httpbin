@@ -344,7 +344,7 @@ class HttpbinTestCase(unittest.TestCase):
         realm = d['realm']
         opaque = d['opaque']
         if qop :
-            self.assertIn(qop, d['qop'].split(', '), 'Challenge should contains expected qop')
+            self.assertIn(qop, [x.strip() for x in d['qop'].split(',')], 'Challenge should contains expected qop')
         algorithm = d['algorithm']
 
         cnonce, nc = (_hash(os.urandom(10), "MD5"), '{:08}'.format(nc)) if qop in ('auth', 'auth-int') else (None, None)
