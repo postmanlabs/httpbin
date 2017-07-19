@@ -164,12 +164,12 @@ def view_get():
     return jsonify(get_dict('url', 'args', 'headers', 'origin'))
 
 
-@app.route('/anything')
-@app.route('/anything/<path:anything>')
+@app.route('/anything', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
+@app.route('/anything/<path:anything>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
 def view_anything(anything=None):
     """Returns request data."""
 
-    return jsonify(get_dict('url', 'args', 'headers', 'origin', 'method'))
+    return jsonify(get_dict('url', 'args', 'headers', 'origin', 'method', 'form', 'data', 'files', 'json'))
 
 
 @app.route('/post', methods=('POST',))
