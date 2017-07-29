@@ -663,5 +663,17 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(parse_multi_value_header('W/"xyzzy", W/"r2d2xxxx", W/"c3piozzzz"'), [ "xyzzy", "r2d2xxxx", "c3piozzzz" ])
         self.assertEqual(parse_multi_value_header('*'), [ "*" ])
 
+    def test_env_if_present(self):
+        with _setenv('HTTPBIN_TEST_ENV', "Ok"):
+            response = self.app.get('/env/HTTPBIN_TEST_ENV')
+            self.assertEqual(response.status_code, 200)
+            json_response = json.loads(self.get_data(response))
+            self.assertEqual(json_response, {"HTTPBIN_TEST_ENV": "Ok"})
+
+    def test_env_if_missing(self):
+        response = self.app.get('/env/HTTPBIN_TEST_MISSING_ENV')
+        self.assertEqual(response.status_code, 404)
+
+
 if __name__ == '__main__':
     unittest.main()
