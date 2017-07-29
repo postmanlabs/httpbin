@@ -667,8 +667,8 @@ class HttpbinTestCase(unittest.TestCase):
         with _setenv('HTTPBIN_TEST_ENV', "Ok"):
             response = self.app.get('/env/HTTPBIN_TEST_ENV')
             self.assertEqual(response.status_code, 200)
-            json_response = json.loads(self.get_data(response))
-            self.assertEqual(json_response, {"HTTPBIN_TEST_ENV": "Ok"})
+            data = json.loads(response.data.decode('utf-8'))
+            self.assertEqual(data, {"HTTPBIN_TEST_ENV": "Ok"})
 
     def test_env_if_missing(self):
         response = self.app.get('/env/HTTPBIN_TEST_MISSING_ENV')
