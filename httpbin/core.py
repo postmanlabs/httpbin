@@ -778,6 +778,15 @@ def xml():
     return response
 
 
+@app.route("/env/<env_var>")
+def env(env_var):
+    value = os.getenv(env_var)
+    if value is None:
+        return status_code(404)
+    else:
+        return jsonify({env_var: value})
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=5000)

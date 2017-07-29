@@ -7,3 +7,5 @@ dist/
 .tox
 *.egg-info
 *.swp
+
+.idea
