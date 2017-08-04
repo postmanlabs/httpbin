@@ -42,11 +42,22 @@ ENV_COOKIES = (
     '__utmb'
 )
 
+
 def jsonify(*args, **kwargs):
     response = flask_jsonify(*args, **kwargs)
     if not response.data.endswith(b'\n'):
         response.data += b'\n'
     return response
+
+
+class InputTerminated:
+    def __init__(self, wsgi_app):
+        self.wsgi_app = wsgi_app
+
+    def __call__(self, environ, start_response):
+        environ['wsgi.input_terminated'] = True
+        return self.wsgi_app(environ, start_response)
+
 
 # Prevent WSGI from correcting the casing of the Location header
 BaseResponse.autocorrect_location_header = False
@@ -56,6 +67,10 @@ tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 app = Flask(__name__, template_folder=tmpl_dir)
 app.debug = bool(os.environ.get('DEBUG'))
+
+# Support for chunked-encoding.
+app.wsgi_app = InputTerminated(app.wsgi_app)
+
 
 # Setup Flask-Common.
 common = Common(app)
