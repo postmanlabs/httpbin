@@ -284,13 +284,26 @@ class HttpbinTestCase(unittest.TestCase):
         for qop in None, 'auth', 'auth-int',:
             for algorithm in None, 'MD5', 'SHA-256':
                 for body in None, b'', b'request payload':
-                    self._test_digest_auth(username, password, qop, algorithm, body)
+                    for stale_after in (None, 1, 4) if algorithm else (None,) :
+                        self._test_digest_auth(username, password, qop, algorithm, body, stale_after)
 
-    def _test_digest_auth(self, username, password, qop=None, algorithm=None, body=None):
-        uri = '/digest-auth/{0}/{1}/{2}'.format(qop or 'wrong-qop', username, password)
-        if algorithm:
-            uri += '/' + algorithm
+    def _test_digest_auth(self, username, password, qop, algorithm=None, body=None, stale_after=None):
+        uri = self._digest_auth_create_uri(username, password, qop, algorithm, stale_after)
 
+        unauthorized_response = self._test_digest_auth_first_challenge(uri)
+
+        header = unauthorized_response.headers.get('WWW-Authenticate')
+
+        authorized_response, nonce = self._test_digest_response_for_auth_request(header, username, password, qop, uri, body)
+        self.assertEqual(authorized_response.status_code, 200)
+
+        if None == stale_after :
+            return
+
+        # test stale after scenerio
+        self._digest_auth_stale_after_check(header, username, password, uri, body, qop, stale_after)
+
+    def _test_digest_auth_first_challenge(self, uri):
         unauthorized_response = self.app.get(
             uri,
             environ_base={
@@ -300,22 +313,47 @@ class HttpbinTestCase(unittest.TestCase):
         )
         # make sure it returns a 401
         self.assertEqual(unauthorized_response.status_code, 401)
-        header = unauthorized_response.headers.get('WWW-Authenticate')
+        return unauthorized_response
+
+    def _digest_auth_create_uri(self, username, password, qop, algorithm, stale_after):
+        uri = '/digest-auth/{0}/{1}/{2}'.format(qop or 'wrong-qop', username, password)
+        if algorithm:
+            uri += '/' + algorithm
+        if stale_after:
+            uri += '/{0}'.format(stale_after)
+        return uri
+
+    def _digest_auth_stale_after_check(self, header, username, password, uri, body, qop, stale_after):
+        for nc in range(2, stale_after + 1):
+            authorized_response, nonce = self._test_digest_response_for_auth_request(header, username, password, qop, uri, \
+                                                                              body, nc)
+            self.assertEqual(authorized_response.status_code, 200)
+        stale_response, nonce = self._test_digest_response_for_auth_request(header, username, password, qop, uri, \
+                                                                     body, stale_after + 1)
+        self.assertEqual(stale_response.status_code, 401)
+        header = stale_response.headers.get('WWW-Authenticate')
+        self.assertIn('stale=TRUE', header)
+
+    def _test_digest_response_for_auth_request(self, header, username, password, qop, uri, body, nc=1, nonce=None):
         auth_type, auth_info = header.split(None, 1)
         self.assertEqual(auth_type, 'Digest')
 
         d = parse_dict_header(auth_info)
 
-        nonce = d['nonce']
+        nonce = nonce or d['nonce']
         realm = d['realm']
         opaque = d['opaque']
-        cnonce, nc = (_hash(os.urandom(10), "MD5"), '00000001') if qop in ('auth', 'auth-int') else (None, None)
+        if qop :
+            self.assertIn(qop, [x.strip() for x in d['qop'].split(',')], 'Challenge should contains expected qop')
+        algorithm = d['algorithm']
+
+        cnonce, nc = (_hash(os.urandom(10), "MD5"), '{:08}'.format(nc)) if qop in ('auth', 'auth-int') else (None, None)
 
         auth_header = _make_digest_auth_header(
             username, password, 'GET', uri, nonce, realm, opaque, algorithm, qop, cnonce, nc, body)
 
         # make second request
-        authorized_response = self.app.get(
+        return self.app.get(
             uri,
             environ_base={
                 # httpbin's digest auth implementation uses the remote addr to
@@ -326,10 +364,33 @@ class HttpbinTestCase(unittest.TestCase):
                 'Authorization': auth_header,
             },
             data=body
-        )
+        ), nonce
 
-        # done!
-        self.assertEqual(authorized_response.status_code, 200)
+    def test_digest_auth_wrong_pass(self):
+        """Test different combinations of digest auth parameters"""
+        username = 'user'
+        password = 'passwd'
+        for qop in None, 'auth', 'auth-int',:
+            for algorithm in None, 'MD5', 'SHA-256':
+                for body in None, b'', b'request payload':
+                    self._test_digest_auth_wrong_pass(username, password, qop, algorithm, body, 3)
+
+    def _test_digest_auth_wrong_pass(self, username, password, qop, algorithm=None, body=None, stale_after=None):
+        uri = self._digest_auth_create_uri(username, password, qop, algorithm, stale_after)
+        unauthorized_response = self._test_digest_auth_first_challenge(uri)
+
+        header = unauthorized_response.headers.get('WWW-Authenticate')
+
+        wrong_pass_response, nonce = self._test_digest_response_for_auth_request(header, username, "wrongPassword", qop, uri, body)
+        self.assertEqual(wrong_pass_response.status_code, 401)
+        header = wrong_pass_response.headers.get('WWW-Authenticate')
+        self.assertNotIn('stale=TRUE', header)
+
+        reused_nonce_response, nonce =  self._test_digest_response_for_auth_request(header, username, password, qop, uri, \
+                                                                              body, nonce=nonce)
+        self.assertEqual(reused_nonce_response.status_code, 401)
+        header = reused_nonce_response.headers.get('WWW-Authenticate')
+        self.assertIn('stale=TRUE', header)
 
     def test_drip(self):
         response = self.app.get('/drip?numbytes=400&duration=2&delay=1')
