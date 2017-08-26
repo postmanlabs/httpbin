@@ -159,6 +159,13 @@ def view_origin():
     return jsonify(origin=request.headers.get('X-Forwarded-For', request.remote_addr))
 
 
+@app.route('/uuid')
+def view_uuid():
+    """Returns a UUID."""
+
+    return jsonify(uuid=str(uuid.uuid4()))
+
+
 @app.route('/headers')
 def view_headers():
     """Returns HTTP HEADERS."""
