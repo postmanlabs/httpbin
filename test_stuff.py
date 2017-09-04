@@ -63,4 +63,4 @@ def test_get():
     assert data['headers']['Content-Length'] == '0'
     assert data['headers']['User-Agent'] == 'test'
     assert data['url'] == 'http://localhost/get'
-    assert response.content.endswith(b'\n') is True
+    assert response.content.endswith(b'\n')
