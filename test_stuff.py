@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import json
-
 import requests
 from wsgiadapter import WSGIAdapter
 
@@ -21,7 +19,7 @@ def test_response_headers_simple():
         response = method('http://localhost/response-headers?animal=dog')
         assert response.status_code == 200
         assert response.headers.get('animal') == 'dog'
-        assert json.loads(response.content.decode('utf-8'))['animal'] == 'dog'
+        assert response.json()['animal'] == 'dog'
 
     supported_verbs = ['get', 'post']
 
