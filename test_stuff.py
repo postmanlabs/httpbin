@@ -99,3 +99,13 @@ def test_base64():
     response = session.get(url(b'/base64/' + b64_encoded))
     content = response.content.decode('utf-8')
     assert greeting == content
+
+
+def test_post_binary():
+    session = get_session()
+    response = session.post(
+        url('/post'),
+        data=b'\x01\x02\x03\x81\x82\x83',
+        headers=dict(
+            content_type='application/octet-stream'))
+    assert response.status_code == 200

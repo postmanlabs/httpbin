@@ -120,13 +120,6 @@ class HttpbinTestCase(unittest.TestCase):
         else:
             return response.data
 
-
-    def test_post_binary(self):
-        response = self.app.post('/post',
-                                 data=b'\x01\x02\x03\x81\x82\x83',
-                                 content_type='application/octet-stream')
-        self.assertEqual(response.status_code, 200)
-
     def test_post_body_text(self):
         with open('httpbin/core.py') as f:
             response = self.app.post('/post', data={"file": f.read()})

@@ -239,11 +239,11 @@ def view_anything(request, anything=None):
     return jsonify(get_dict(request, 'url', 'args', 'headers', 'origin', 'method', 'form', 'data', 'files', 'json'))
 
 
-@app.route('/post', methods=('POST',))
-def view_post():
+@url_map.expose('/post', methods=('POST',))
+def view_post(request):
     """Returns POST Data."""
-
     return jsonify(get_dict(
+        request,
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
 
 
