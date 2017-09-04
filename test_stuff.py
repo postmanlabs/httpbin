@@ -64,3 +64,19 @@ def test_get():
     assert data['headers']['User-Agent'] == 'test'
     assert data['url'] == 'http://localhost/get'
     assert response.content.endswith(b'\n')
+
+
+def test_anything():
+    session = get_session()
+    response = session.get(url('/anything'))
+    assert response.status_code == 200
+    response = session.get(url('/anything/foo/bar'))
+    assert response.status_code == 200
+    data = response.json()
+    assert data['args'] == {}
+    # assert data['headers']['Host'] == 'localhost'
+    assert data['headers']['Content-Type'] == 'text/plain'
+    assert data['headers']['Content-Length'] == '0'
+    assert data['url'] == 'http://localhost/anything/foo/bar'
+    assert data['method'] == 'GET'
+    assert response.content.endswith(b'\n')
