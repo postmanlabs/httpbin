@@ -58,6 +58,7 @@ def test_get():
     assert response.status_code == 200
     data = response.json()
     assert data['args'] == {}
+    # assert data['headers']['Host'] == 'localhost'
     assert data['headers']['Content-Type'] == 'text/plain'
     assert data['headers']['Content-Length'] == '0'
     assert data['headers']['User-Agent'] == 'test'
