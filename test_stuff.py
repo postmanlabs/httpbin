@@ -13,6 +13,8 @@ def get_session():
 
 
 def test_response_headers_simple():
+    supported_verbs = ['get', 'post']
+
     def do_test(verb):
         session = get_session()
         method = getattr(session, verb)
@@ -20,8 +22,6 @@ def test_response_headers_simple():
         assert response.status_code == 200
         assert response.headers.get('animal') == 'dog'
         assert response.json()['animal'] == 'dog'
-
-    supported_verbs = ['get', 'post']
 
     for verb in supported_verbs:
         yield do_test, verb
