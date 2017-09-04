@@ -1,15 +1,23 @@
 # -*- coding: utf-8 -*-
 
+import urllib.parse
+
 import requests
 from wsgiadapter import WSGIAdapter
 
 import httpbin
 
+base_url = "http://localhost"
+
 
 def get_session():
     session = requests.session()
-    session.mount('http://localhost', WSGIAdapter(app=httpbin.app))
+    session.mount(base_url, WSGIAdapter(app=httpbin.app))
     return session
+
+
+def url(path):
+    return urllib.parse.urljoin(base_url, path)
 
 
 def test_response_headers_simple():
@@ -18,7 +26,7 @@ def test_response_headers_simple():
     def do_test(verb):
         session = get_session()
         method = getattr(session, verb)
-        response = method('http://localhost/response-headers?animal=dog')
+        response = method(url('/response-headers?animal=dog'))
         assert response.status_code == 200
         assert response.headers.get('animal') == 'dog'
         assert response.json()['animal'] == 'dog'
@@ -33,7 +41,7 @@ def test_response_headers_multi():
     def do_test(verb):
         session = get_session()
         method = getattr(session, verb)
-        response = method('http://localhost/response-headers?animal=dog&animal=cat')
+        response = method(url('/response-headers?animal=dog&animal=cat'))
         assert response.status_code == 200
         print(response.headers.get('animal'))
         assert response.headers.get('animal') == 'dog, cat'
