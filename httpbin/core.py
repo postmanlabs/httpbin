@@ -27,9 +27,10 @@ import jinja2
 from raven.contrib.flask import Sentry
 
 from . import filters
-from .helpers import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, \
-    secure_cookie, H, ROBOT_TXT, ANGRY_ASCII, parse_multi_value_header, next_stale_after_value, \
-    digest_challenge_response
+from .helpers import get_dict
+# from .helpers import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, \
+    # secure_cookie, H, ROBOT_TXT, ANGRY_ASCII, parse_multi_value_header, next_stale_after_value, \
+    # digest_challenge_response
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
@@ -224,11 +225,11 @@ def view_user_agent():
     return jsonify({'user-agent': headers['user-agent']})
 
 
-@app.route('/get', methods=('GET',))
-def view_get():
+@url_map.expose('/get', methods=('GET',))
+def view_get(request):
     """Returns GET Data."""
+    return jsonify(get_dict(request, 'url', 'args', 'headers', 'origin'))
 
-    return jsonify(get_dict('url', 'args', 'headers', 'origin'))
 
 
 @app.route('/anything', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])

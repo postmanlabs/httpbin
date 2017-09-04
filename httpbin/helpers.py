@@ -16,7 +16,6 @@ from hashlib import md5, sha256, sha512
 from werkzeug.http import parse_authorization_header
 from werkzeug.datastructures import WWWAuthenticate
 
-from flask import request, make_response
 from six.moves.urllib.parse import urlparse, urlunparse
 
 
@@ -107,7 +106,7 @@ def json_safe(string, content_type='application/octet-stream'):
         ]).decode('utf-8')
 
 
-def get_files():
+def get_files(request):
     """Returns files dict from request context."""
 
     files = dict()
@@ -125,7 +124,7 @@ def get_files():
     return files
 
 
-def get_headers(hide_env=True):
+def get_headers(request, hide_env=True):
     """Returns headers dict from request context."""
 
     headers = dict(request.headers.items())
@@ -169,7 +168,7 @@ def get_url(request):
     return urlunparse(url)
 
 
-def get_dict(*keys, **extras):
+def get_dict(request, *keys, **extras):
     """Returns request dict of given keys."""
 
     _keys = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json', 'method')
@@ -189,8 +188,8 @@ def get_dict(*keys, **extras):
         form=form,
         data=json_safe(data),
         origin=request.headers.get('X-Forwarded-For', request.remote_addr),
-        headers=get_headers(),
-        files=get_files(),
+        headers=get_headers(request),
+        files=get_files(request),
         json=_json,
         method=request.method,
     )

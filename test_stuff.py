@@ -42,3 +42,16 @@ def test_response_headers_multi():
 
     for verb in supported_verbs:
         yield do_test, verb
+
+
+def test_get():
+    session = get_session()
+    response = session.get(url('/get'), headers={'User-Agent': 'test'})
+    assert response.status_code == 200
+    data = response.json()
+    assert data['args'] == {}
+    assert data['headers']['Content-Type'] == 'text/plain'
+    assert data['headers']['Content-Length'] == '0'
+    assert data['headers']['User-Agent'] == 'test'
+    assert data['url'] == 'http://localhost/get'
+    assert response.content.endswith(b'\n') is True
