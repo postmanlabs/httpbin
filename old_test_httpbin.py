@@ -121,13 +121,6 @@ class HttpbinTestCase(unittest.TestCase):
             return response.data
 
 
-    def test_base64(self):
-        greeting = u'Здравствуй, мир!'
-        b64_encoded = _string_to_base64(greeting)
-        response = self.app.get(b'/base64/' + b64_encoded)
-        content = response.data.decode('utf-8')
-        self.assertEqual(greeting, content)
-
     def test_post_binary(self):
         response = self.app.post('/post',
                                  data=b'\x01\x02\x03\x81\x82\x83',

@@ -520,6 +520,12 @@ def digest_auth_md5(qop=None, user='user', passwd='passwd'):
 def digest_auth_nostale(qop=None, user='user', passwd='passwd', algorithm='MD5'):
     return digest_auth(qop, user, passwd, algorithm, 'never')
 
+@url_map.expose('/base64/<value>')
+def decode_base64(request, value):
+    """Decodes base64url-encoded string"""
+    encoded = value.encode('utf-8')  # base64 expects binary string as input
+    response = Response(base64.urlsafe_b64decode(encoded).decode('utf-8'))
+    return response
 
 @app.route('/digest-auth/<qop>/<user>/<passwd>/<algorithm>/<stale_after>')
 def digest_auth(qop=None, user='user', passwd='passwd', algorithm='MD5', stale_after='never'):
@@ -624,11 +630,6 @@ def drip():
 
     return response
 
-@app.route('/base64/<value>')
-def decode_base64(value):
-    """Decodes base64url-encoded string"""
-    encoded = value.encode('utf-8') # base64 expects binary string as input
-    return base64.urlsafe_b64decode(encoded).decode('utf-8')
 
 
 @app.route('/cache', methods=('GET',))

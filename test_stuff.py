@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import base64
 import urllib.parse
 
 import requests
@@ -17,7 +18,16 @@ def get_session():
 
 
 def url(path):
-    return urllib.parse.urljoin(base_url, path)
+    if isinstance(path, str):
+        return urllib.parse.urljoin(base_url, path)
+    elif isinstance(path, bytes):
+        return urllib.parse.urljoin(base_url.encode('utf-8'), path)
+
+
+def _string_to_base64(string):
+    """Encodes string to utf-8 and then base64"""
+    utf8_encoded = string.encode('utf-8')
+    return base64.urlsafe_b64encode(utf8_encoded)
 
 
 def test_response_headers_simple():
@@ -80,3 +90,12 @@ def test_anything():
     assert data['url'] == 'http://localhost/anything/foo/bar'
     assert data['method'] == 'GET'
     assert response.content.endswith(b'\n')
+
+
+def test_base64():
+    session = get_session()
+    greeting = u'Здравствуй, мир!'
+    b64_encoded = _string_to_base64(greeting)
+    response = session.get(url(b'/base64/' + b64_encoded))
+    content = response.content.decode('utf-8')
+    assert greeting == content
