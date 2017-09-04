@@ -120,15 +120,6 @@ class HttpbinTestCase(unittest.TestCase):
         else:
             return response.data
 
-    def test_response_headers_simple(self):
-        supported_verbs = ['get', 'post']
-        for verb in supported_verbs:
-            method = getattr(self.app, verb)
-            response = method('/response-headers?animal=dog')
-            self.assertEqual(response.status_code, 200)
-            self.assertEqual(response.headers.get_all('animal'), ['dog'])
-            assert json.loads(response.data.decode('utf-8'))['animal'] == 'dog'
-
     def test_response_headers_multi(self):
         supported_verbs = ['get', 'post']
         for verb in supported_verbs:

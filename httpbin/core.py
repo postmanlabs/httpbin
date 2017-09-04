@@ -15,13 +15,15 @@ import time
 import uuid
 import argparse
 
-from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
-from flask_common import Common
+import werkzeug
+from werkzeug import Response, Request
 from six.moves import range as xrange
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
 from werkzeug.http import parse_authorization_header
+from werkzeug.exceptions import HTTPException
+import jinja2
 from raven.contrib.flask import Sentry
 
 from . import filters
@@ -43,7 +45,18 @@ ENV_COOKIES = (
 )
 
 def jsonify(*args, **kwargs):
-    response = flask_jsonify(*args, **kwargs)
+    if args and kwargs:
+        raise TypeError(
+            'jsonify() behavior undefined when passed both args and kwargs')
+    elif len(args) == 1:  # single args are passed directly to dumps()
+        data = args[0]
+    else:
+        data = args or kwargs
+
+    response = Response(
+        (json.dumps(data), '\n'),
+        mimetype="application/json")
+
     if not response.data.endswith(b'\n'):
         response.data += b'\n'
     return response
@@ -52,10 +65,45 @@ def jsonify(*args, **kwargs):
 BaseResponse.autocorrect_location_header = False
 
 # Find the correct template folder when running from a different location
-tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+tmpl_dir = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), 'templates')
 
-app = Flask(__name__, template_folder=tmpl_dir)
-app.debug = bool(os.environ.get('DEBUG'))
+
+class UrlMap(werkzeug.routing.Map):
+    def expose(self, rule, methods=['GET'], **kwargs):
+        def _inner(func):
+            self.add(
+                werkzeug.routing.Rule(rule, methods=methods, endpoint=func))
+            return func
+        return _inner
+
+
+jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader([tmpl_dir]))
+url_map = UrlMap([])
+
+
+@Request.application
+def app(request):
+    adapter = url_map.bind_to_environ(request.environ)
+    map_adapter = url_map.bind_to_environ(request.environ)
+    request.url_for = map_adapter.build
+
+    try:
+        endpoint, values = adapter.match()
+        return endpoint(request, **values)
+    except HTTPException as e:
+        return e
+
+
+def render(request, template_name, **kwargs):
+    template = jinja_env.get_template(template_name)
+    body = template.render(
+        request=request,
+        url_for=request.url_for,
+        **kwargs)
+    response = Response(body, content_type="text/html; charset=utf-8")
+    return response
+
 
 # Setup Flask-Common.
 common = Common(app)
@@ -84,8 +132,9 @@ if os.environ.get("BUGSNAG_API_KEY") is not None:
 # -----------
 # Middlewares
 # -----------
-@app.after_request
-def set_cors_headers(response):
+
+
+def set_cors_headers(request, response):
     response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
     response.headers['Access-Control-Allow-Credentials'] = 'true'
 
@@ -97,6 +146,14 @@ def set_cors_headers(response):
         if request.headers.get('Access-Control-Request-Headers') is not None:
             response.headers['Access-Control-Allow-Headers'] = request.headers['Access-Control-Request-Headers']
     return response
+
+
+def cors_middleware(func):
+    def _inner(request):
+        response = func(request)
+        response = set_cors_headers(request, response)
+        return response
+    return _inner
 
 
 # ------
