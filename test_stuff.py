@@ -130,3 +130,18 @@ def test_post_body_unicode():
     session = get_session()
     response = session.post(url('/post'), data=u'оживлённым'.encode('utf-8'))
     assert response.json()['data'] == u'оживлённым'
+
+
+def test_post_file_with_missing_content_type_header():
+    # I built up the form data manually here because I couldn't find a way
+    # to convince the werkzeug test client to send files without the
+    # content-type of the file set.
+    session = get_session()
+    data = '--bound\r\nContent-Disposition: form-data; name="media"; '
+    data += 'filename="test.bin"\r\n\r\n\xa5\xc6\n--bound--\r\n'
+    response = session.post(
+        url('/post'),
+        headers=dict(
+            content_type='multipart/form-data; boundary=bound'),
+        data=data)
+    assert response.status_code == 200
