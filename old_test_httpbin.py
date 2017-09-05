@@ -120,12 +120,6 @@ class HttpbinTestCase(unittest.TestCase):
         else:
             return response.data
 
-    def test_post_body_binary(self):
-        response = self.app.post(
-            '/post',
-            data={"file": b'\x01\x02\x03\x81\x82\x83'})
-        self.assertEqual(response.status_code, 200)
-
     def test_post_body_unicode(self):
         response = self.app.post('/post', data=u'оживлённым'.encode('utf-8'))
         self.assertEqual(json.loads(response.data.decode('utf-8'))['data'], u'оживлённым')

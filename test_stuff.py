@@ -117,3 +117,10 @@ def test_post_body_text():
         response = session.post(url('/post'), data={"file": f.read()})
     assert response.status_code == 200
 
+
+def test_post_body_binary():
+    session = get_session()
+    response = session.post(
+        url('/post'),
+        data={"file": b'\x01\x02\x03\x81\x82\x83'})
+    assert response.status_code == 200
