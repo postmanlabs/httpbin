@@ -109,3 +109,11 @@ def test_post_binary():
         headers=dict(
             content_type='application/octet-stream'))
     assert response.status_code == 200
+
+
+def test_post_body_text():
+    session = get_session()
+    with open('httpbin/core.py') as f:
+        response = session.post(url('/post'), data={"file": f.read()})
+    assert response.status_code == 200
+

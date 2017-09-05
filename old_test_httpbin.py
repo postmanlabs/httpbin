@@ -120,11 +120,6 @@ class HttpbinTestCase(unittest.TestCase):
         else:
             return response.data
 
-    def test_post_body_text(self):
-        with open('httpbin/core.py') as f:
-            response = self.app.post('/post', data={"file": f.read()})
-        self.assertEqual(response.status_code, 200)
-
     def test_post_body_binary(self):
         response = self.app.post(
             '/post',
