@@ -120,13 +120,6 @@ class HttpbinTestCase(unittest.TestCase):
         else:
             return response.data
 
-    def test_gzip(self):
-        response = self.app.get('/gzip')
-        self.assertEqual(response.status_code, 200)
-
-    def test_brotli(self):
-        response = self.app.get('/brotli')
-        self.assertEqual(response.status_code, 200)
 
     def test_digest_auth_with_wrong_password(self):
         auth_header = 'Digest username="user",realm="wrong",nonce="wrong",uri="/digest-auth/user/passwd/MD5",response="wrong",opaque="wrong"'

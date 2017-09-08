@@ -194,3 +194,15 @@ def test_user_agent():
     response = session.get(url('/user-agent'), headers={'User-Agent': 'test'})
     assert b'test' in response.content
     assert response.status_code == 200
+
+
+def test_gzip():
+    session = get_session()
+    response = session.get(url('/gzip'))
+    assert response.status_code == 200
+
+
+def test_brotli():
+    session = get_session()
+    response = session.get(url('/brotli'))
+    assert response.status_code == 200

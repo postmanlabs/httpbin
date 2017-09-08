@@ -17,10 +17,7 @@ from decimal import Decimal
 from time import time as now
 
 from decorator import decorator
-from flask import Flask, Response
-
-
-app = Flask(__name__)
+from werkzeug import Response
 
 
 @decorator

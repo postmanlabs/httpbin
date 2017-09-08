@@ -236,3 +236,21 @@ def basic_auth(request, user='user', passwd='passwd'):
         return status_code(401)
 
     return jsonify(authenticated=True, user=user)
+
+
+@url_map.expose('/gzip')
+@filters.gzip
+def view_gzip_encoded_content(request):
+    """Returns GZip-Encoded Data."""
+    return jsonify(
+        get_dict(
+            request, 'origin', 'headers', method=request.method, gzipped=True))
+
+
+@url_map.expose('/brotli')
+@filters.brotli
+def view_brotli_encoded_content(request):
+    """Returns Brotli-Encoded Data."""
+    return jsonify(
+        get_dict(
+            request, 'origin', 'headers', method=request.method, brotli=True))
