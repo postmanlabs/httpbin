@@ -60,12 +60,6 @@ class HttpbinTestCase(unittest.TestCase):
         else:
             return response.data
 
-    def test_x_forwarded_proto(self):
-        response = self.app.get(path='/get', headers={
-            'X-Forwarded-Proto':'https'
-        })
-        assert json.loads(response.data.decode('utf-8'))['url'].startswith('https://')
-
     def test_redirect_n_higher_than_1(self):
         response = self.app.get('/redirect/5')
         self.assertEqual(

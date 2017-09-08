@@ -518,3 +518,11 @@ def test_xml_endpoint():
     response = session.get(url('/xml'))
     assert response.status_code == 200
     assert response.headers['Content-Type'] == 'application/xml'
+
+
+def test_x_forwarded_proto():
+    session = get_session()
+    response = session.get(
+        url('/get'),
+        headers={'X-Forwarded-Proto':'https'})
+    assert response.json()['url'].startswith('https://')
