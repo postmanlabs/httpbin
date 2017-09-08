@@ -292,7 +292,8 @@ def test_digest_auth_with_wrong_password():
     assert response.status_code == 401
 
 
-def _test_digest_auth(session, username, password, qop, algorithm=None, body=None, stale_after=None):
+def _test_digest_auth(username, password, qop, algorithm=None, body=None, stale_after=None):
+    session = get_session()
     uri = _digest_auth_create_uri(username, password, qop, algorithm, stale_after)
     unauthorized_response = _test_digest_auth_first_challenge(session, uri)
     header = unauthorized_response.headers.get('WWW-Authenticate')
@@ -374,8 +375,7 @@ def test_digest_auth():
         for algorithm in None, 'MD5', 'SHA-256':
             for body in None, b'', b'request payload':
                 for stale_after in (None, 1, 4) if algorithm else (None,):
-                    session = get_session()
-                    yield _test_digest_auth, session, username, password, qop, algorithm, body, stale_after
+                    yield _test_digest_auth, username, password, qop, algorithm, body, stale_after
 
 
 def test_digest_auth_wrong_pass():
@@ -384,11 +384,11 @@ def test_digest_auth_wrong_pass():
     for qop in None, 'auth', 'auth-int':
         for algorithm in None, 'MD5', 'SHA-256':
             for body in None, b'', b'request payload':
-                session = get_session()
-                yield _test_digest_auth_wrong_pass, session, username, password, qop, algorithm, body, 3
+                yield _test_digest_auth_wrong_pass, username, password, qop, algorithm, body, 3
 
 
-def _test_digest_auth_wrong_pass(session, username, password, qop, algorithm=None, body=None, stale_after=None):
+def _test_digest_auth_wrong_pass(username, password, qop, algorithm=None, body=None, stale_after=None):
+    session = get_session()
     uri = _digest_auth_create_uri(username, password, qop, algorithm, stale_after)
     unauthorized_response = _test_digest_auth_first_challenge(session, uri)
     header = unauthorized_response.headers.get('WWW-Authenticate')
