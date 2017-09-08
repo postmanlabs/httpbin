@@ -22,7 +22,7 @@ from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
 from werkzeug.http import parse_authorization_header
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException, MethodNotAllowed
 import jinja2
 from raven.contrib.flask import Sentry
 
