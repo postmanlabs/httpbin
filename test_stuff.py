@@ -511,3 +511,10 @@ def test_status_endpoint_invalid_codes():
     session = get_session()
     response = session.get(url('/status/200,402,foo'))
     assert response.status_code == 400
+
+
+def test_xml_endpoint():
+    session = get_session()
+    response = session.get(url('/xml'))
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/xml'

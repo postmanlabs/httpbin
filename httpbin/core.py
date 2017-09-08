@@ -131,13 +131,13 @@ def app(request):
         return e.get_response()
 
 
-def render(request, template_name, **kwargs):
+def render(request, template_name, content_type="text/html; charset=utf-8", **kwargs):
     template = jinja_env.get_template(template_name)
     body = template.render(
         request=request,
         url_for=request.url_for,
         **kwargs)
-    response = Response(body, content_type="text/html; charset=utf-8")
+    response = Response(body, content_type=content_type)
     return response
 
 
@@ -427,3 +427,12 @@ def view_status_code(request, codes):
     code = weighted_choice(choices)
 
     return status_code(code)
+
+
+@url_map.expose("/xml")
+def xml(request):
+    response = render(
+        request,
+        "sample.xml",
+        content_type="application/xml")
+    return response

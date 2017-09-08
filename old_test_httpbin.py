@@ -60,12 +60,6 @@ class HttpbinTestCase(unittest.TestCase):
         else:
             return response.data
 
-    def test_xml_endpoint(self):
-        response = self.app.get(path='/xml')
-        self.assertEqual(
-            response.headers.get('Content-Type'), 'application/xml'
-        )
-
     def test_x_forwarded_proto(self):
         response = self.app.get(path='/get', headers={
             'X-Forwarded-Proto':'https'
