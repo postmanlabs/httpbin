@@ -468,3 +468,16 @@ def test_stream_bytes_with_seed():
         expected = b'\xd8\xc2kB\x82g\xc8Mz\x95'
     assert response.status_code == 200
     assert response.content == expected
+
+
+def test_delete_endpoint_returns_body():
+    session = get_session()
+    response = session.delete(
+        url('/delete'),
+        data={'name': 'kevin'},
+        headers = dict(
+            content_type='application/x-www-form-urlencoded')
+    )
+    assert response.status_code == 200
+    form_data = response.json()['form']
+    assert form_data == {'name': 'kevin'}

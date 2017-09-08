@@ -391,3 +391,10 @@ def stream_random_bytes(request, n):
     headers = {'Content-Type': 'application/octet-stream'}
 
     return Response(generate_bytes(), headers=headers)
+
+
+@url_map.expose('/delete', methods=('DELETE',))
+def view_delete(request):
+    """Returns DELETE Data."""
+    return jsonify(get_dict(
+        request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
