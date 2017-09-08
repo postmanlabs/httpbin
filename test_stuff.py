@@ -147,3 +147,49 @@ def test_post_file_with_missing_content_type_header():
             content_type='multipart/form-data; boundary=bound'),
         data=data)
     assert response.status_code == 200
+
+
+def test_set_cors_headers_after_request():
+    session = get_session()
+    response = session.get(url('/get'))
+    assert response.headers.get('Access-Control-Allow-Origin') == '*'
+
+
+def test_set_cors_credentials_headers_after_auth_request():
+    session = get_session()
+    response = session.get(url('/basic-auth/foo/bar'))
+    assert response.headers.get('Access-Control-Allow-Credentials') == 'true'
+
+
+def test_set_cors_headers_after_request_with_request_origin():
+    session = get_session()
+    response = session.get(url('/get'), headers={'Origin': 'origin'})
+    assert response.headers.get('Access-Control-Allow-Origin') == 'origin'
+
+
+def test_set_cors_headers_with_options_verb():
+    session = get_session()
+    response = session.options(url('/get'))
+    assert response.headers.get('Access-Control-Allow-Origin') == '*'
+    assert response.headers.get('Access-Control-Allow-Credentials') == 'true'
+    assert response.headers.get('Access-Control-Allow-Methods') == (
+        'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+    assert response.headers.get('Access-Control-Max-Age'), '3600'
+
+    # FIXME should we add any extra headers?
+    assert 'Access-Control-Allow-Headers' not in response.headers
+
+
+def test_set_cors_allow_headers():
+    session = get_session()
+    response = session.options(
+        url('/get'),
+        headers={'Access-Control-Request-Headers': 'X-Test-Header'})
+    assert response.headers.get('Access-Control-Allow-Headers') == 'X-Test-Header'
+
+
+def test_user_agent():
+    session = get_session()
+    response = session.get(url('/user-agent'), headers={'User-Agent': 'test'})
+    assert b'test' in response.content
+    assert response.status_code == 200

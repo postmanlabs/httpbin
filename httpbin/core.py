@@ -27,8 +27,8 @@ import jinja2
 from raven.contrib.flask import Sentry
 
 from . import filters
-from .helpers import get_dict
-# from .helpers import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, \
+from .helpers import get_dict, check_basic_auth, status_code, get_headers
+# from .helpers import status_code, get_dict, get_request_range, check_digest_auth, \
     # secure_cookie, H, ROBOT_TXT, ANGRY_ASCII, parse_multi_value_header, next_stale_after_value, \
     # digest_challenge_response
 from .utils import weighted_choice
@@ -127,9 +127,9 @@ def app(request):
             response.allow.update(methods)
             return response
         else:
-            return e
+            return e.get_response()
     except HTTPException as e:
-        return e
+        return e.get_response()
 
 
 def render(request, template_name, **kwargs):
@@ -222,12 +222,10 @@ def view_headers():
     return jsonify(get_dict('headers'))
 
 
-@app.route('/user-agent')
-def view_user_agent():
+@url_map.expose('/user-agent')
+def view_user_agent(request):
     """Returns User-Agent."""
-
-    headers = get_headers()
-
+    headers = get_headers(request)
     return jsonify({'user-agent': headers['user-agent']})
 
 

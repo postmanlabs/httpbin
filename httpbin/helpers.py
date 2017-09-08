@@ -15,6 +15,7 @@ import os
 from hashlib import md5, sha256, sha512
 from werkzeug.http import parse_authorization_header
 from werkzeug.datastructures import WWWAuthenticate
+from werkzeug import Response
 
 from six.moves.urllib.parse import urlparse, urlunparse
 
@@ -240,22 +241,22 @@ def status_code(code):
 
     }
 
-    r = make_response()
-    r.status_code = code
+    r = {}
+    r['status'] = code
 
     if code in code_map:
 
         m = code_map[code]
 
         if 'data' in m:
-            r.data = m['data']
+            r['content'] = m['data']
         if 'headers' in m:
-            r.headers = m['headers']
+            r['headers'] = m['headers']
 
-    return r
+    return Response(**r)
 
 
-def check_basic_auth(user, passwd):
+def check_basic_auth(request, user, passwd):
     """Checks user authentication using HTTP Basic Auth."""
 
     auth = request.authorization
