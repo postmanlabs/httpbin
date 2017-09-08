@@ -309,3 +309,37 @@ def digest_auth(request, qop=None, user='user', passwd='passwd', algorithm='MD5'
         response.set_cookie('stale_after', value=next_stale_after_value(stale_after_value))
 
     return response
+
+
+@url_map.expose('/drip')
+def drip(request):
+    """Drips data over a duration after an optional initial delay."""
+    args = CaseInsensitiveDict(request.args.items())
+    duration = float(args.get('duration', 2))
+    numbytes = min(int(args.get('numbytes', 10)),(10 * 1024 * 1024)) # set 10MB limit
+    code = int(args.get('code', 200))
+
+    if numbytes <= 0:
+        response = Response('number of bytes must be positive', status=400)
+        return response
+
+    delay = float(args.get('delay', 0))
+    if delay > 0:
+        time.sleep(delay)
+
+    pause = duration / numbytes
+
+    def generate_bytes():
+        for i in xrange(numbytes):
+            yield u"*".encode('utf-8')
+            time.sleep(pause)
+
+    response = Response(
+        generate_bytes(),
+        headers={
+            "Content-Type": "application/octet-stream",
+            "Content-Length": str(numbytes)})
+
+    response.status_code = code
+
+    return response

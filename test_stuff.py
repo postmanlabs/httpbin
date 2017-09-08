@@ -403,3 +403,25 @@ def _test_digest_auth_wrong_pass(session, username, password, qop, algorithm=Non
     assert reused_nonce_response.status_code == 401
     header = reused_nonce_response.headers.get('WWW-Authenticate')
     assert 'stale=TRUE' in header
+
+
+def test_drip():
+    session = get_session()
+    response = session.get(url('/drip?numbytes=400&duration=2&delay=1'))
+    assert response.status_code == 200
+    assert int(response.headers['Content-Length']) == 400
+    assert len(response.content) == 400
+
+def test_drip_with_invalid_numbytes():
+    session = get_session()
+    for bad_num in -1, 0:
+        uri = '/drip?numbytes={0}&duration=2&delay=1'.format(bad_num)
+        response = session.get(url(uri))
+        assert response.status_code == 400
+
+def test_drip_with_custom_code():
+    session = get_session()
+    response = session.get(url('/drip?numbytes=400&duration=2&code=500'))
+    assert response.status_code == 500
+    assert int(response.headers['Content-Length']) == 400
+    assert len(response.content) == 400

@@ -61,24 +61,6 @@ class HttpbinTestCase(unittest.TestCase):
             return response.data
 
 
-    def test_drip(self):
-        response = self.app.get('/drip?numbytes=400&duration=2&delay=1')
-        self.assertEqual(response.content_length, 400)
-        self.assertEqual(len(self.get_data(response)), 400)
-        self.assertEqual(response.status_code, 200)
-
-    def test_drip_with_invalid_numbytes(self):
-        for bad_num in -1, 0:
-            uri = '/drip?numbytes={0}&duration=2&delay=1'.format(bad_num)
-            response = self.app.get(uri)
-            self.assertEqual(response.status_code, 400)
-
-    def test_drip_with_custom_code(self):
-        response = self.app.get('/drip?numbytes=400&duration=2&code=500')
-        self.assertEqual(response.content_length, 400)
-        self.assertEqual(len(self.get_data(response)), 400)
-        self.assertEqual(response.status_code, 500)
-
     def test_get_bytes(self):
         response = self.app.get('/bytes/1024')
         self.assertEqual(len(self.get_data(response)), 1024)
