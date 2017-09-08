@@ -353,22 +353,21 @@ def response(credentails, password, request):
     return response
 
 
-def check_digest_auth(user, passwd):
+def check_digest_auth(request, user, passwd):
     """Check user authentication using HTTP Digest auth"""
-
     if request.headers.get('Authorization'):
         credentails = parse_authorization_header(request.headers.get('Authorization'))
         if not credentails:
             return
-        request_uri = request.script_root + request.path
-        if request.query_string:
-            request_uri +=  '?' + request.query_string
-        response_hash = response(credentails, passwd, dict(uri=request_uri,
-                                                           body=request.data,
-                                                           method=request.method))
+        response_hash = response(
+            credentails, passwd, dict(
+                uri=request.script_root + request.path,
+                body=request.data,
+                method=request.method))
         if credentails.get('response') == response_hash:
             return True
     return False
+
 
 def secure_cookie():
     """Return true if cookie should have secure attribute"""
@@ -450,8 +449,8 @@ def next_stale_after_value(stale_after):
         return 'never'
 
 
-def digest_challenge_response(app, qop, algorithm, stale = False):
-    response = app.make_response('')
+def digest_challenge_response(request, qop, algorithm, stale = False):
+    response = Response()
     response.status_code = 401
 
     # RFC2616 Section4.2: HTTP headers are ASCII.  That means

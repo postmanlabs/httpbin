@@ -27,10 +27,9 @@ import jinja2
 from raven.contrib.flask import Sentry
 
 from . import filters
-from .helpers import get_dict, check_basic_auth, status_code, get_headers
-# from .helpers import status_code, get_dict, get_request_range, check_digest_auth, \
-    # secure_cookie, H, ROBOT_TXT, ANGRY_ASCII, parse_multi_value_header, next_stale_after_value, \
-    # digest_challenge_response
+from .helpers import get_dict, check_basic_auth, status_code, get_headers, check_digest_auth, digest_challenge_response, next_stale_after_value
+# from .helpers import status_code, get_dict, get_request_range, \
+    # secure_cookie, H, ROBOT_TXT, ANGRY_ASCII, parse_multi_value_header,
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
@@ -254,3 +253,59 @@ def view_brotli_encoded_content(request):
     return jsonify(
         get_dict(
             request, 'origin', 'headers', method=request.method, brotli=True))
+
+
+@url_map.expose('/digest-auth/<qop>/<user>/<passwd>')
+def digest_auth_md5(request, qop=None, user='user', passwd='passwd'):
+    return digest_auth(request, qop, user, passwd, "MD5", 'never')
+
+
+@url_map.expose('/digest-auth/<qop>/<user>/<passwd>/<algorithm>')
+def digest_auth_nostale(request, qop=None, user='user', passwd='passwd', algorithm='MD5'):
+    return digest_auth(request, qop, user, passwd, algorithm, 'never')
+
+
+@url_map.expose('/digest-auth/<qop>/<user>/<passwd>/<algorithm>/<stale_after>')
+def digest_auth(request, qop=None, user='user', passwd='passwd', algorithm='MD5', stale_after='never'):
+    """Prompts the user for authorization using HTTP Digest auth"""
+    if algorithm not in ('MD5', 'SHA-256'):
+        algorithm = 'MD5'
+
+    if qop not in ('auth', 'auth-int'):
+        qop = None
+
+    if 'Authorization' not in request.headers or \
+            'Cookie' not in request.headers:
+        response = digest_challenge_response(app, qop, algorithm)
+        response.set_cookie('stale_after', value=stale_after)
+        return response
+
+    credentails = parse_authorization_header(request.headers.get('Authorization'))
+    if not credentails:
+        response = digest_challenge_response(app, qop, algorithm)
+        response.set_cookie('stale_after', value=stale_after)
+        return response
+
+    current_nonce = credentails.get('nonce')
+    stale_after_value = None
+    if 'stale_after' in request.cookies:
+        stale_after_value = request.cookies.get('stale_after')
+
+    if 'last_nonce' in request.cookies and current_nonce == request.cookies.get('last_nonce') or \
+            stale_after_value == '0':
+        response = digest_challenge_response(app, qop, algorithm, True)
+        response.set_cookie('stale_after', value=stale_after)
+        response.set_cookie('last_nonce', value=current_nonce)
+        return response
+
+    if not check_digest_auth(request, user, passwd):
+        response = digest_challenge_response(app, qop, algorithm, False)
+        response.set_cookie('stale_after', value=stale_after)
+        response.set_cookie('last_nonce', value=current_nonce)
+        return response
+
+    response = jsonify(authenticated=True, user=user)
+    if stale_after_value:
+        response.set_cookie('stale_after', value=next_stale_after_value(stale_after_value))
+
+    return response

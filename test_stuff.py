@@ -2,9 +2,12 @@
 
 import base64
 import urllib.parse
+from hashlib import md5, sha256
+import os
 
 import requests
 from wsgiadapter import WSGIAdapter
+from werkzeug.http import parse_dict_header
 
 import httpbin
 
@@ -35,6 +38,74 @@ def _string_to_base64(string):
     """Encodes string to utf-8 and then base64"""
     utf8_encoded = string.encode('utf-8')
     return base64.urlsafe_b64encode(utf8_encoded)
+
+def _hash(data, algorithm):
+    """Encode binary data according to specified algorithm, use MD5 by default"""
+    if algorithm == 'SHA-256':
+        return sha256(data).hexdigest()
+    else:
+        return md5(data).hexdigest()
+
+
+def _make_digest_auth_header(username, password, method, uri, nonce,
+                             realm=None, opaque=None, algorithm=None,
+                             qop=None, cnonce=None, nc=None, body=None):
+    """Compile a digest authentication header string.
+
+    Arguments:
+    - `nonce`: nonce string, received within "WWW-Authenticate" header
+    - `realm`: realm string, received within "WWW-Authenticate" header
+    - `opaque`: opaque string, received within "WWW-Authenticate" header
+    - `algorithm`: type of hashing algorithm, used by the client
+    - `qop`: type of quality-of-protection, used by the client
+    - `cnonce`: client nonce, required if qop is "auth" or "auth-int"
+    - `nc`: client nonce count, required if qop is "auth" or "auth-int"
+    - `body`: body of the outgoing request (bytes), used if qop is "auth-int"
+    """
+
+    assert username
+    assert password
+    assert nonce
+    assert method
+    assert uri
+    assert algorithm in ('MD5', 'SHA-256', None)
+
+    a1 = ':'.join([username, realm or '', password])
+    ha1 = _hash(a1.encode('utf-8'), algorithm)
+
+    a2 = ':'.join([method, uri])
+    if qop == 'auth-int':
+        a2 = ':'.join([a2, _hash(body or b'', algorithm)])
+    ha2 = _hash(a2.encode('utf-8'), algorithm)
+
+    a3 = ':'.join([ha1, nonce])
+    if qop in ('auth', 'auth-int'):
+        assert cnonce
+        assert nc
+        a3 = ':'.join([a3, nc, cnonce, qop])
+
+    a3 = ':'.join([a3, ha2])
+    auth_response = _hash(a3.encode('utf-8'), algorithm)
+
+    auth_header_template = 'Digest username="{0}", response="{1}", uri="{2}", nonce="{3}"'
+    auth_header = auth_header_template.format(username, auth_response, uri, nonce)
+
+    # 'realm' and 'opaque' should be returned unchanged, even if empty
+    if realm != None:
+        auth_header += ', realm="{0}"'.format(realm)
+    if opaque != None:
+        auth_header += ', opaque="{0}"'.format(opaque)
+
+    if algorithm:
+        auth_header += ', algorithm="{0}"'.format(algorithm)
+    if cnonce:
+        auth_header += ', cnonce="{0}"'.format(cnonce)
+    if nc:
+        auth_header += ', nc={0}'.format(nc)
+    if qop:
+        auth_header += ', qop={0}'.format(qop)
+
+    return auth_header
 
 
 def test_response_headers_simple():
@@ -211,3 +282,98 @@ def test_brotli():
     session = get_session()
     response = session.get(url('/brotli'))
     assert response.status_code == 200
+
+
+def test_digest_auth_with_wrong_password():
+    auth_header = 'Digest username="user",realm="wrong",nonce="wrong",uri="/digest-auth/user/passwd/MD5",response="wrong",opaque="wrong"'
+    session = get_session()
+    response = session.get(
+        url('/digest-auth/auth/user/passwd/MD5'),
+        headers={'Authorization': auth_header})
+    assert 'Digest' in response.headers.get('WWW-Authenticate')
+    assert response.status_code == 401
+
+
+def _test_digest_auth(session, username, password, qop, algorithm=None, body=None, stale_after=None):
+    uri = _digest_auth_create_uri(username, password, qop, algorithm, stale_after)
+    unauthorized_response = _test_digest_auth_first_challenge(session, uri)
+    header = unauthorized_response.headers.get('WWW-Authenticate')
+    authorized_response, nonce = _test_digest_response_for_auth_request(
+        session, header, username, password, qop, uri, body)
+    assert authorized_response.status_code == 200
+
+    if None == stale_after:
+        return
+
+    # test stale after scenerio
+    _digest_auth_stale_after_check(
+        session, header, username, password, uri, body, qop, stale_after)
+
+
+def _test_digest_auth_first_challenge(session, path):
+    unauthorized_response = session.get(url(path))
+    # make sure it returns a 401
+    assert unauthorized_response.status_code == 401
+    return unauthorized_response
+
+
+def _digest_auth_create_uri(username, password, qop, algorithm, stale_after):
+    uri = '/digest-auth/{0}/{1}/{2}'.format(qop or 'wrong-qop', username, password)
+    if algorithm:
+        uri += '/' + algorithm
+    if stale_after:
+        uri += '/{0}'.format(stale_after)
+    return uri
+
+
+def _digest_auth_stale_after_check(session, header, username, password, uri, body, qop, stale_after):
+    for nc in range(2, stale_after + 1):
+        authorized_response, nonce = _test_digest_response_for_auth_request(
+            session, header, username, password, qop, uri, body, nc)
+        assert authorized_response.status_code == 200
+    stale_response, nonce = _test_digest_response_for_auth_request(
+        session, header, username, password, qop, uri, body, stale_after + 1)
+    assert stale_response.status_code == 401
+    header = stale_response.headers.get('WWW-Authenticate')
+    assert 'stale=TRUE' in header
+
+
+def _test_digest_response_for_auth_request(session, header, username, password, qop, uri, body, nc=1, nonce=None):
+    auth_type, auth_info = header.split(None, 1)
+    assert auth_type == 'Digest'
+
+    d = parse_dict_header(auth_info)
+
+    nonce = nonce or d['nonce']
+    realm = d['realm']
+    opaque = d['opaque']
+    algorithm = d['algorithm']
+
+    if qop:
+        expected = [x.strip() for x in d['qop'].split(',')]
+        assert qop in expected, 'Challenge should contains expected qop'
+
+    if qop in ('auth', 'auth-int'):
+        cnonce, nc = (_hash(os.urandom(10), "MD5"), '{:08}'.format(nc))
+    else:
+        cnonce, nc = (None, None)
+
+    auth_header = _make_digest_auth_header(
+        username, password, 'GET', uri, nonce, realm, opaque, algorithm, qop, cnonce, nc, body)
+
+    # make second request
+    response = session.get(
+        url(uri),
+        headers={'Authorization': auth_header},
+        data=body)
+    return response, nonce
+
+def test_digest_auth():
+    username = 'user'
+    password = 'passwd'
+    for qop in None, 'auth', 'auth-int':
+        for algorithm in None, 'MD5', 'SHA-256':
+            for body in None, b'', b'request payload':
+                for stale_after in (None, 1, 4) if algorithm else (None,):
+                    session = get_session()
+                    yield _test_digest_auth, session, username, password, qop, algorithm, body, stale_after
