@@ -366,6 +366,7 @@ def _test_digest_response_for_auth_request(session, header, username, password, 
         data=body)
     return response, nonce
 
+
 def test_digest_auth():
     username = 'user'
     password = 'passwd'
