@@ -131,9 +131,7 @@ def test_response_headers_multi():
         method = getattr(session, verb)
         response = method(url('/response-headers?animal=dog&animal=cat'))
         assert response.status_code == 200
-        print(response.headers.get('animal'))
         assert response.headers.get('animal') == 'dog, cat'
-        print("json", response.json())
         assert response.json()['animal'] == ['dog', 'cat']
 
     for verb in supported_verbs:
