@@ -142,9 +142,6 @@ def render(request, template_name, **kwargs):
     return response
 
 
-# Setup Flask-Common.
-common = Common(app)
-
 # Send app errors to Sentry.
 if 'SENTRY_DSN' in os.environ:
     sentry = Sentry(app, dsn=os.environ['SENTRY_DSN'])
