@@ -185,7 +185,8 @@ def test_set_cors_allow_headers():
     response = session.options(
         url('/get'),
         headers={'Access-Control-Request-Headers': 'X-Test-Header'})
-    assert response.headers.get('Access-Control-Allow-Headers') == 'X-Test-Header'
+    acah = response.headers.get('Access-Control-Allow-Headers')
+    assert acah == 'X-Test-Header'
 
 
 def test_user_agent():
