@@ -83,7 +83,35 @@ jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader([tmpl_dir]))
 url_map = UrlMap([])
 
 
+# -----------
+# Middlewares
+# -----------
+
+
+def set_cors_headers(request, response):
+    response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+
+    if request.method == 'OPTIONS':
+        # Both of these headers are only used for the "preflight request"
+        # http://www.w3.org/TR/cors/#access-control-allow-methods-response-header
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
+        response.headers['Access-Control-Max-Age'] = '3600'  # 1 hour cache
+        if request.headers.get('Access-Control-Request-Headers') is not None:
+            response.headers['Access-Control-Allow-Headers'] = request.headers['Access-Control-Request-Headers']
+    return response
+
+
+def cors_middleware(func):
+    def _inner(request):
+        response = func(request)
+        response = set_cors_headers(request, response)
+        return response
+    return _inner
+
+
 @Request.application
+@cors_middleware
 def app(request):
     adapter = url_map.bind_to_environ(request.environ)
     map_adapter = url_map.bind_to_environ(request.environ)
@@ -129,33 +157,6 @@ if os.environ.get("BUGSNAG_API_KEY") is not None:
         bugsnag.flask.handle_exceptions(app)
     except:
         app.logger.warning("Unable to initialize Bugsnag exception handling.")
-
-# -----------
-# Middlewares
-# -----------
-
-
-def set_cors_headers(request, response):
-    response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
-    response.headers['Access-Control-Allow-Credentials'] = 'true'
-
-    if request.method == 'OPTIONS':
-        # Both of these headers are only used for the "preflight request"
-        # http://www.w3.org/TR/cors/#access-control-allow-methods-response-header
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
-        response.headers['Access-Control-Max-Age'] = '3600'  # 1 hour cache
-        if request.headers.get('Access-Control-Request-Headers') is not None:
-            response.headers['Access-Control-Allow-Headers'] = request.headers['Access-Control-Request-Headers']
-    return response
-
-
-def cors_middleware(func):
-    def _inner(request):
-        response = func(request)
-        response = set_cors_headers(request, response)
-        return response
-    return _inner
-
 
 # ------
 # Routes
