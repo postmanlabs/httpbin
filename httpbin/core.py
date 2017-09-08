@@ -343,3 +343,51 @@ def drip(request):
     response.status_code = code
 
     return response
+
+
+@url_map.expose('/bytes/<int:n>')
+def random_bytes(request, n):
+    """Returns n random bytes generated with given seed."""
+    n = min(n, 100 * 1024) # set 100KB limit
+
+    params = CaseInsensitiveDict(request.args.items())
+    if 'seed' in params:
+        random.seed(int(params['seed']))
+
+    response = Response()
+
+    # Note: can't just use os.urandom here because it ignores the seed
+    response.data = bytearray(random.randint(0, 255) for i in range(n))
+    response.content_type = 'application/octet-stream'
+    return response
+
+
+@url_map.expose('/stream-bytes/<int:n>')
+def stream_random_bytes(request, n):
+    """Streams n random bytes generated with given seed, at given chunk size per packet."""
+    n = min(n, 100 * 1024) # set 100KB limit
+
+    params = CaseInsensitiveDict(request.args.items())
+    if 'seed' in params:
+        random.seed(int(params['seed']))
+
+    if 'chunk_size' in params:
+        chunk_size = max(1, int(params['chunk_size']))
+    else:
+        chunk_size = 10 * 1024
+
+    def generate_bytes():
+        chunks = bytearray()
+
+        for i in xrange(n):
+            chunks.append(random.randint(0, 255))
+            if len(chunks) == chunk_size:
+                yield(bytes(chunks))
+                chunks = bytearray()
+
+        if chunks:
+            yield(bytes(chunks))
+
+    headers = {'Content-Type': 'application/octet-stream'}
+
+    return Response(generate_bytes(), headers=headers)

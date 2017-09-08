@@ -8,6 +8,7 @@ import os
 import requests
 from wsgiadapter import WSGIAdapter
 from werkzeug.http import parse_dict_header
+import six
 
 import httpbin
 
@@ -425,3 +426,45 @@ def test_drip_with_custom_code():
     assert response.status_code == 500
     assert int(response.headers['Content-Length']) == 400
     assert len(response.content) == 400
+
+
+def test_get_bytes():
+    session = get_session()
+    response = session.get(url('/bytes/1024'))
+    assert len(response.content) == 1024
+    assert response.status_code == 200
+
+
+def test_bytes_with_seed():
+    session = get_session()
+    response = session.get(url('/bytes/10?seed=0'))
+    # The RNG changed in python3, so even though we are
+    # setting the seed, we can't expect the value to be the
+    # same across both interpreters.
+    if six.PY3:
+        expected = b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
+    else:
+        expected = b'\xd8\xc2kB\x82g\xc8Mz\x95'
+    assert response.status_code == 200
+    assert response.content == expected
+
+
+def test_stream_bytes():
+    session = get_session()
+    response = session.get(url('/stream-bytes/1024'))
+    assert response.status_code == 200
+    assert len(response.content) == 1024
+
+
+def test_stream_bytes_with_seed():
+    session = get_session()
+    response = session.get(url('/stream-bytes/10?seed=0'))
+    # The RNG changed in python3, so even though we are
+    # setting the seed, we can't expect the value to be the
+    # same across both interpreters.
+    if six.PY3:
+        expected = b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
+    else:
+        expected = b'\xd8\xc2kB\x82g\xc8Mz\x95'
+    assert response.status_code == 200
+    assert response.content == expected
