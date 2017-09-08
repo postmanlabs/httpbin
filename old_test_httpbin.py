@@ -120,55 +120,6 @@ class HttpbinTestCase(unittest.TestCase):
         else:
             return response.data
 
-    def test_set_cors_headers_after_request(self):
-        response = self.app.get('/get')
-        self.assertEqual(
-            response.headers.get('Access-Control-Allow-Origin'), '*'
-        )
-
-    def test_set_cors_credentials_headers_after_auth_request(self):
-        response = self.app.get('/basic-auth/foo/bar')
-        self.assertEqual(
-            response.headers.get('Access-Control-Allow-Credentials'), 'true'
-        )
-
-    def test_set_cors_headers_after_request_with_request_origin(self):
-        response = self.app.get('/get', headers={'Origin': 'origin'})
-        self.assertEqual(
-            response.headers.get('Access-Control-Allow-Origin'), 'origin'
-        )
-
-    def test_set_cors_headers_with_options_verb(self):
-        response = self.app.open('/get', method='OPTIONS')
-        self.assertEqual(
-            response.headers.get('Access-Control-Allow-Origin'), '*'
-        )
-        self.assertEqual(
-            response.headers.get('Access-Control-Allow-Credentials'), 'true'
-        )
-        self.assertEqual(
-            response.headers.get('Access-Control-Allow-Methods'),
-            'GET, POST, PUT, DELETE, PATCH, OPTIONS'
-        )
-        self.assertEqual(
-            response.headers.get('Access-Control-Max-Age'), '3600'
-        )
-        # FIXME should we add any extra headers?
-        self.assertNotIn(
-            'Access-Control-Allow-Headers', response.headers
-        )
-    def test_set_cors_allow_headers(self):
-        response = self.app.open('/get', method='OPTIONS', headers={'Access-Control-Request-Headers': 'X-Test-Header'})
-        self.assertEqual(
-            response.headers.get('Access-Control-Allow-Headers'), 'X-Test-Header'
-        )
-    def test_user_agent(self):
-        response = self.app.get(
-            '/user-agent', headers={'User-Agent': 'test'}
-        )
-        self.assertIn('test', response.data.decode('utf-8'))
-        self.assertEqual(response.status_code, 200)
-
     def test_gzip(self):
         response = self.app.get('/gzip')
         self.assertEqual(response.status_code, 200)
