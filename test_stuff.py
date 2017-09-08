@@ -10,6 +10,8 @@ import httpbin
 
 base_url = "http://localhost"
 
+# TODO: Add tests for MethodNotAllowed, NotFound
+
 
 def get_session():
     session = requests.session()
