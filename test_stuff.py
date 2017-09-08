@@ -13,8 +13,13 @@ base_url = "http://localhost"
 # TODO: Add tests for MethodNotAllowed, NotFound
 
 
+class Session(requests.Session):
+    def __repr__(self):
+        return "<Session>"
+
+
 def get_session():
-    session = requests.session()
+    session = Session()
     session.mount(base_url, WSGIAdapter(app=httpbin.app))
     return session
 
