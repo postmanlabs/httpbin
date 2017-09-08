@@ -375,3 +375,30 @@ def test_digest_auth():
                 for stale_after in (None, 1, 4) if algorithm else (None,):
                     session = get_session()
                     yield _test_digest_auth, session, username, password, qop, algorithm, body, stale_after
+
+
+def test_digest_auth_wrong_pass():
+    username = 'user'
+    password = 'passwd'
+    for qop in None, 'auth', 'auth-int':
+        for algorithm in None, 'MD5', 'SHA-256':
+            for body in None, b'', b'request payload':
+                session = get_session()
+                yield _test_digest_auth_wrong_pass, session, username, password, qop, algorithm, body, 3
+
+
+def _test_digest_auth_wrong_pass(session, username, password, qop, algorithm=None, body=None, stale_after=None):
+    uri = _digest_auth_create_uri(username, password, qop, algorithm, stale_after)
+    unauthorized_response = _test_digest_auth_first_challenge(session, uri)
+    header = unauthorized_response.headers.get('WWW-Authenticate')
+    wrong_pass_response, nonce = _test_digest_response_for_auth_request(
+        session, header, username, "wrongPassword", qop, uri, body)
+    assert wrong_pass_response.status_code == 401
+    header = wrong_pass_response.headers.get('WWW-Authenticate')
+    assert 'stale=TRUE' not in header
+
+    reused_nonce_response, nonce = _test_digest_response_for_auth_request(
+        session, header, username, password, qop, uri, body, nonce=nonce)
+    assert reused_nonce_response.status_code == 401
+    header = reused_nonce_response.headers.get('WWW-Authenticate')
+    assert 'stale=TRUE' in header

@@ -61,32 +61,6 @@ class HttpbinTestCase(unittest.TestCase):
             return response.data
 
 
-    def test_digest_auth_wrong_pass(self):
-        """Test different combinations of digest auth parameters"""
-        username = 'user'
-        password = 'passwd'
-        for qop in None, 'auth', 'auth-int',:
-            for algorithm in None, 'MD5', 'SHA-256', 'SHA-512':
-                for body in None, b'', b'request payload':
-                    self._test_digest_auth_wrong_pass(username, password, qop, algorithm, body, 3)
-
-    def _test_digest_auth_wrong_pass(self, username, password, qop, algorithm=None, body=None, stale_after=None):
-        uri = self._digest_auth_create_uri(username, password, qop, algorithm, stale_after)
-        unauthorized_response = self._test_digest_auth_first_challenge(uri)
-
-        header = unauthorized_response.headers.get('WWW-Authenticate')
-
-        wrong_pass_response, nonce = self._test_digest_response_for_auth_request(header, username, "wrongPassword", qop, uri, body)
-        self.assertEqual(wrong_pass_response.status_code, 401)
-        header = wrong_pass_response.headers.get('WWW-Authenticate')
-        self.assertNotIn('stale=TRUE', header)
-
-        reused_nonce_response, nonce =  self._test_digest_response_for_auth_request(header, username, password, qop, uri, \
-                                                                              body, nonce=nonce)
-        self.assertEqual(reused_nonce_response.status_code, 401)
-        header = reused_nonce_response.headers.get('WWW-Authenticate')
-        self.assertIn('stale=TRUE', header)
-
     def test_drip(self):
         response = self.app.get('/drip?numbytes=400&duration=2&delay=1')
         self.assertEqual(response.content_length, 400)
