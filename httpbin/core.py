@@ -120,6 +120,14 @@ def app(request):
     try:
         endpoint, values = adapter.match()
         return endpoint(request, **values)
+    except MethodNotAllowed as e:
+        if request.method == "OPTIONS":
+            methods = adapter.allowed_methods()
+            response = Response()
+            response.allow.update(methods)
+            return response
+        else:
+            return e
     except HTTPException as e:
         return e
 
