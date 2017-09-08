@@ -481,3 +481,31 @@ def test_delete_endpoint_returns_body():
     assert response.status_code == 200
     form_data = response.json()['form']
     assert form_data == {'name': 'kevin'}
+
+
+def test_methods__to_status_endpoint():
+    methods = [
+        'GET',
+        'HEAD',
+        'POST',
+        'PUT',
+        'DELETE',
+        'PATCH',
+        # 'TRACE',
+    ]
+    for m in methods:
+        session = get_session()
+        response = getattr(session, m.lower())(url('/status/418'))
+        assert response.status_code == 418
+
+
+def test_status_endpoint_invalid_code():
+    session = get_session()
+    response = session.get(url('/status/4!9'))
+    assert response.status_code == 400
+
+
+def test_status_endpoint_invalid_codes():
+    session = get_session()
+    response = session.get(url('/status/200,402,foo'))
+    assert response.status_code == 400

@@ -249,7 +249,7 @@ def status_code(code):
         m = code_map[code]
 
         if 'data' in m:
-            r['content'] = m['data']
+            r['response'] = m['data']
         if 'headers' in m:
             r['headers'] = m['headers']
 
