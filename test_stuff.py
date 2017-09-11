@@ -526,3 +526,62 @@ def test_x_forwarded_proto():
         url('/get'),
         headers={'X-Forwarded-Proto':'https'})
     assert response.json()['url'].startswith('https://')
+
+
+# Redirects
+
+def test_redirect_n_higher_than_1():
+    session = get_session()
+    session.max_redirects = 6
+    response = session.get(url('/redirect/5'), allow_redirects=False)
+    assert response.headers.get('Location') == '/relative-redirect/4'
+
+
+def test_redirect_to_post():
+    session = get_session()
+    response = session.post(
+        url('/redirect-to?url=/post&status_code=307'),
+        data=b'\x01\x02\x03\x81\x82\x83',
+        headers={'Content-Type': 'application/octet-stream'},
+        allow_redirects=False)
+    assert response.status_code == 307
+    assert response.headers.get('Location') == '/post'
+
+
+def test_redirect_absolute_param_n_higher_than_1():
+    session = get_session()
+    response = session.get(url('/redirect/5?absolute=true'), allow_redirects=False)
+    assert response.headers.get('Location') == 'http://localhost/absolute-redirect/4'
+
+
+def test_redirect_n_equals_to_1():
+    session = get_session()
+    response = session.get(url('/redirect/1'), allow_redirects=False)
+    assert response.status_code == 302
+    assert response.headers.get('Location') == '/get'
+
+
+def test_relative_redirect_n_equals_to_1():
+    session = get_session()
+    response = session.get(url('/relative-redirect/1'), allow_redirects=False)
+    assert response.headers.get('Location') == '/get'
+
+
+def test_relative_redirect_n_higher_than_1():
+    session = get_session()
+    response = session.get(url('/relative-redirect/7'), allow_redirects=False)
+    assert response.status_code == 302
+    assert response.headers.get('Location') == '/relative-redirect/6'
+
+
+def test_absolute_redirect_n_higher_than_1():
+    session = get_session()
+    response = session.get(url('/absolute-redirect/5'), allow_redirects=False)
+    assert response.headers.get('Location') == 'http://localhost/absolute-redirect/4'
+
+
+def test_absolute_redirect_n_equals_to_1():
+    session = get_session()
+    response = session.get(url('/absolute-redirect/1'), allow_redirects=False)
+    assert response.status_code == 302
+    assert response.headers.get('Location') == 'http://localhost/get'

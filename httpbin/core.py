@@ -16,7 +16,7 @@ import uuid
 import argparse
 
 import werkzeug
-from werkzeug import Response, Request
+from werkzeug import Response, Request, redirect
 from six.moves import range as xrange
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
@@ -442,3 +442,77 @@ def xml(request):
         "sample.xml",
         content_type="application/xml")
     return response
+
+
+@url_map.expose('/redirect/<int:n>')
+def redirect_n_times(request, n):
+    """302 Redirects n times."""
+    assert n > 0
+
+    absolute = request.args.get('absolute', 'false').lower() == 'true'
+
+    if n == 1:
+        return redirect(request.url_for('view_get', force_external=absolute))
+
+    if absolute:
+        return _redirect(request, 'absolute', n, True)
+    else:
+        return _redirect(request, 'relative', n, False)
+
+
+def _redirect(request, kind, n, external):
+    n = n - 1
+    return redirect(
+        request.url_for(
+            '{0}_redirect_n_times'.format(kind),
+            values=dict(n=n), force_external=external))
+
+
+@url_map.expose('/redirect-to', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
+def redirect_to(request):
+    """302/3XX Redirects to the given URL."""
+
+    args = CaseInsensitiveDict(request.args.items())
+
+    # We need to build the response manually and convert to UTF-8 to prevent
+    # werkzeug from "fixing" the URL. This endpoint should set the Location
+    # header to the exact string supplied.
+    response = Response()
+    response.status_code = 302
+    if 'status_code' in args:
+        status_code = int(args['status_code'])
+        if status_code >= 300 and status_code < 400:
+            response.status_code = status_code
+    response.headers['Location'] = args['url'].encode('utf-8')
+
+    return response
+
+
+@url_map.expose('/relative-redirect/<int:n>')
+def relative_redirect_n_times(request, n):
+    """302 Redirects n times."""
+
+    assert n > 0
+
+    response = Response()
+    response.status_code = 302
+
+    if n == 1:
+        response.headers['Location'] = request.url_for('view_get')
+        return response
+
+    response.headers['Location'] = request.url_for(
+        'relative_redirect_n_times', values=dict(n=n - 1))
+    return response
+
+
+@url_map.expose('/absolute-redirect/<int:n>')
+def absolute_redirect_n_times(request, n):
+    """302 Redirects n times."""
+
+    assert n > 0
+
+    if n == 1:
+        return redirect(request.url_for('view_get', force_external=True))
+
+    return _redirect(request, 'absolute', n, True)

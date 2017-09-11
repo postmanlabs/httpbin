@@ -60,60 +60,6 @@ class HttpbinTestCase(unittest.TestCase):
         else:
             return response.data
 
-    def test_redirect_n_higher_than_1(self):
-        response = self.app.get('/redirect/5')
-        self.assertEqual(
-            response.headers.get('Location'), '/relative-redirect/4'
-        )
-
-    def test_redirect_to_post(self):
-        response = self.app.post('/redirect-to?url=/post&status_code=307',
-                                 data=b'\x01\x02\x03\x81\x82\x83',
-                                 content_type='application/octet-stream')
-        self.assertEqual(response.status_code, 307)
-        self.assertEqual(
-            response.headers.get('Location'), '/post'
-        )
-
-    def test_redirect_absolute_param_n_higher_than_1(self):
-        response = self.app.get('/redirect/5?absolute=true')
-        self.assertEqual(
-            response.headers.get('Location'), 'http://localhost/absolute-redirect/4'
-        )
-
-    def test_redirect_n_equals_to_1(self):
-        response = self.app.get('/redirect/1')
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response.headers.get('Location'), '/get'
-        )
-
-    def test_relative_redirect_n_equals_to_1(self):
-        response = self.app.get('/relative-redirect/1')
-        self.assertEqual(
-            response.headers.get('Location'), '/get'
-        )
-
-    def test_relative_redirect_n_higher_than_1(self):
-        response = self.app.get('/relative-redirect/7')
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response.headers.get('Location'), '/relative-redirect/6'
-        )
-
-    def test_absolute_redirect_n_higher_than_1(self):
-        response = self.app.get('/absolute-redirect/5')
-        self.assertEqual(
-            response.headers.get('Location'), 'http://localhost/absolute-redirect/4'
-        )
-
-    def test_absolute_redirect_n_equals_to_1(self):
-        response = self.app.get('/absolute-redirect/1')
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response.headers.get('Location'), 'http://localhost/get'
-        )
-
     def test_request_range(self):
         response1 = self.app.get('/range/1234')
         self.assertEqual(response1.status_code, 200)
