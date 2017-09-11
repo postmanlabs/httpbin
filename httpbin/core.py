@@ -70,10 +70,15 @@ tmpl_dir = os.path.join(
 
 
 class UrlMap(werkzeug.routing.Map):
+    endpoints = {}
+
     def expose(self, rule, methods=['GET'], **kwargs):
         def _inner(func):
+            endpoint = func
+            endpoint_name = func.__name__
+            self.endpoints[endpoint_name] = endpoint
             self.add(
-                werkzeug.routing.Rule(rule, methods=methods, endpoint=func))
+                werkzeug.routing.Rule(rule, methods=methods, endpoint=endpoint_name))
             return func
         return _inner
 
@@ -117,7 +122,8 @@ def app(request):
     request.url_for = map_adapter.build
 
     try:
-        endpoint, values = adapter.match()
+        endpoint_name, values = adapter.match()
+        endpoint = url_map.endpoints[endpoint_name]
         return endpoint(request, **values)
     except MethodNotAllowed as e:
         if request.method == "OPTIONS":
