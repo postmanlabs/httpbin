@@ -27,8 +27,8 @@ import jinja2
 from raven.contrib.flask import Sentry
 
 from . import filters
-from .helpers import get_dict, check_basic_auth, status_code, get_headers, check_digest_auth, digest_challenge_response, next_stale_after_value
-# from .helpers import status_code, get_dict, get_request_range, \
+from .helpers import get_dict, check_basic_auth, status_code, get_headers, check_digest_auth, digest_challenge_response, next_stale_after_value, get_request_range
+# from .helpers import status_code, get_dict,
     # secure_cookie, H, ROBOT_TXT, ANGRY_ASCII, parse_multi_value_header,
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
@@ -516,3 +516,75 @@ def absolute_redirect_n_times(request, n):
         return redirect(request.url_for('view_get', force_external=True))
 
     return _redirect(request, 'absolute', n, True)
+
+
+@url_map.expose('/range/<int:numbytes>')
+def range_request(request, numbytes):
+    """Streams n random bytes generated with given seed, at given chunk size per packet."""
+
+    if numbytes <= 0 or numbytes > (100 * 1024):
+        response = Response(
+            headers={
+                'ETag': 'range%d' % numbytes,
+                'Accept-Ranges': 'bytes'})
+        response.status_code = 404
+        response.data = 'number of bytes must be in the range (0, 10240]'
+        return response
+
+    params = CaseInsensitiveDict(request.args.items())
+    if 'chunk_size' in params:
+        chunk_size = max(1, int(params['chunk_size']))
+    else:
+        chunk_size = 10 * 1024
+
+    duration = float(params.get('duration', 0))
+    pause_per_byte = duration / numbytes
+
+    request_headers = get_headers(request)
+    first_byte_pos, last_byte_pos = get_request_range(request_headers, numbytes)
+    range_length = (last_byte_pos+1) - first_byte_pos
+
+    if first_byte_pos > last_byte_pos or first_byte_pos not in xrange(0, numbytes) or last_byte_pos not in xrange(0, numbytes):
+        response = Response(headers={
+            'ETag' : 'range%d' % numbytes,
+            'Accept-Ranges' : 'bytes',
+            'Content-Range' : 'bytes */%d' % numbytes,
+            'Content-Length': '0',
+            })
+        response.status_code = 416
+        return response
+
+    def generate_bytes():
+        chunks = bytearray()
+
+        for i in xrange(first_byte_pos, last_byte_pos + 1):
+
+            # We don't want the resource to change across requests, so we need
+            # to use a predictable data generation function
+            chunks.append(ord('a') + (i % 26))
+            if len(chunks) == chunk_size:
+                yield(bytes(chunks))
+                time.sleep(pause_per_byte * chunk_size)
+                chunks = bytearray()
+
+        if chunks:
+            time.sleep(pause_per_byte * len(chunks))
+            yield(bytes(chunks))
+
+    content_range = 'bytes %d-%d/%d' % (first_byte_pos, last_byte_pos, numbytes)
+    response_headers = {
+        'Content-Type': 'application/octet-stream',
+        'ETag' : 'range%d' % numbytes,
+        'Accept-Ranges' : 'bytes',
+        'Content-Length': str(range_length),
+        'Content-Range' : content_range
+    }
+
+    response = Response(generate_bytes(), headers=response_headers)
+
+    if (first_byte_pos == 0) and (last_byte_pos == (numbytes - 1)):
+        response.status_code = 200
+    else:
+        response.status_code = 206
+
+    return response

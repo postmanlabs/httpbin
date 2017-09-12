@@ -585,3 +585,95 @@ def test_absolute_redirect_n_equals_to_1():
     response = session.get(url('/absolute-redirect/1'), allow_redirects=False)
     assert response.status_code == 302
     assert response.headers.get('Location') == 'http://localhost/get'
+
+
+# Request ranges
+
+def test_request_range():
+    session = get_session()
+    response1 = session.get(url('/range/1234'))
+    assert response1.status_code == 200
+    assert response1.headers.get('ETag') == 'range1234'
+    assert response1.headers.get('Content-range') == 'bytes 0-1233/1234'
+    assert response1.headers.get('Accept-ranges') == 'bytes'
+    assert len(response1.content) == 1234
+
+    response2 = session.get(url('/range/1234'))
+    assert response2.status_code == 200
+    assert response2.headers.get('ETag') == 'range1234'
+    assert response1.content == response2.content
+
+
+def test_request_range_with_parameters():
+    session = get_session()
+    response = session.get(
+        url('/range/100?duration=1.5&chunk_size=5'),
+        headers={'Range': 'bytes=10-24'})
+
+    assert response.status_code == 206
+    assert response.headers.get('ETag') == 'range100'
+    assert response.headers.get('Content-range') == 'bytes 10-24/100'
+    assert response.headers.get('Accept-ranges') == 'bytes'
+    assert response.headers.get('Content-Length') == '15'
+    assert response.content == 'klmnopqrstuvwxy'.encode('utf8')
+
+
+def test_request_range_first_15_bytes():
+    session = get_session()
+    response = session.get(
+        url('/range/1000'),
+        headers={'Range': 'bytes=0-15'})
+
+    assert response.status_code == 206
+    assert response.headers.get('ETag') == 'range1000'
+    assert response.content == 'abcdefghijklmnop'.encode('utf8')
+    assert response.headers.get('Content-range') == 'bytes 0-15/1000'
+
+
+def test_request_range_open_ended_last_6_bytes():
+    session = get_session()
+    response = session.get(
+        url('/range/26'),
+        headers={'Range': 'bytes=20-'})
+
+    assert response.status_code == 206
+    assert response.headers.get('ETag') == 'range26'
+    assert response.content == 'uvwxyz'.encode('utf8')
+    assert response.headers.get('Content-range') == 'bytes 20-25/26'
+    assert response.headers.get('Content-Length') == '6'
+
+
+def test_request_range_suffix():
+    session = get_session()
+    response = session.get(
+        url('/range/26'),
+        headers={'Range': 'bytes=-5'})
+
+    assert response.status_code == 206
+    assert response.headers.get('ETag') == 'range26'
+    assert response.content == 'vwxyz'.encode('utf8')
+    assert response.headers.get('Content-range') == 'bytes 21-25/26'
+    assert response.headers.get('Content-Length') == '5'
+
+
+def test_request_out_of_bounds():
+    session = get_session()
+    response = session.get(
+        url('/range/26'),
+        headers={'Range': 'bytes=10-5'})
+
+    assert response.status_code == 416
+    assert response.headers.get('ETag') == 'range26'
+    assert len(response.content) == 0
+    assert response.headers.get('Content-range') == 'bytes */26'
+    assert response.headers.get('Content-Length') == '0'
+
+    response = session.get(
+        url('/range/26'),
+        headers={'Range': 'bytes=32-40'})
+
+    assert response.status_code == 416
+    response = session.get(
+        url('/range/26'),
+        headers={'Range': 'bytes=0-40'})
+    assert response.status_code == 416
