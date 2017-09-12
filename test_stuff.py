@@ -4,6 +4,7 @@ import base64
 import urllib.parse
 from hashlib import md5, sha256
 import os
+import contextlib
 
 import requests
 from wsgiadapter import WSGIAdapter
@@ -33,6 +34,23 @@ def url(path):
         return urllib.parse.urljoin(base_url, path)
     elif isinstance(path, bytes):
         return urllib.parse.urljoin(base_url.encode('utf-8'), path)
+
+
+@contextlib.contextmanager
+def _setenv(key, value):
+    """Context manager to set an environment variable temporarily."""
+    old_value = os.environ.get(key, None)
+    if value is None:
+        os.environ.pop(key, None)
+    else:
+        os.environ[key] = value
+
+    yield
+
+    if old_value is None:
+        os.environ.pop(key, None)
+    else:
+        os.environ[key] = value
 
 
 def _string_to_base64(string):
@@ -677,3 +695,84 @@ def test_request_out_of_bounds():
         url('/range/26'),
         headers={'Range': 'bytes=0-40'})
     assert response.status_code == 416
+
+# ETags
+
+
+def test_etag_if_none_match_matches():
+    session = get_session()
+    response = session.get(
+        url('/etag/abc'),
+        headers={'If-None-Match': 'abc'}
+    )
+    assert response.status_code == 304
+
+def test_etag_if_none_match_matches_list():
+    session = get_session()
+    response = session.get(
+        url('/etag/abc'),
+        headers={'If-None-Match': '"123", "abc"'}
+    )
+    assert response.status_code == 304
+
+def test_etag_if_none_match_matches_star():
+    session = get_session()
+    response = session.get(
+        url('/etag/abc'),
+        headers={'If-None-Match': '*'}
+    )
+    assert response.status_code == 304
+
+def test_etag_if_none_match_w_prefix():
+    session = get_session()
+    response = session.get(
+        url('/etag/c3piozzzz'),
+        headers={'If-None-Match': 'W/"xyzzy", W/"r2d2xxxx", W/"c3piozzzz"'}
+    )
+    assert response.status_code == 304
+
+def test_etag_if_none_match_has_no_match():
+    session = get_session()
+    response = session.get(
+        url('/etag/abc'),
+        headers={'If-None-Match': '123'}
+    )
+    assert response.status_code == 200
+
+def test_etag_if_match_matches():
+    session = get_session()
+    response = session.get(
+        url('/etag/abc'),
+        headers={'If-Match': 'abc'}
+    )
+    assert response.status_code == 200
+
+def test_etag_if_match_matches_list():
+    session = get_session()
+    response = session.get(
+        url('/etag/abc'),
+        headers={'If-Match': '"123", "abc"'}
+    )
+    assert response.status_code == 200
+
+def test_etag_if_match_matches_star():
+    session = get_session()
+    response = session.get(
+        url('/etag/abc'),
+        headers={'If-Match': '*'}
+    )
+    assert response.status_code == 200
+
+def test_etag_if_match_has_no_match():
+    session = get_session()
+    response = session.get(
+        url('/etag/abc'),
+        headers={'If-Match': '123'}
+    )
+    assert response.status_code == 412
+
+def test_etag_with_no_headers():
+    session = get_session()
+    response = session.get(url('/etag/abc'))
+    assert response.status_code == 200
+    assert response.headers.get('ETag') == 'abc'

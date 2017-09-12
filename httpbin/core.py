@@ -27,9 +27,9 @@ import jinja2
 from raven.contrib.flask import Sentry
 
 from . import filters
-from .helpers import get_dict, check_basic_auth, status_code, get_headers, check_digest_auth, digest_challenge_response, next_stale_after_value, get_request_range
+from .helpers import get_dict, check_basic_auth, status_code, get_headers, check_digest_auth, digest_challenge_response, next_stale_after_value, get_request_range, parse_multi_value_header
 # from .helpers import status_code, get_dict,
-    # secure_cookie, H, ROBOT_TXT, ANGRY_ASCII, parse_multi_value_header,
+    # secure_cookie, H, ROBOT_TXT, ANGRY_ASCII, 
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
@@ -587,4 +587,23 @@ def range_request(request, numbytes):
     else:
         response.status_code = 206
 
+    return response
+
+
+@url_map.expose('/etag/<etag>', methods=('GET',))
+def etag(request, etag):
+    """Assumes the resource has the given etag and responds to If-None-Match and If-Match headers appropriately."""
+    if_none_match = parse_multi_value_header(request.headers.get('If-None-Match'))
+    if_match = parse_multi_value_header(request.headers.get('If-Match'))
+
+    if if_none_match:
+        if etag in if_none_match or '*' in if_none_match:
+            return status_code(304)
+    elif if_match:
+        if etag not in if_match and '*' not in if_match:
+            return status_code(412)
+
+    # Special cases don't apply, return normal response
+    response = view_get(request)
+    response.headers['ETag'] = etag
     return response
