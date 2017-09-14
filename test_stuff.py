@@ -822,41 +822,33 @@ def test_headers():
 # Methods
 
 
-def test_get():
-    session = get_session()
-    response = session.get(url('/get'), headers={'User-Agent': 'test'})
-    assert response.status_code == 200
-    data = response.json()
-    assert data['args'] == {}
-    # assert data['headers']['Host'] == 'localhost'
-    assert data['headers']['Content-Type'] == 'text/plain'
-    assert data['headers']['Content-Length'] == '0'
-    assert data['headers']['User-Agent'] == 'test'
-    assert data['url'] == 'http://localhost/get'
-    assert response.content.endswith(b'\n')
+def test_methods():
+    def do_passing_method(url_method, http_method):
+        session = get_session()
+        response = getattr(session, http_method)(
+            url('/{}'.format(url_method)), headers={'User-Agent': 'test'})
+        assert response.status_code == 200
+        data = response.json()
+        assert data['args'] == {}
+        # assert data['headers']['Host'] == 'localhost'
+        assert data['headers']['Content-Type'] == 'text/plain'
+        assert data['headers']['Content-Length'] == '0'
+        assert data['headers']['User-Agent'] == 'test'
+        assert data['url'] == 'http://localhost/{}'.format(url_method)
+        assert response.content.endswith(b'\n')
 
+    def do_failing_method(url_method, http_method):
+        session = get_session()
+        response = getattr(session, http_method)(
+            url('/{}'.format(url_method)), headers={'User-Agent': 'test'})
+        assert response.status_code == 405
+        assert response.headers['Allow'] == url_method.upper()
 
-def test_put():
-    session = get_session()
-    response = session.put(url('/put'), headers={'User-Agent': 'test'})
-    assert response.status_code == 200
-    data = response.json()
-    assert data['args'] == {}
-    assert data['headers']['Content-Type'] == 'text/plain'
-    assert data['headers']['Content-Length'] == '0'
-    assert data['headers']['User-Agent'] == 'test'
-    assert data['url'] == 'http://localhost/put'
-    assert response.content.endswith(b'\n')
-
-
-def test_patch():
-    session = get_session()
-    response = session.patch(url('/patch'), headers={'User-Agent': 'test'})
-    assert response.status_code == 200
-    data = response.json()
-    assert data['args'] == {}
-    assert data['headers']['Content-Type'] == 'text/plain'
-    assert data['headers']['Content-Length'] == '0'
-    assert data['headers']['User-Agent'] == 'test'
-    assert data['url'] == 'http://localhost/patch'
-    assert response.content.endswith(b'\n')
+    methods = set(('get', 'post', 'put', 'patch', 'delete'))
+    for url_method in methods:
+        for http_method in methods:
+            if url_method == http_method:
+                func = do_passing_method
+            else:
+                func = do_failing_method
+            yield func, url_method, http_method

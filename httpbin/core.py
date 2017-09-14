@@ -176,37 +176,11 @@ if os.environ.get("BUGSNAG_API_KEY") is not None:
 # Methods
 
 
-@url_map.expose('/get', methods=('GET',))
-def view_get(request):
-    """Returns GET Data."""
-    return jsonify(get_dict(request, 'url', 'args', 'headers', 'origin'))
-
-
-@url_map.expose('/post', methods=('POST',))
-def view_post(request):
-    """Returns POST Data."""
-    return jsonify(get_dict(
-        request,
-        'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
-
-
-@url_map.expose('/put', methods=('PUT',))
-def view_put(request):
-    """Returns PUT Data."""
-    return jsonify(get_dict(
-        request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
-
-
-@url_map.expose('/patch', methods=('PATCH',))
-def view_patch(request):
-    """Returns PATCH Data."""
-    return jsonify(get_dict(
-        request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
-
-
-@url_map.expose('/delete', methods=('DELETE',))
-def view_delete(request):
-    """Returns DELETE Data."""
+@url_map.expose("/<any(get, post, put, patch, delete):method>", methods=('GET', 'POST', 'PUT', 'PATCH', 'DELETE'))
+def view_method(request, method):
+    """Returns data for relevant method."""
+    if not request.method == method.upper():
+        raise werkzeug.exceptions.MethodNotAllowed([method.upper()])
     return jsonify(get_dict(
         request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
 
@@ -469,7 +443,9 @@ def redirect_n_times(request, n):
     absolute = request.args.get('absolute', 'false').lower() == 'true'
 
     if n == 1:
-        return redirect(request.url_for('view_get', force_external=absolute))
+        return redirect(
+            request.url_for(
+                'view_method', values={'method': 'get'}, force_external=absolute))
 
     if absolute:
         return _redirect(request, 'absolute', n, True)
@@ -515,7 +491,9 @@ def relative_redirect_n_times(request, n):
     response.status_code = 302
 
     if n == 1:
-        response.headers['Location'] = request.url_for('view_get')
+        return redirect(
+            request.url_for(
+                'view_method', values={'method': 'get'}))
         return response
 
     response.headers['Location'] = request.url_for(
@@ -530,7 +508,9 @@ def absolute_redirect_n_times(request, n):
     assert n > 0
 
     if n == 1:
-        return redirect(request.url_for('view_get', force_external=True))
+        return redirect(
+            request.url_for(
+                'view_method', values={'method': 'get'}, force_external=True))
 
     return _redirect(request, 'absolute', n, True)
 
@@ -621,7 +601,7 @@ def etag(request, etag):
             return status_code(412)
 
     # Special cases don't apply, return normal response
-    response = view_get(request)
+    response = view_method(request, 'get')
     response.headers['ETag'] = etag
     return response
 
