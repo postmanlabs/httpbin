@@ -852,3 +852,31 @@ def test_methods():
             else:
                 func = do_failing_method
             yield func, url_method, http_method
+
+# Images
+
+def test_images():
+    cases = (
+        ("webp", "image/webp"),
+        ("svg", "image/svg+xml"),
+        ("jpeg", "image/jpeg"),
+        ("png", "image/png"),
+    )
+
+    def do_image_endpoint(mimetype):
+        session = get_session()
+        response = session.get(
+            url("/image"),
+            headers={'Accept': mimetype})
+        assert response.status_code == 200
+        assert response.headers['Content-Type'] == mimetype
+
+    def do_image_type_endpoint(image_type, mimetype):
+        session = get_session()
+        response = session.get(url("/image/{}".format(image_type)))
+        assert response.status_code == 200
+        assert response.headers['Content-Type'] == mimetype
+
+    for image_type, mimetype in cases:
+        yield do_image_endpoint, mimetype
+        yield do_image_type_endpoint, image_type, mimetype

@@ -61,6 +61,16 @@ def jsonify(*args, **kwargs):
         response.data += b'\n'
     return response
 
+
+def resource(filename):
+    path = os.path.join(
+        tmpl_dir,
+        filename)
+    with open(path, 'rb') as f:
+        content = f.read()
+    return content
+
+
 # Prevent WSGI from correcting the casing of the Location header
 BaseResponse.autocorrect_location_header = False
 
@@ -561,6 +571,54 @@ def view_deny_page(request):
         ANGRY_ASCII,
         content_type="text/plain")
     return response
+
+# Images
+
+@url_map.expose('/image')
+def image(request):
+    """Returns a simple image of the type suggest by the Accept header."""
+
+    headers = get_headers(request)
+    if 'accept' not in headers:
+        return image_png() # Default media type to png
+
+    accept = headers['accept'].lower()
+
+    if 'image/webp' in accept:
+        return image_webp(request)
+    elif 'image/svg+xml' in accept:
+        return image_svg(request)
+    elif 'image/jpeg' in accept:
+        return image_jpeg(request)
+    elif 'image/png' in accept or 'image/*' in accept:
+        return image_png(request)
+    else:
+        return status_code(406) # Unsupported media type
+
+
+@url_map.expose('/image/png')
+def image_png(request):
+    data = resource('images/pig_icon.png')
+    return Response(data, headers={'Content-Type': 'image/png'})
+
+
+@url_map.expose('/image/jpeg')
+def image_jpeg(request):
+    data = resource('images/jackal.jpg')
+    return Response(data, headers={'Content-Type': 'image/jpeg'})
+
+
+@url_map.expose('/image/webp')
+def image_webp(request):
+    data = resource('images/wolf_1.webp')
+    return Response(data, headers={'Content-Type': 'image/webp'})
+
+
+@url_map.expose('/image/svg')
+def image_svg(request):
+    data = resource('images/svg_logo.svg')
+    return Response(data, headers={'Content-Type': 'image/svg+xml'})
+
 
 # Utilities
 
