@@ -236,6 +236,7 @@ def response_headers(request):
             break
     return response
 
+# Encodings
 
 @url_map.expose('/base64/<value>')
 def decode_base64(request, value):
@@ -243,16 +244,6 @@ def decode_base64(request, value):
     encoded = value.encode('utf-8')  # base64 expects binary string as input
     response = Response(base64.urlsafe_b64decode(encoded).decode('utf-8'))
     return response
-
-
-@url_map.expose('/basic-auth/<user>/<passwd>')
-def basic_auth(request, user='user', passwd='passwd'):
-    """Prompts the user for authorization using HTTP Basic Auth."""
-
-    if not check_basic_auth(request, user, passwd):
-        return status_code(401)
-
-    return jsonify(authenticated=True, user=user)
 
 
 @url_map.expose('/gzip')
@@ -271,6 +262,15 @@ def view_brotli_encoded_content(request):
     return jsonify(
         get_dict(
             request, 'origin', 'headers', method=request.method, brotli=True))
+
+# Auth
+
+@url_map.expose('/basic-auth/<user>/<passwd>')
+def basic_auth(request, user='user', passwd='passwd'):
+    """Prompts the user for authorization using HTTP Basic Auth."""
+    if not check_basic_auth(request, user, passwd):
+        return status_code(401)
+    return jsonify(authenticated=True, user=user)
 
 
 @url_map.expose('/digest-auth/<qop>/<user>/<passwd>')
