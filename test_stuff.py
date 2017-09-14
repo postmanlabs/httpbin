@@ -8,7 +8,7 @@ import contextlib
 
 import requests
 from wsgiadapter import WSGIAdapter
-from werkzeug.http import parse_dict_header
+from werkzeug.http import parse_dict_header, parse_options_header
 import six
 
 import httpbin
@@ -34,6 +34,12 @@ def url(path):
         return urllib.parse.urljoin(base_url, path)
     elif isinstance(path, bytes):
         return urllib.parse.urljoin(base_url.encode('utf-8'), path)
+
+
+def get_mime_type(request):
+    content_type = request.headers.get('Content-Type')
+    if content_type:
+        return parse_options_header(content_type)[0]
 
 
 @contextlib.contextmanager
@@ -776,3 +782,12 @@ def test_etag_with_no_headers():
     response = session.get(url('/etag/abc'))
     assert response.status_code == 200
     assert response.headers.get('ETag') == 'abc'
+
+
+# Pages
+
+def test_html_page():
+    session = get_session()
+    response = session.get(url('/html'))
+    assert get_mime_type(response) == "text/html"
+    assert b"<html>" in response.content

@@ -607,3 +607,9 @@ def etag(request, etag):
     response = view_get(request)
     response.headers['ETag'] = etag
     return response
+
+
+@url_map.expose('/html')
+def view_html_page(request):
+    """Simple Html Page"""
+    return render(request, 'moby.html')
