@@ -185,6 +185,15 @@ def view_method(request, method):
         request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
 
 
+@url_map.expose('/anything', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
+@url_map.expose('/anything/<path:anything>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
+def view_anything(request, anything=None):
+    """Returns request data."""
+    return jsonify(get_dict(
+        request, 'url', 'args', 'headers', 'origin', 'method', 'form', 'data', 'files', 'json'))
+
+# Info
+
 @url_map.expose('/user-agent')
 def view_user_agent(request):
     """Returns User-Agent."""
@@ -192,12 +201,17 @@ def view_user_agent(request):
     return jsonify({'user-agent': headers['user-agent']})
 
 
-@url_map.expose('/anything', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
-@url_map.expose('/anything/<path:anything>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
-def view_anything(request, anything=None):
-    """Returns request data."""
+@url_map.expose('/ip')
+def view_origin(request):
+    """Returns Origin IP."""
+    return jsonify(
+        origin=request.headers.get('X-Forwarded-For', request.remote_addr))
 
-    return jsonify(get_dict(request, 'url', 'args', 'headers', 'origin', 'method', 'form', 'data', 'files', 'json'))
+
+@url_map.expose('/headers')
+def view_headers(request):
+    """Returns HTTP HEADERS."""
+    return jsonify(get_dict(request, 'headers'))
 
 
 @url_map.expose('/response-headers', methods=['GET', 'POST'])
@@ -630,22 +644,9 @@ def view_deny_page(request):
         content_type="text/plain")
     return response
 
-# Info pages
-
-@url_map.expose('/ip')
-def view_origin(request):
-    """Returns Origin IP."""
-    return jsonify(
-        origin=request.headers.get('X-Forwarded-For', request.remote_addr))
-
+# Utilities
 
 @url_map.expose('/uuid')
 def view_uuid(request):
     """Returns a UUID."""
     return jsonify(uuid=str(uuid.uuid4()))
-
-
-@url_map.expose('/headers')
-def view_headers(request):
-    """Returns HTTP HEADERS."""
-    return jsonify(get_dict(request, 'headers'))
