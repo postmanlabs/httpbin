@@ -280,6 +280,8 @@ def test_user_agent():
     assert b'test' in response.content
     assert response.status_code == 200
 
+# Encodings
+# TODO: Add proper tests
 
 def test_gzip():
     session = get_session()
