@@ -173,11 +173,7 @@ if os.environ.get("BUGSNAG_API_KEY") is not None:
 # ------
 
 
-@url_map.expose('/user-agent')
-def view_user_agent(request):
-    """Returns User-Agent."""
-    headers = get_headers(request)
-    return jsonify({'user-agent': headers['user-agent']})
+# Methods
 
 
 @url_map.expose('/get', methods=('GET',))
@@ -186,20 +182,48 @@ def view_get(request):
     return jsonify(get_dict(request, 'url', 'args', 'headers', 'origin'))
 
 
-@url_map.expose('/anything', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
-@url_map.expose('/anything/<path:anything>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
-def view_anything(request, anything=None):
-    """Returns request data."""
-
-    return jsonify(get_dict(request, 'url', 'args', 'headers', 'origin', 'method', 'form', 'data', 'files', 'json'))
-
-
 @url_map.expose('/post', methods=('POST',))
 def view_post(request):
     """Returns POST Data."""
     return jsonify(get_dict(
         request,
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
+
+
+@url_map.expose('/put', methods=('PUT',))
+def view_put(request):
+    """Returns PUT Data."""
+    return jsonify(get_dict(
+        request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
+
+
+@url_map.expose('/patch', methods=('PATCH',))
+def view_patch(request):
+    """Returns PATCH Data."""
+    return jsonify(get_dict(
+        request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
+
+
+@url_map.expose('/delete', methods=('DELETE',))
+def view_delete(request):
+    """Returns DELETE Data."""
+    return jsonify(get_dict(
+        request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
+
+
+@url_map.expose('/user-agent')
+def view_user_agent(request):
+    """Returns User-Agent."""
+    headers = get_headers(request)
+    return jsonify({'user-agent': headers['user-agent']})
+
+
+@url_map.expose('/anything', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
+@url_map.expose('/anything/<path:anything>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
+def view_anything(request, anything=None):
+    """Returns request data."""
+
+    return jsonify(get_dict(request, 'url', 'args', 'headers', 'origin', 'method', 'form', 'data', 'files', 'json'))
 
 
 @url_map.expose('/response-headers', methods=['GET', 'POST'])
@@ -645,24 +669,3 @@ def view_uuid(request):
 def view_headers(request):
     """Returns HTTP HEADERS."""
     return jsonify(get_dict(request, 'headers'))
-
-
-@url_map.expose('/put', methods=('PUT',))
-def view_put(request):
-    """Returns PUT Data."""
-    return jsonify(get_dict(
-        request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
-
-
-@url_map.expose('/patch', methods=('PATCH',))
-def view_patch(request):
-    """Returns PATCH Data."""
-    return jsonify(get_dict(
-        request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
-
-
-@url_map.expose('/delete', methods=('DELETE',))
-def view_delete(request):
-    """Returns DELETE Data."""
-    return jsonify(get_dict(
-        request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))

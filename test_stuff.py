@@ -163,20 +163,6 @@ def test_response_headers_multi():
         yield do_test, verb
 
 
-def test_get():
-    session = get_session()
-    response = session.get(url('/get'), headers={'User-Agent': 'test'})
-    assert response.status_code == 200
-    data = response.json()
-    assert data['args'] == {}
-    # assert data['headers']['Host'] == 'localhost'
-    assert data['headers']['Content-Type'] == 'text/plain'
-    assert data['headers']['Content-Length'] == '0'
-    assert data['headers']['User-Agent'] == 'test'
-    assert data['url'] == 'http://localhost/get'
-    assert response.content.endswith(b'\n')
-
-
 def test_anything():
     session = get_session()
     response = session.get(url('/anything'))
@@ -834,6 +820,21 @@ def test_headers():
     assert response.json()['headers']['Flim-Flam'] == "flooble"
 
 # Methods
+
+
+def test_get():
+    session = get_session()
+    response = session.get(url('/get'), headers={'User-Agent': 'test'})
+    assert response.status_code == 200
+    data = response.json()
+    assert data['args'] == {}
+    # assert data['headers']['Host'] == 'localhost'
+    assert data['headers']['Content-Type'] == 'text/plain'
+    assert data['headers']['Content-Length'] == '0'
+    assert data['headers']['User-Agent'] == 'test'
+    assert data['url'] == 'http://localhost/get'
+    assert response.content.endswith(b'\n')
+
 
 def test_put():
     session = get_session()
