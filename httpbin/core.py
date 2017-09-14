@@ -399,13 +399,6 @@ def stream_random_bytes(request, n):
     return Response(generate_bytes(), headers=headers)
 
 
-@url_map.expose('/delete', methods=('DELETE',))
-def view_delete(request):
-    """Returns DELETE Data."""
-    return jsonify(get_dict(
-        request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
-
-
 @url_map.expose('/status/<codes>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
 def view_status_code(request, codes):
     """Return status code or random status code if more than one are given"""
@@ -632,3 +625,44 @@ def view_deny_page(request):
         ANGRY_ASCII,
         content_type="text/plain")
     return response
+
+# Info pages
+
+@url_map.expose('/ip')
+def view_origin(request):
+    """Returns Origin IP."""
+    return jsonify(
+        origin=request.headers.get('X-Forwarded-For', request.remote_addr))
+
+
+@url_map.expose('/uuid')
+def view_uuid(request):
+    """Returns a UUID."""
+    return jsonify(uuid=str(uuid.uuid4()))
+
+
+@url_map.expose('/headers')
+def view_headers(request):
+    """Returns HTTP HEADERS."""
+    return jsonify(get_dict(request, 'headers'))
+
+
+@url_map.expose('/put', methods=('PUT',))
+def view_put(request):
+    """Returns PUT Data."""
+    return jsonify(get_dict(
+        request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
+
+
+@url_map.expose('/patch', methods=('PATCH',))
+def view_patch(request):
+    """Returns PATCH Data."""
+    return jsonify(get_dict(
+        request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
+
+
+@url_map.expose('/delete', methods=('DELETE',))
+def view_delete(request):
+    """Returns DELETE Data."""
+    return jsonify(get_dict(
+        request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))

@@ -805,3 +805,57 @@ def test_deny_page():
     response = session.get(url('/deny'))
     assert get_mime_type(response) == "text/plain"
     assert b"YOU SHOULDN'T BE HERE" in response.content
+
+# Info pages
+
+def test_origin():
+    session = get_session()
+    response = session.get(
+        url('/ip'),
+        headers={'X-Forwarded-For': "flibble"})
+    assert get_mime_type(response) == "application/json"
+    expected = {'origin': "flibble"}
+    assert response.json() == expected
+
+
+def test_uuid():
+    session = get_session()
+    response = session.get(url('/uuid'))
+    assert get_mime_type(response) == "application/json"
+    assert len(response.json()['uuid']) == 36
+
+
+def test_headers():
+    session = get_session()
+    response = session.get(
+        url('/headers'),
+        headers={'Flim-Flam': "flooble"})
+    assert get_mime_type(response) == "application/json"
+    assert response.json()['headers']['Flim-Flam'] == "flooble"
+
+# Methods
+
+def test_put():
+    session = get_session()
+    response = session.put(url('/put'), headers={'User-Agent': 'test'})
+    assert response.status_code == 200
+    data = response.json()
+    assert data['args'] == {}
+    assert data['headers']['Content-Type'] == 'text/plain'
+    assert data['headers']['Content-Length'] == '0'
+    assert data['headers']['User-Agent'] == 'test'
+    assert data['url'] == 'http://localhost/put'
+    assert response.content.endswith(b'\n')
+
+
+def test_patch():
+    session = get_session()
+    response = session.patch(url('/patch'), headers={'User-Agent': 'test'})
+    assert response.status_code == 200
+    data = response.json()
+    assert data['args'] == {}
+    assert data['headers']['Content-Type'] == 'text/plain'
+    assert data['headers']['Content-Length'] == '0'
+    assert data['headers']['User-Agent'] == 'test'
+    assert data['url'] == 'http://localhost/patch'
+    assert response.content.endswith(b'\n')
