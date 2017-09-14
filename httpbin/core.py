@@ -608,6 +608,7 @@ def etag(request, etag):
     response.headers['ETag'] = etag
     return response
 
+# Pages
 
 @url_map.expose('/html')
 def view_html_page(request):
