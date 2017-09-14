@@ -190,6 +190,36 @@ def view_anything(request, anything=None):
     return jsonify(get_dict(
         request, 'url', 'args', 'headers', 'origin', 'method', 'form', 'data', 'files', 'json'))
 
+# Status codes
+
+@url_map.expose('/status/<codes>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
+def view_status_code(request, codes):
+    """Return status code or random status code if more than one are given"""
+
+    if ',' not in codes:
+        try:
+            code = int(codes)
+        except ValueError:
+            return Response('Invalid status code', status=400)
+        return status_code(code)
+
+    choices = []
+    for choice in codes.split(','):
+        if ':' not in choice:
+            code = choice
+            weight = 1
+        else:
+            code, weight = choice.split(':')
+
+        try:
+            choices.append((int(code), float(weight)))
+        except ValueError:
+            return Response('Invalid status code', status=400)
+
+    code = weighted_choice(choices)
+
+    return status_code(code)
+
 # Info
 
 @url_map.expose('/user-agent')
@@ -326,126 +356,7 @@ def digest_auth(request, qop=None, user='user', passwd='passwd', algorithm='MD5'
 
     return response
 
-
-@url_map.expose('/drip')
-def drip(request):
-    """Drips data over a duration after an optional initial delay."""
-    args = CaseInsensitiveDict(request.args.items())
-    duration = float(args.get('duration', 2))
-    numbytes = min(int(args.get('numbytes', 10)),(10 * 1024 * 1024)) # set 10MB limit
-    code = int(args.get('code', 200))
-
-    if numbytes <= 0:
-        response = Response('number of bytes must be positive', status=400)
-        return response
-
-    delay = float(args.get('delay', 0))
-    if delay > 0:
-        time.sleep(delay)
-
-    pause = duration / numbytes
-
-    def generate_bytes():
-        for i in xrange(numbytes):
-            yield u"*".encode('utf-8')
-            time.sleep(pause)
-
-    response = Response(
-        generate_bytes(),
-        headers={
-            "Content-Type": "application/octet-stream",
-            "Content-Length": str(numbytes)})
-
-    response.status_code = code
-
-    return response
-
-
-@url_map.expose('/bytes/<int:n>')
-def random_bytes(request, n):
-    """Returns n random bytes generated with given seed."""
-    n = min(n, 100 * 1024) # set 100KB limit
-
-    params = CaseInsensitiveDict(request.args.items())
-    if 'seed' in params:
-        random.seed(int(params['seed']))
-
-    response = Response()
-
-    # Note: can't just use os.urandom here because it ignores the seed
-    response.data = bytearray(random.randint(0, 255) for i in range(n))
-    response.content_type = 'application/octet-stream'
-    return response
-
-
-@url_map.expose('/stream-bytes/<int:n>')
-def stream_random_bytes(request, n):
-    """Streams n random bytes generated with given seed, at given chunk size per packet."""
-    n = min(n, 100 * 1024) # set 100KB limit
-
-    params = CaseInsensitiveDict(request.args.items())
-    if 'seed' in params:
-        random.seed(int(params['seed']))
-
-    if 'chunk_size' in params:
-        chunk_size = max(1, int(params['chunk_size']))
-    else:
-        chunk_size = 10 * 1024
-
-    def generate_bytes():
-        chunks = bytearray()
-
-        for i in xrange(n):
-            chunks.append(random.randint(0, 255))
-            if len(chunks) == chunk_size:
-                yield(bytes(chunks))
-                chunks = bytearray()
-
-        if chunks:
-            yield(bytes(chunks))
-
-    headers = {'Content-Type': 'application/octet-stream'}
-
-    return Response(generate_bytes(), headers=headers)
-
-
-@url_map.expose('/status/<codes>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
-def view_status_code(request, codes):
-    """Return status code or random status code if more than one are given"""
-
-    if ',' not in codes:
-        try:
-            code = int(codes)
-        except ValueError:
-            return Response('Invalid status code', status=400)
-        return status_code(code)
-
-    choices = []
-    for choice in codes.split(','):
-        if ':' not in choice:
-            code = choice
-            weight = 1
-        else:
-            code, weight = choice.split(':')
-
-        try:
-            choices.append((int(code), float(weight)))
-        except ValueError:
-            return Response('Invalid status code', status=400)
-
-    code = weighted_choice(choices)
-
-    return status_code(code)
-
-
-@url_map.expose("/xml")
-def xml(request):
-    response = render(
-        request,
-        "sample.xml",
-        content_type="application/xml")
-    return response
-
+# Redirects
 
 @url_map.expose('/redirect/<int:n>')
 def redirect_n_times(request, n):
@@ -619,6 +530,15 @@ def etag(request, etag):
 
 # Pages
 
+@url_map.expose("/xml")
+def xml(request):
+    response = render(
+        request,
+        "sample.xml",
+        content_type="application/xml")
+    return response
+
+
 @url_map.expose('/html')
 def view_html_page(request):
     """Simple Html Page"""
@@ -648,3 +568,85 @@ def view_deny_page(request):
 def view_uuid(request):
     """Returns a UUID."""
     return jsonify(uuid=str(uuid.uuid4()))
+
+
+@url_map.expose('/drip')
+def drip(request):
+    """Drips data over a duration after an optional initial delay."""
+    args = CaseInsensitiveDict(request.args.items())
+    duration = float(args.get('duration', 2))
+    numbytes = min(int(args.get('numbytes', 10)),(10 * 1024 * 1024)) # set 10MB limit
+    code = int(args.get('code', 200))
+
+    if numbytes <= 0:
+        response = Response('number of bytes must be positive', status=400)
+        return response
+
+    delay = float(args.get('delay', 0))
+    if delay > 0:
+        time.sleep(delay)
+
+    pause = duration / numbytes
+
+    def generate_bytes():
+        for i in xrange(numbytes):
+            yield u"*".encode('utf-8')
+            time.sleep(pause)
+
+    response = Response(
+        generate_bytes(),
+        headers={
+            "Content-Type": "application/octet-stream",
+            "Content-Length": str(numbytes)})
+
+    response.status_code = code
+
+    return response
+
+
+@url_map.expose('/bytes/<int:n>')
+def random_bytes(request, n):
+    """Returns n random bytes generated with given seed."""
+    n = min(n, 100 * 1024) # set 100KB limit
+
+    params = CaseInsensitiveDict(request.args.items())
+    if 'seed' in params:
+        random.seed(int(params['seed']))
+
+    response = Response()
+
+    # Note: can't just use os.urandom here because it ignores the seed
+    response.data = bytearray(random.randint(0, 255) for i in range(n))
+    response.content_type = 'application/octet-stream'
+    return response
+
+
+@url_map.expose('/stream-bytes/<int:n>')
+def stream_random_bytes(request, n):
+    """Streams n random bytes generated with given seed, at given chunk size per packet."""
+    n = min(n, 100 * 1024) # set 100KB limit
+
+    params = CaseInsensitiveDict(request.args.items())
+    if 'seed' in params:
+        random.seed(int(params['seed']))
+
+    if 'chunk_size' in params:
+        chunk_size = max(1, int(params['chunk_size']))
+    else:
+        chunk_size = 10 * 1024
+
+    def generate_bytes():
+        chunks = bytearray()
+
+        for i in xrange(n):
+            chunks.append(random.randint(0, 255))
+            if len(chunks) == chunk_size:
+                yield(bytes(chunks))
+                chunks = bytearray()
+
+        if chunks:
+            yield(bytes(chunks))
+
+    headers = {'Content-Type': 'application/octet-stream'}
+
+    return Response(generate_bytes(), headers=headers)
