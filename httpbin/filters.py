@@ -66,7 +66,7 @@ def gzip(f, *args, **kwargs):
 
 @decorator
 def deflate(f, *args, **kwargs):
-    """Deflate Flask Response Decorator."""
+    """Deflate Response Decorator."""
 
     data = f(*args, **kwargs)
 
