@@ -27,9 +27,9 @@ import jinja2
 from raven.contrib.flask import Sentry
 
 from . import filters
-from .helpers import get_dict, check_basic_auth, status_code, get_headers, check_digest_auth, digest_challenge_response, next_stale_after_value, get_request_range, parse_multi_value_header
+from .helpers import get_dict, check_basic_auth, status_code, get_headers, check_digest_auth, digest_challenge_response, next_stale_after_value, get_request_range, parse_multi_value_header, ROBOT_TXT, ANGRY_ASCII
 # from .helpers import status_code, get_dict,
-    # secure_cookie, H, ROBOT_TXT, ANGRY_ASCII, 
+    # secure_cookie, H, 
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
@@ -614,3 +614,21 @@ def etag(request, etag):
 def view_html_page(request):
     """Simple Html Page"""
     return render(request, 'moby.html')
+
+
+@url_map.expose('/robots.txt')
+def view_robots_page(request):
+    """Simple Html Page"""
+    response = Response(
+        ROBOT_TXT,
+        content_type="text/plain")
+    return response
+
+
+@url_map.expose('/deny')
+def view_deny_page(request):
+    """Simple Html Page"""
+    response = Response(
+        ANGRY_ASCII,
+        content_type="text/plain")
+    return response

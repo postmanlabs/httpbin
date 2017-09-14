@@ -791,3 +791,17 @@ def test_html_page():
     response = session.get(url('/html'))
     assert get_mime_type(response) == "text/html"
     assert b"<html>" in response.content
+
+
+def test_robots_page():
+    session = get_session()
+    response = session.get(url('/robots.txt'))
+    assert get_mime_type(response) == "text/plain"
+    assert b"Disallow" in response.content
+
+
+def test_deny_page():
+    session = get_session()
+    response = session.get(url('/deny'))
+    assert get_mime_type(response) == "text/plain"
+    assert b"YOU SHOULDN'T BE HERE" in response.content
