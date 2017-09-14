@@ -301,6 +301,14 @@ def view_brotli_encoded_content(request):
         get_dict(
             request, 'origin', 'headers', method=request.method, brotli=True))
 
+
+@url_map.expose('/deflate')
+@filters.deflate
+def view_deflate_encoded_content(request):
+    """Returns Deflate-Encoded Data."""
+    return jsonify(get_dict(
+        request, 'origin', 'headers', method=request.method, deflated=True))
+
 # Auth
 
 @url_map.expose('/basic-auth/<user>/<passwd>')
