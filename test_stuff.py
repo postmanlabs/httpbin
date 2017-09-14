@@ -821,7 +821,6 @@ def test_headers():
 
 # Methods
 
-
 def test_methods():
     def do_passing_method(url_method, http_method):
         session = get_session()
