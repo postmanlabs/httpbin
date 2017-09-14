@@ -172,9 +172,7 @@ if os.environ.get("BUGSNAG_API_KEY") is not None:
 # Routes
 # ------
 
-
 # Methods
-
 
 @url_map.expose("/<any(get, post, put, patch, delete):method>", methods=('GET', 'POST', 'PUT', 'PATCH', 'DELETE'))
 def view_method(request, method):
