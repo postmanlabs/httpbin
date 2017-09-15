@@ -300,6 +300,7 @@ def test_deflate():
     response = session.get(url('/deflate'))
     assert response.status_code == 200
 
+# Auth
 
 def test_digest_auth_with_wrong_password():
     auth_header = 'Digest username="user",realm="wrong",nonce="wrong",uri="/digest-auth/user/passwd/MD5",response="wrong",opaque="wrong"'
