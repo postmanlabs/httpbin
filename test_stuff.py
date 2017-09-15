@@ -818,6 +818,12 @@ def test_links_with_none_matching():
         assert str(i) in content
     assert len(response.content.split(b"<a href=")) == 11
 
+def test_links_page():
+    session = get_session()
+    response = session.get(url('/links/10'))
+    assert response.status_code == 200
+    assert response.url == url("/links/10/0")
+
 # Info pages
 
 def test_origin():

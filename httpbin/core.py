@@ -603,6 +603,12 @@ def link_page(request, n, offset):
     response = Response(content)
     return response
 
+
+@url_map.expose('/links/<int:n>')
+def links(request, n):
+    """Redirect to first links page."""
+    return redirect(request.url_for('link_page', values=dict(n=n, offset=0)))
+
 # Images
 
 @url_map.expose('/image')
