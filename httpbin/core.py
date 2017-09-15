@@ -294,6 +294,15 @@ def set_cookie(request, name, value):
     response.set_cookie(key=name, value=value, secure=secure_cookie(request))
     return response
 
+
+@url_map.expose('/cookies/set')
+def set_cookies(request):
+    """Sets cookie(s) as provided by the query string and redirects to cookie list."""
+    response = redirect(request.url_for('view_cookies'))
+    for key, value in request.args.items():
+        response.set_cookie(key=key, value=value, secure=secure_cookie(request))
+    return response
+
 # Encodings
 
 @url_map.expose('/base64/<value>')

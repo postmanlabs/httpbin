@@ -872,6 +872,14 @@ def test_set_cookie():
         url("/cookies/set/flibble/flamble"))
     assert response.json()['cookies'] == {'flibble': 'flamble'}
 
+
+def test_set_cookies():
+    session = get_session()
+    response = session.get(
+        url("/cookies/set?flooble=flumble&flim=flam"))
+    expected = {'flooble': 'flumble', 'flim': 'flam'}
+    assert response.json()['cookies'] == expected
+
 # Methods
 
 def test_methods():
