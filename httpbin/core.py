@@ -309,6 +309,12 @@ def view_deflate_encoded_content(request):
     return jsonify(get_dict(
         request, 'origin', 'headers', method=request.method, deflated=True))
 
+
+@url_map.expose('/encoding/utf8')
+def encoding(request):
+    response = render(request, "UTF-8-demo.txt")
+    return response
+
 # Auth
 
 @url_map.expose('/basic-auth/<user>/<passwd>')

@@ -300,6 +300,11 @@ def test_deflate():
     response = session.get(url('/deflate'))
     assert response.status_code == 200
 
+def test_utf8():
+    session = get_session()
+    response = session.get(url('/encoding/utf8'))
+    assert response.status_code == 200
+
 # Auth
 
 def test_digest_auth_with_wrong_password():
