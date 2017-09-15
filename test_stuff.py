@@ -857,6 +857,14 @@ def test_headers():
     assert get_mime_type(response) == "application/json"
     assert response.json()['headers']['Flim-Flam'] == "flooble"
 
+
+def test_cookies():
+    session = get_session()
+    response = session.get(
+        url("/cookies"),
+        headers={"Cookie": "foo=bar; __utmz=flibble"})
+    assert response.json()['cookies'] == {'foo': 'bar'}
+
 # Methods
 
 def test_methods():

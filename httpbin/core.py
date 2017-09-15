@@ -274,6 +274,19 @@ def response_headers(request):
             break
     return response
 
+
+@url_map.expose('/cookies')
+def view_cookies(request, hide_env=True):
+    """Returns cookie data."""
+    cookies = dict(request.cookies.items())
+    if hide_env and ('show_env' not in request.args):
+        for key in ENV_COOKIES:
+            try:
+                del cookies[key]
+            except KeyError:
+                pass
+    return jsonify(cookies=cookies)
+
 # Encodings
 
 @url_map.expose('/base64/<value>')
