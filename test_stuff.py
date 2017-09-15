@@ -865,6 +865,13 @@ def test_cookies():
         headers={"Cookie": "foo=bar; __utmz=flibble"})
     assert response.json()['cookies'] == {'foo': 'bar'}
 
+
+def test_set_cookie():
+    session = get_session()
+    response = session.get(
+        url("/cookies/set/flibble/flamble"))
+    assert response.json()['cookies'] == {'flibble': 'flamble'}
+
 # Methods
 
 def test_methods():

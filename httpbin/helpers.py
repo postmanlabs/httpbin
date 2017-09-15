@@ -369,7 +369,7 @@ def check_digest_auth(request, user, passwd):
     return False
 
 
-def secure_cookie():
+def secure_cookie(request):
     """Return true if cookie should have secure attribute"""
     return request.environ['wsgi.url_scheme'] == 'https'
 

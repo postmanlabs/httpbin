@@ -27,9 +27,8 @@ import jinja2
 from raven.contrib.flask import Sentry
 
 from . import filters
-from .helpers import get_dict, check_basic_auth, status_code, get_headers, check_digest_auth, digest_challenge_response, next_stale_after_value, get_request_range, parse_multi_value_header, ROBOT_TXT, ANGRY_ASCII
-# from .helpers import status_code, get_dict,
-    # secure_cookie, H, 
+from .helpers import get_dict, check_basic_auth, status_code, get_headers, check_digest_auth, digest_challenge_response, next_stale_after_value, get_request_range, parse_multi_value_header, ROBOT_TXT, ANGRY_ASCII, secure_cookie
+
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
@@ -286,6 +285,14 @@ def view_cookies(request, hide_env=True):
             except KeyError:
                 pass
     return jsonify(cookies=cookies)
+
+
+@url_map.expose('/cookies/set/<name>/<value>')
+def set_cookie(request, name, value):
+    """Sets a cookie and redirects to cookie list."""
+    response = redirect(request.url_for('view_cookies'))
+    response.set_cookie(key=name, value=value, secure=secure_cookie(request))
+    return response
 
 # Encodings
 
