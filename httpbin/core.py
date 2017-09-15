@@ -580,6 +580,29 @@ def view_deny_page(request):
         content_type="text/plain")
     return response
 
+
+@url_map.expose('/links/<int:n>/<int:offset>')
+def link_page(request, n, offset):
+    """Generate a page containing n links to other pages which do the same."""
+    n = min(max(1, n), 200) # limit to between 1 and 200 links
+
+    link = "<a href='{0}'>{1}</a> "
+
+    html = ['<html><head><title>Links</title></head><body>']
+    for i in xrange(n):
+        print(i, offset)
+        if i == offset:
+            html.append("{0} ".format(i))
+        else:
+            html.append(
+                link.format(
+                    request.url_for('link_page', values=dict(n=n, offset=i)), i))
+    html.append('</body></html>')
+
+    content = ''.join(html)
+    response = Response(content)
+    return response
+
 # Images
 
 @url_map.expose('/image')
