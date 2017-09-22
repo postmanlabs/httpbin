@@ -730,6 +730,23 @@ def view_uuid(request):
     return jsonify(uuid=str(uuid.uuid4()))
 
 
+@url_map.expose('/cache', methods=('GET',))
+def cache(request):
+    """Returns a 304 if an If-Modified-Since header or If-None-Match is present. Returns the same as a GET otherwise."""
+    is_conditional = (
+        "If-Modified-Since" in request.headers
+        or
+        "If-None-Match" in request.headers)
+
+    if is_conditional:
+        return status_code(304)
+    else:
+        response = view_method(request, 'get')
+        response.headers['Last-Modified'] = http_date()
+        response.headers['ETag'] = uuid.uuid4().hex
+        return response
+
+
 @url_map.expose('/delay/<delay>')
 def delay_response(request, delay):
     """Returns a delayed response"""

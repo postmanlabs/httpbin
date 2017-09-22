@@ -491,6 +491,28 @@ def test_delay_response():
     assert "0.1" in response.json()['url']
 
 
+def test_cache_miss():
+    session = get_session()
+    response = session.get(url("/cache"))
+    assert response.status_code == 200
+
+
+def test_cache_modified():
+    session = get_session()
+    response = session.get(
+        url("/cache"),
+        headers={"If-Modified-Since": "flibble"})
+    assert response.status_code == 304
+
+
+def test_cache_none_match():
+    session = get_session()
+    response = session.get(
+        url("/cache"),
+        headers={"If-None-Match": "flibble"})
+    assert response.status_code == 304
+
+
 def test_drip():
     session = get_session()
     response = session.get(url('/drip?numbytes=400&duration=0.2&delay=0.1'))
