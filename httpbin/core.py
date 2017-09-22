@@ -354,6 +354,14 @@ def basic_auth(request, user='user', passwd='passwd'):
     return jsonify(authenticated=True, user=user)
 
 
+@url_map.expose('/hidden-basic-auth/<user>/<passwd>')
+def hidden_basic_auth(request, user='user', passwd='passwd'):
+    """Prompts the user for authorization using HTTP Basic Auth."""
+    if not check_basic_auth(request, user, passwd):
+        return status_code(404)
+    return jsonify(authenticated=True, user=user)
+
+
 @url_map.expose('/digest-auth/<qop>/<user>/<passwd>')
 def digest_auth_md5(request, qop=None, user='user', passwd='passwd'):
     return digest_auth(request, qop, user, passwd, "MD5", 'never')
@@ -408,14 +416,6 @@ def digest_auth(request, qop=None, user='user', passwd='passwd', algorithm='MD5'
         response.set_cookie('stale_after', value=next_stale_after_value(stale_after_value))
 
     return response
-
-
-@url_map.expose('/hidden-basic-auth/<user>/<passwd>')
-def hidden_basic_auth(request, user='user', passwd='passwd'):
-    """Prompts the user for authorization using HTTP Basic Auth."""
-    if not check_basic_auth(request, user, passwd):
-        return status_code(404)
-    return jsonify(authenticated=True, user=user)
 
 # Redirects
 
