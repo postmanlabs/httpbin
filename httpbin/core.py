@@ -491,6 +491,22 @@ def absolute_redirect_n_times(request, n):
     return _redirect(request, 'absolute', n, True)
 
 
+@url_map.expose('/stream/<int:n>')
+def stream_n_messages(request, n):
+    """Stream n JSON messages"""
+    response = get_dict(request, 'url', 'args', 'headers', 'origin')
+    n = min(n, 100)
+
+    def generate_stream():
+        for i in range(n):
+            response['id'] = i
+            yield json.dumps(response) + '\n'
+
+    return Response(generate_stream(), headers={
+        "Content-Type": "application/json",
+    })
+
+
 @url_map.expose('/range/<int:numbytes>')
 def range_request(request, numbytes):
     """Streams n random bytes generated with given seed, at given chunk size per packet."""

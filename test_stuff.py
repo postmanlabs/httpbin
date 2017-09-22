@@ -5,6 +5,7 @@ import urllib.parse
 from hashlib import md5, sha256
 import os
 import contextlib
+import json
 
 import requests
 from wsgiadapter import WSGIAdapter
@@ -453,6 +454,17 @@ def test_drip_with_custom_code():
     assert int(response.headers['Content-Length']) == 400
     assert len(response.content) == 400
 
+
+def test_stream_messages():
+    session = get_session()
+    response = session.get(url('/stream/10'))
+    assert response.status_code == 200
+    lines = response.content.strip().split(b"\n")
+    assert len(lines) == 10
+    data = [json.loads(line) for line in lines]
+    for datum in data:
+        assert 'id' in datum
+        assert datum['url'] == "http://localhost/stream/10"
 
 def test_get_bytes():
     session = get_session()
