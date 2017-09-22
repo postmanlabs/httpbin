@@ -806,6 +806,7 @@ def test_deny_page():
     assert get_mime_type(response) == "text/plain"
     assert b"YOU SHOULDN'T BE HERE" in response.content
 
+
 def test_links_with_first_matching():
     session = get_session()
     response = session.get(url('/links/5/0'))
@@ -815,6 +816,7 @@ def test_links_with_first_matching():
         assert str(i) in content
     assert len(response.content.split(b"<a href=")) == 5
 
+
 def test_links_with_none_matching():
     session = get_session()
     response = session.get(url('/links/10/11'))
@@ -823,6 +825,7 @@ def test_links_with_none_matching():
     for i in range(10):
         assert str(i) in content
     assert len(response.content.split(b"<a href=")) == 11
+
 
 def test_links_page():
     session = get_session()
