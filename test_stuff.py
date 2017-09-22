@@ -334,6 +334,32 @@ def test_basic_auth_success():
     assert response.status_code == 200
 
 
+def test_hidden_basic_auth_fail_no_try():
+    session = get_session()
+    response = session.get(url('/hidden-basic-auth/mr-flibble/Password1'))
+    assert response.status_code == 404
+
+
+def test_hidden_basic_auth_fail_try():
+    session = get_session()
+    auth = base64.b64encode(b"mr-hacker:password").decode('utf-8')
+    headers = {"Authorization": "Basic {}".format(auth)}
+    response = session.get(
+        url('/hidden-basic-auth/mr-flibble/Password1'),
+        headers=headers)
+    assert response.status_code == 404
+
+
+def test_hidden_basic_auth_success():
+    session = get_session()
+    auth = base64.b64encode(b"mr-flibble:Password1").decode('utf-8')
+    headers = {"Authorization": "Basic {}".format(auth)}
+    response = session.get(
+        url('/hidden-basic-auth/mr-flibble/Password1'),
+        headers=headers)
+    assert response.status_code == 200
+
+
 def test_digest_auth_with_wrong_password():
     auth_header = 'Digest username="user",realm="wrong",nonce="wrong",uri="/digest-auth/user/passwd/MD5",response="wrong",opaque="wrong"'
     session = get_session()
@@ -927,6 +953,21 @@ def test_set_cookies():
         url("/cookies/set?flooble=flumble&flim=flam&__utma=foo"))
     expected = {'flooble': 'flumble', 'flim': 'flam'}
     assert response.json()['cookies'] == expected
+
+# TODO: FIXME
+# def test_delete_cookies():
+#     session = get_session()
+#     response = session.get(
+#         url("/cookies/set?flooble=flumble&flim=flam&__utma=foo"))
+#     expected = {'flooble': 'flumble', 'flim': 'flam'}
+#     assert response.json()['cookies'] == expected
+#     response = session.get(
+#         url("/cookies/delete?flooble=flumble"))
+#     expected = {'flim': 'flam'}
+#     print("session.cookies:", session.cookies)
+#     print(response.json())
+#     assert response.json()['cookies'] == expected
+
 
 # Methods
 

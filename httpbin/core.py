@@ -409,6 +409,14 @@ def digest_auth(request, qop=None, user='user', passwd='passwd', algorithm='MD5'
 
     return response
 
+
+@url_map.expose('/hidden-basic-auth/<user>/<passwd>')
+def hidden_basic_auth(request, user='user', passwd='passwd'):
+    """Prompts the user for authorization using HTTP Basic Auth."""
+    if not check_basic_auth(request, user, passwd):
+        return status_code(404)
+    return jsonify(authenticated=True, user=user)
+
 # Redirects
 
 @url_map.expose('/redirect/<int:n>')
