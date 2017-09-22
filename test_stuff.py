@@ -830,6 +830,13 @@ def test_links_page():
     assert response.status_code == 200
     assert response.url == url("/links/10/0")
 
+
+def test_forms_page():
+    session = get_session()
+    response = session.get(url('/forms/post'))
+    assert response.status_code == 200
+    assert b'''<form method="post"''' in response.content
+
 # Info pages
 
 def test_origin():

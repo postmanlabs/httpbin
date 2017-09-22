@@ -644,6 +644,12 @@ def links(request, n):
     """Redirect to first links page."""
     return redirect(request.url_for('link_page', values=dict(n=n, offset=0)))
 
+
+@url_map.expose('/forms/post')
+def view_forms_post(request):
+    """Simple HTML form."""
+    return render(request, 'forms-post.html')
+
 # Images
 
 @url_map.expose('/image')
