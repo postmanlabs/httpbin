@@ -327,7 +327,7 @@ def _test_digest_auth(username, password, qop, algorithm=None, body=None, stale_
         session, header, username, password, qop, uri, body)
     assert authorized_response.status_code == 200
 
-    if None == stale_after:
+    if stale_after is None:
         return
 
     # test stale after scenerio
