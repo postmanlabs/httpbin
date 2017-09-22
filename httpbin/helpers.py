@@ -373,6 +373,7 @@ def secure_cookie(request):
     """Return true if cookie should have secure attribute"""
     return request.environ['wsgi.url_scheme'] == 'https'
 
+
 def __parse_request_range(range_header_text):
     """ Return a tuple describing the byte range requested in a GET request
     If the range is open ended on the left or right side, then a value of None
