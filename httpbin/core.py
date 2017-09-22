@@ -730,6 +730,15 @@ def view_uuid(request):
     return jsonify(uuid=str(uuid.uuid4()))
 
 
+@url_map.expose('/delay/<delay>')
+def delay_response(request, delay):
+    """Returns a delayed response"""
+    delay = min(float(delay), 10)
+    time.sleep(delay)
+    return jsonify(get_dict(
+        request, 'url', 'args', 'form', 'data', 'origin', 'headers', 'files'))
+
+
 @url_map.expose('/drip')
 def drip(request):
     """Drips data over a duration after an optional initial delay."""

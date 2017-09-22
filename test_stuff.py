@@ -482,6 +482,14 @@ def _test_digest_auth_wrong_pass(username, password, qop, algorithm=None, body=N
     header = reused_nonce_response.headers.get('WWW-Authenticate')
     assert 'stale=TRUE' in header
 
+# Utilities
+
+def test_delay_response():
+    session = get_session()
+    response = session.get(url("/delay/0.1"))
+    assert response.status_code == 200
+    assert "0.1" in response.json()['url']
+
 
 def test_drip():
     session = get_session()
