@@ -124,6 +124,29 @@ def get_files():
 
     return files
 
+def get_files_with_content_type():
+    """returns files dict from request context, including their original
+    filename, content-type, and contents"""
+
+    files = dict()
+
+    for k, v in request.files.items():
+        content_type = request.files[k].content_type or 'application/octet-stream'
+        name = request.files[k].filename or ''
+
+        # We are seeking the initial position of `v` because it will probably
+        # have been read by get_files at this point.
+        v.seek(0)
+
+        contents = json_safe(v.read(), content_type)
+        val = dict(payload=contents, content_type=content_type, name=name)
+        if files.get(k):
+            if not isinstance(files[k], list):
+                files[k] = [files[k]]
+            files[k].append(val)
+        else:
+            files[k] = val
+    return files
 
 def get_headers(hide_env=True):
     """Returns headers dict from request context."""
@@ -172,7 +195,8 @@ def get_url(request):
 def get_dict(*keys, **extras):
     """Returns request dict of given keys."""
 
-    _keys = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json', 'method')
+    _keys = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files',
+        'json', 'method', 'files_with_content_type')
 
     assert all(map(_keys.__contains__, keys))
     data = request.data
@@ -191,6 +215,7 @@ def get_dict(*keys, **extras):
         origin=request.headers.get('X-Forwarded-For', request.remote_addr),
         headers=get_headers(),
         files=get_files(),
+        files_with_content_type=get_files_with_content_type(),
         json=_json,
         method=request.method,
     )
