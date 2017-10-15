@@ -359,9 +359,14 @@ def check_digest_auth(request, user, passwd):
         credentials = parse_authorization_header(request.headers.get('Authorization'))
         if not credentials:
             return
+        request_uri = request.script_root + request.path
+        if request.query_string:
+            request_uri +=  '?' + request.query_string
         response_hash = auth_response(
-            credentials, passwd, dict(
-                uri=request.script_root + request.path,
+            credentials,
+            passwd,
+            dict(
+                uri=request_uri,
                 body=request.data,
                 method=request.method))
         if credentials.get('response') == response_hash:
