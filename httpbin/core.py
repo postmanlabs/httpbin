@@ -7,13 +7,13 @@ httpbin.core
 This module provides the core HttpBin experience.
 """
 
+import argparse
 import base64
 import json
 import os
 import random
 import time
 import uuid
-import argparse
 
 from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
 from flask_common import Common
