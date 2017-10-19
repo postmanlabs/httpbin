@@ -462,8 +462,8 @@ def digest_challenge_response(app, qop, algorithm, stale = False):
         str(time.time()).encode('ascii'),
         b':',
         os.urandom(10)
-    ]), "MD5")
-    opaque = H(os.urandom(10), "MD5")
+    ]), algorithm)
+    opaque = H(os.urandom(10), algorithm)
 
     auth = WWWAuthenticate("digest")
     auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
