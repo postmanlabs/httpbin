@@ -435,6 +435,16 @@ def delete_cookies():
     return r
 
 
+@app.route('/basic-auth/<user>')
+def basic_auth_without_password(user='user'):
+    """Prompts the user for authorization using HTTP Basic Auth without a password."""
+
+    if not check_basic_auth(user, ''):
+        return status_code(401)
+
+    return jsonify(authenticated=True, user=user)
+
+
 @app.route('/basic-auth/<user>/<passwd>')
 def basic_auth(user='user', passwd='passwd'):
     """Prompts the user for authorization using HTTP Basic Auth."""
