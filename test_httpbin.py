@@ -207,7 +207,7 @@ class HttpbinTestCase(unittest.TestCase):
     def test_basic(self):
         user = 'foo'
         password = 'bar'
-        response = self.app.get('/basic-auth/{0}/{1}'.format(user, password), headers={'Authorization': 'Basic ' + base64.b64encode('{0}:{1}'.format(user, password))})
+        response = self.app.get('/basic-auth/{0}/{1}'.format(user, password), headers={'Authorization': 'Basic ' + base64.b64encode('{0}:{1}'.format(user, password).encode()).decode()})
         self.assertEqual(response.status_code, 200)
         response_data = json.loads(response.data.decode('utf-8'))
         self.assertTrue(response_data['authenticated'])
@@ -220,7 +220,7 @@ class HttpbinTestCase(unittest.TestCase):
 
     def test_basic_without_password(self):
         user = 'foo'
-        response = self.app.get('/basic-auth/{0}'.format(user), headers={'Authorization': 'Basic ' + base64.b64encode('{0}:'.format(user))})
+        response = self.app.get('/basic-auth/{0}'.format(user), headers={'Authorization': 'Basic ' + base64.b64encode('{0}:'.format(user).encode()).decode()})
         self.assertEqual(response.status_code, 200)
         response_data = json.loads(response.data.decode('utf-8'))
         self.assertTrue(response_data['authenticated'])
