@@ -1,0 +1,3 @@
+requests
+nose
+requests-wsgi-adapter
