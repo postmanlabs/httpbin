@@ -24,7 +24,10 @@ from werkzeug.wrappers import BaseResponse
 from werkzeug.http import parse_authorization_header
 from werkzeug.exceptions import HTTPException, MethodNotAllowed
 import jinja2
-from raven.contrib.flask import Sentry
+try:
+    from raven.contrib.flask import Sentry
+except ImportError:
+    Sentry = None
 
 from . import filters
 from .helpers import get_dict, check_basic_auth, status_code, get_headers, check_digest_auth, digest_challenge_response, next_stale_after_value, get_request_range, parse_multi_value_header, ROBOT_TXT, ANGRY_ASCII, secure_cookie
@@ -158,6 +161,7 @@ def render(request, template_name, content_type="text/html; charset=utf-8", **kw
 
 # Send app errors to Sentry.
 if 'SENTRY_DSN' in os.environ:
+    assert Sentry, "Must install Sentry"
     sentry = Sentry(app, dsn=os.environ['SENTRY_DSN'])
 
 # Set up Bugsnag exception tracking, if desired. To use Bugsnag, install the
