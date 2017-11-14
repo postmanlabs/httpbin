@@ -13,7 +13,6 @@ import os
 import random
 import time
 import uuid
-import argparse
 
 import werkzeug
 from werkzeug import Response, Request, redirect
