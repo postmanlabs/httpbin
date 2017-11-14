@@ -985,18 +985,16 @@ def test_set_cookies():
     assert response.json()['cookies'] == expected
 
 # TODO: FIXME
-# def test_delete_cookies():
-#     session = get_session()
-#     response = session.get(
-#         url("/cookies/set?flooble=flumble&flim=flam&__utma=foo"))
-#     expected = {'flooble': 'flumble', 'flim': 'flam'}
-#     assert response.json()['cookies'] == expected
-#     response = session.get(
-#         url("/cookies/delete?flooble=flumble"))
-#     expected = {'flim': 'flam'}
-#     print("session.cookies:", session.cookies)
-#     print(response.json())
-#     assert response.json()['cookies'] == expected
+def test_delete_cookies():
+    session = get_session()
+    response = session.get(
+        url("/cookies/set?flooble=flumble&flim=flam&__utma=foo"))
+    expected = {'flooble': 'flumble', 'flim': 'flam'}
+    assert response.json()['cookies'] == expected
+    response = session.get(
+        url("/cookies/delete?flooble=flumble"))
+    expected = {'flim': 'flam'}
+    assert response.json()['cookies'] == expected
 
 
 # Methods

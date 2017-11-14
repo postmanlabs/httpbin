@@ -306,6 +306,15 @@ def set_cookies(request):
         response.set_cookie(key=key, value=value, secure=secure_cookie(request))
     return response
 
+
+@url_map.expose('/cookies/delete')
+def delete_cookies(request):
+    """Deletes cookie(s) as provided by the query string and redirects to cookie list."""
+    response = redirect(request.url_for('view_cookies'))
+    for key, value in request.args.items():
+        response.delete_cookie(key=key)
+    return response
+
 # Encodings
 
 @url_map.expose('/base64/<value>')
