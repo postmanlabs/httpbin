@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import base64
-import urllib.parse
+from six.moves.urllib.parse import urljoin
 from hashlib import md5, sha256
 import os
 import contextlib
@@ -32,9 +32,9 @@ def get_session():
 
 def url(path):
     if isinstance(path, str):
-        return urllib.parse.urljoin(base_url, path)
+        return urljoin(base_url, path)
     elif isinstance(path, bytes):
-        return urllib.parse.urljoin(base_url.encode('utf-8'), path)
+        return urljoin(base_url.encode('utf-8'), path)
 
 
 def get_mime_type(request):
@@ -317,7 +317,7 @@ def test_basic_auth_fail_no_try():
 def test_basic_auth_fail_try():
     session = get_session()
     auth = base64.b64encode(b"mr-hacker:password").decode('utf-8')
-    headers = {"Authorization": "Basic {}".format(auth)}
+    headers = {"Authorization": "Basic {0}".format(auth)}
     response = session.get(
         url('/basic-auth/mr-flibble/Password1'),
         headers=headers)
@@ -327,7 +327,7 @@ def test_basic_auth_fail_try():
 def test_basic_auth_success():
     session = get_session()
     auth = base64.b64encode(b"mr-flibble:Password1").decode('utf-8')
-    headers = {"Authorization": "Basic {}".format(auth)}
+    headers = {"Authorization": "Basic {0}".format(auth)}
     response = session.get(
         url('/basic-auth/mr-flibble/Password1'),
         headers=headers)
@@ -343,7 +343,7 @@ def test_hidden_basic_auth_fail_no_try():
 def test_hidden_basic_auth_fail_try():
     session = get_session()
     auth = base64.b64encode(b"mr-hacker:password").decode('utf-8')
-    headers = {"Authorization": "Basic {}".format(auth)}
+    headers = {"Authorization": "Basic {0}".format(auth)}
     response = session.get(
         url('/hidden-basic-auth/mr-flibble/Password1'),
         headers=headers)
@@ -353,7 +353,7 @@ def test_hidden_basic_auth_fail_try():
 def test_hidden_basic_auth_success():
     session = get_session()
     auth = base64.b64encode(b"mr-flibble:Password1").decode('utf-8')
-    headers = {"Authorization": "Basic {}".format(auth)}
+    headers = {"Authorization": "Basic {0}".format(auth)}
     response = session.get(
         url('/hidden-basic-auth/mr-flibble/Password1'),
         headers=headers)
@@ -431,7 +431,7 @@ def _test_digest_response_for_auth_request(session, header, username, password, 
         assert qop in expected, 'Challenge should contains expected qop'
 
     if qop in ('auth', 'auth-int'):
-        cnonce, nc = (_hash(os.urandom(10), "MD5"), '{:08}'.format(nc))
+        cnonce, nc = (_hash(os.urandom(10), "MD5"), '{0:08}'.format(nc))
     else:
         cnonce, nc = (None, None)
 
@@ -1005,7 +1005,7 @@ def test_methods():
     def do_passing_method(url_method, http_method):
         session = get_session()
         response = getattr(session, http_method)(
-            url('/{}'.format(url_method)), headers={'User-Agent': 'test'})
+            url('/{0}'.format(url_method)), headers={'User-Agent': 'test'})
         assert response.status_code == 200
         data = response.json()
         assert data['args'] == {}
@@ -1013,13 +1013,13 @@ def test_methods():
         assert data['headers']['Content-Type'] == 'text/plain'
         assert data['headers']['Content-Length'] == '0'
         assert data['headers']['User-Agent'] == 'test'
-        assert data['url'] == 'http://localhost/{}'.format(url_method)
+        assert data['url'] == 'http://localhost/{0}'.format(url_method)
         assert response.content.endswith(b'\n')
 
     def do_failing_method(url_method, http_method):
         session = get_session()
         response = getattr(session, http_method)(
-            url('/{}'.format(url_method)), headers={'User-Agent': 'test'})
+            url('/{0}'.format(url_method)), headers={'User-Agent': 'test'})
         assert response.status_code == 405
         assert response.headers['Allow'] == url_method.upper()
 
@@ -1052,7 +1052,7 @@ def test_images():
 
     def do_image_type_endpoint(image_type, mimetype):
         session = get_session()
-        response = session.get(url("/image/{}".format(image_type)))
+        response = session.get(url("/image/{0}".format(image_type)))
         assert response.status_code == 200
         assert response.headers['Content-Type'] == mimetype
 
