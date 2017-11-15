@@ -5,5 +5,4 @@ itsdangerous
 six
 brotlipy
 jinja2
-six
 enum34; python_version < '3.4'
