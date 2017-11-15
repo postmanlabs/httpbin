@@ -541,7 +541,7 @@ def test_stream_messages():
     session = get_session()
     response = session.get(url('/stream/10'))
     assert response.status_code == 200
-    lines = response.content.strip().split(b"\n")
+    lines = response.content.decode("utf-8").strip().split("\n")
     assert len(lines) == 10
     data = [json.loads(line) for line in lines]
     for datum in data:
