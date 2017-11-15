@@ -2,4 +2,4 @@ requests
 nose
 requests-wsgi-adapter
 coverage
-python-coveralls
+coveralls
