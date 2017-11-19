@@ -394,7 +394,7 @@ def digest_auth(request, qop=None, user='user', passwd='passwd', algorithm='MD5'
     """Prompts the user for authorization using HTTP Digest auth"""
     require_cookie_handling = (request.args.get('require-cookie', '').lower() in
                                ('1', 't', 'true'))
-    if algorithm not in ('MD5', 'SHA-256'):
+    if algorithm not in ('MD5', 'SHA-256', 'SHA-512'):
         algorithm = 'MD5'
 
     if qop not in ('auth', 'auth-int'):

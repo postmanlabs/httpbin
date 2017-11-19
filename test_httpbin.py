@@ -112,7 +112,7 @@ def _make_digest_auth_header(username, password, method, uri, nonce,
     assert nonce
     assert method
     assert uri
-    assert algorithm in ('MD5', 'SHA-256', None)
+    assert algorithm in ('MD5', 'SHA-256', 'SHA-512', None)
 
     a1 = ':'.join([username, realm or '', password])
     ha1 = _hash(a1.encode('utf-8'), algorithm)
@@ -468,7 +468,7 @@ def test_digest_auth():
     username = 'user'
     password = 'passwd'
     for qop in None, 'auth', 'auth-int':
-        for algorithm in None, 'MD5', 'SHA-256':
+        for algorithm in None, 'MD5', 'SHA-256', 'SHA-512':
             for body in None, b'', b'request payload':
                 for stale_after in (None, 1, 4) if algorithm else (None,):
                     yield _test_digest_auth, username, password, qop, algorithm, body, stale_after
@@ -478,7 +478,7 @@ def test_digest_auth_wrong_pass():
     username = 'user'
     password = 'passwd'
     for qop in None, 'auth', 'auth-int':
-        for algorithm in None, 'MD5', 'SHA-256':
+        for algorithm in None, 'MD5', 'SHA-256', 'SHA-512':
             for body in None, b'', b'request payload':
                 yield _test_digest_auth_wrong_pass, username, password, qop, algorithm, body, 3
 
