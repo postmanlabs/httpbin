@@ -153,6 +153,7 @@ def semiflatten(multi):
     else:
         return multi
 
+
 def get_url(request):
     """
     Since we might be hosted behind a proxy, we need to check the
@@ -261,7 +262,6 @@ def check_basic_auth(request, user, passwd):
 
     auth = request.authorization
     return auth and auth.username == user and auth.password == passwd
-
 
 
 # Digest auth helpers
