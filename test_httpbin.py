@@ -206,6 +206,28 @@ class HttpbinTestCase(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
+    def test_basic(self):
+        user = 'foo'
+        password = 'bar'
+        response = self.app.get('/basic-auth/{0}/{1}'.format(user, password), headers={'Authorization': 'Basic ' + base64.b64encode('{0}:{1}'.format(user, password).encode()).decode()})
+        self.assertEqual(response.status_code, 200)
+        response_data = json.loads(response.data.decode('utf-8'))
+        self.assertTrue(response_data['authenticated'])
+        self.assertEqual(response_data['user'], user)
+
+    def test_basic_error(self):
+        response = self.app.get('/basic-auth/{0}/{1}'.format('user', 'password'))
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.headers.get('WWW-Authenticate'), 'Basic realm="Fake Realm"')
+
+    def test_basic_without_password(self):
+        user = 'foo'
+        response = self.app.get('/basic-auth/{0}'.format(user), headers={'Authorization': 'Basic ' + base64.b64encode('{0}:'.format(user).encode()).decode()})
+        self.assertEqual(response.status_code, 200)
+        response_data = json.loads(response.data.decode('utf-8'))
+        self.assertTrue(response_data['authenticated'])
+        self.assertEqual(response_data['user'], user)
+
     def test_set_cors_headers_after_request(self):
         response = self.app.get('/get')
         self.assertEqual(
