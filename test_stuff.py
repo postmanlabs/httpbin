@@ -19,6 +19,23 @@ base_url = "http://localhost"
 # TODO: Add tests for MethodNotAllowed, NotFound
 
 
+@contextlib.contextmanager
+def _setenv(key, value):
+    """Context manager to set an environment variable temporarily."""
+    old_value = os.environ.get(key, None)
+    if value is None:
+        os.environ.pop(key, None)
+    else:
+        os.environ[key] = value
+
+    yield
+
+    if old_value is None:
+        os.environ.pop(key, None)
+    else:
+        os.environ[key] = value
+
+
 class Session(requests.Session):
     def __repr__(self):
         return "<Session>"
@@ -1069,3 +1086,21 @@ def test_images():
     for image_type, mimetype in cases:
         yield do_image_endpoint, mimetype
         yield do_image_type_endpoint, image_type, mimetype
+
+# Tracking
+
+def test_tracking_disabled():
+    session = get_session()
+    with _setenv('HTTPBIN_TRACKING', None):
+        response = session.get(url('/'))
+    data = response.content.decode('utf-8')
+    assert 'google-analytics' not in  data
+    assert 'perfectaudience' not in data
+
+
+def test_tracking_enabled():
+    session = get_session()
+    with _setenv('HTTPBIN_TRACKING', '1'):
+        response = session.get(url('/'))
+    data = response.content.decode('utf-8')
+    assert 'perfectaudience' in data

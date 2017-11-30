@@ -152,7 +152,7 @@ def render(request, template_name, content_type="text/html; charset=utf-8", **kw
     template = jinja_env.get_template(template_name)
     body = template.render(
         request=request,
-        url_for=request.url_for,
+        url_for=lambda view_name, **view_kwargs: request.url_for(view_name, values=view_kwargs),
         **kwargs)
     response = Response(body, content_type=content_type)
     return response
@@ -618,6 +618,13 @@ def etag(request, etag):
     return response
 
 # Pages
+
+@url_map.expose('/')
+def view_landing_page(request):
+    """Generates Landing Page."""
+    tracking_enabled = 'HTTPBIN_TRACKING' in os.environ
+    return render(request, 'index.html', tracking_enabled=tracking_enabled)
+
 
 @url_map.expose("/xml")
 def xml(request):
