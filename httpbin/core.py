@@ -101,7 +101,7 @@ def before_request():
         server = request.environ.get('SERVER_SOFTWARE', '')
         if server.lower().startswith('gunicorn/'):
             if 'wsgi.input_terminated' in request.environ:
-                app.logger.warning("environ wsgi.input_terminated already set, keeping: %s"
+                app.logger.debug("environ wsgi.input_terminated already set, keeping: %s"
                                    % request.environ['wsgi.input_terminated'])
             else:
                 request.environ['wsgi.input_terminated'] = 1
