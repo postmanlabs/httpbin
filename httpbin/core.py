@@ -404,13 +404,13 @@ def digest_auth(request, qop=None, user='user', passwd='passwd', algorithm='MD5'
         response.set_cookie('stale_after', value=stale_after)
         return response
 
-    credentails = parse_authorization_header(request.headers.get('Authorization'))
-    if not credentails:
+    credentials = parse_authorization_header(request.headers.get('Authorization'))
+    if not credentials:
         response = digest_challenge_response(app, qop, algorithm)
         response.set_cookie('stale_after', value=stale_after)
         return response
 
-    current_nonce = credentails.get('nonce')
+    current_nonce = credentials.get('nonce')
     stale_after_value = None
     if 'stale_after' in request.cookies:
         stale_after_value = request.cookies.get('stale_after')
