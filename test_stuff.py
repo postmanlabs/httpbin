@@ -513,6 +513,18 @@ def test_cache_none_match():
     assert response.status_code == 304
 
 
+def test_cache_control():
+    session = get_session()
+    response = session.get(url("/cache/5"))
+    assert response.headers["Cache-Control"] == "public, max-age=5"
+
+
+def test_cache_control_404():
+    session = get_session()
+    response = session.get(url("/cache/five"))
+    assert response.status_code == 404
+
+
 def test_drip():
     session = get_session()
     response = session.get(url('/drip?numbytes=400&duration=0.2&delay=0.1'))

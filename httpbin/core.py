@@ -759,6 +759,14 @@ def cache(request):
         return response
 
 
+@url_map.expose('/cache/<int:value>')
+def cache_control(request, value):
+    """Sets a Cache-Control header."""
+    response = view_method(request, 'get')
+    response.headers['Cache-Control'] = 'public, max-age={0}'.format(value)
+    return response
+
+
 @url_map.expose('/delay/<delay>')
 def delay_response(request, delay):
     """Returns a delayed response"""
