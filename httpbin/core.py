@@ -14,10 +14,11 @@ import random
 import time
 import uuid
 
+from six.moves import range as xrange
+
 import werkzeug
 from werkzeug import Response, Request, redirect
-from six.moves import range as xrange
-from werkzeug.datastructures import WWWAuthenticate, MultiDict
+from werkzeug.datastructures import MultiDict
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
 from werkzeug.http import parse_authorization_header
@@ -29,7 +30,10 @@ except ImportError:
     Sentry = None
 
 from . import filters
-from .helpers import get_dict, check_basic_auth, status_code, get_headers, check_digest_auth, digest_challenge_response, next_stale_after_value, get_request_range, parse_multi_value_header, ROBOT_TXT, ANGRY_ASCII, secure_cookie
+from .helpers import (
+    get_dict, check_basic_auth, status_code, get_headers, check_digest_auth,
+    digest_challenge_response, next_stale_after_value, get_request_range,
+    parse_multi_value_header, ROBOT_TXT, ANGRY_ASCII, secure_cookie)
 
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
@@ -172,10 +176,11 @@ if os.environ.get("BUGSNAG_API_KEY") is not None:
         import bugsnag
         import bugsnag.flask
         release_stage = os.environ.get("BUGSNAG_RELEASE_STAGE") or "production"
-        bugsnag.configure(api_key=os.environ.get("BUGSNAG_API_KEY"),
-                          project_root=os.path.dirname(os.path.abspath(__file__)),
-                          use_ssl=True, release_stage=release_stage,
-                          ignore_classes=['werkzeug.exceptions.NotFound'])
+        bugsnag.configure(
+            api_key=os.environ.get("BUGSNAG_API_KEY"),
+            project_root=os.path.dirname(os.path.abspath(__file__)),
+            use_ssl=True, release_stage=release_stage,
+            ignore_classes=['werkzeug.exceptions.NotFound'])
         bugsnag.flask.handle_exceptions(app)
     except:
         app.logger.warning("Unable to initialize Bugsnag exception handling.")
@@ -311,7 +316,7 @@ def set_cookies(request):
 def delete_cookies(request):
     """Deletes cookie(s) as provided by the query string and redirects to cookie list."""
     response = redirect(request.url_for('view_cookies'))
-    for key, value in request.args.items():
+    for key in request.args.keys():
         response.delete_cookie(key=key)
     return response
 
