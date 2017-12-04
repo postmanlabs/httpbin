@@ -450,7 +450,7 @@ def next_stale_after_value(stale_after):
         return 'never'
 
 
-def digest_challenge_response(request, qop, algorithm, stale = False):
+def digest_challenge_response(request, qop, algorithm, stale=False):
     response = Response()
     response.status_code = 401
 
@@ -468,8 +468,12 @@ def digest_challenge_response(request, qop, algorithm, stale = False):
     opaque = H(os.urandom(10), algorithm)
 
     auth = WWWAuthenticate("digest")
-    auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
-                    qop=('auth', 'auth-int') if qop is None else (qop,), algorithm=algorithm)
+    auth.set_digest(
+        'me@kennethreitz.com',
+        nonce,
+        opaque=opaque,
+        qop=('auth', 'auth-int') if qop is None else (qop,),
+        algorithm=algorithm)
     auth.stale = stale
     response.headers['WWW-Authenticate'] = auth.to_header()
     return response
