@@ -420,6 +420,7 @@ def __parse_request_range(range_header_text):
 
     return left, right
 
+
 def get_request_range(request_headers, upper_bound):
     first_byte_pos, last_byte_pos = __parse_request_range(request_headers['range'])
 
@@ -436,6 +437,7 @@ def get_request_range(request_headers, upper_bound):
         last_byte_pos = upper_bound - 1
 
     return first_byte_pos, last_byte_pos
+
 
 def parse_multi_value_header(header_str):
     """Break apart an HTTP header string that is potentially a quoted, comma separated list as used in entity headers in RFC2616."""
