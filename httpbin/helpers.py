@@ -340,12 +340,15 @@ def auth_response(credentials, password, request):
         for k in 'nonce', 'nc', 'cnonce', 'qop':
             if k not in credentials:
                 raise ValueError("%s required for response H" % k)
-        response = H(b":".join([HA1_value.encode('utf-8'),
-                               credentials.get('nonce').encode('utf-8'),
-                               credentials.get('nc').encode('utf-8'),
-                               credentials.get('cnonce').encode('utf-8'),
-                               credentials.get('qop').encode('utf-8'),
-                               HA2_value.encode('utf-8')]), algorithm)
+        to_join = [
+            HA1_value,
+            credentials.get('nonce'),
+            credentials.get('nc'),
+            credentials.get('cnonce'),
+            credentials.get('qop'),
+            HA2_value]
+        to_join = [item.encode('utf-8') for item in to_join]
+        response = H(b":".join(to_join), algorithm)
     else:
         raise ValueError("qop value are wrong")
 
