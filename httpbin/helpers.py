@@ -301,9 +301,9 @@ def HA2(credentials, request, algorithm):
         for k in 'method', 'uri', 'body':
             if k not in request:
                 raise ValueError("%s required" % k)
-        A2 = b":".join([request['method'].encode('utf-8'),
-                        request['uri'].encode('utf-8'),
-                        H(request['body'], algorithm).encode('utf-8')])
+        to_join = [request['method'], request['uri'], H(request['body'], algorithm)]
+        to_join = [item.encode('utf-8') for item in to_join]
+        A2 = b":".join(to_join)
         return H(A2, algorithm)
     raise ValueError
 
