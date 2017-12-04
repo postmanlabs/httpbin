@@ -225,7 +225,8 @@ def status_code(code):
                 'x-more-info': 'http://vimeo.com/22053820'
             }
         ),
-        406: dict(data=json.dumps({
+        406: dict(
+            data=json.dumps({
                 'message': 'Client did not request a supported media type.',
                 'accept': ACCEPTED_MEDIA_TYPES
             }),
@@ -239,7 +240,6 @@ def status_code(code):
                 'x-more-info': 'http://tools.ietf.org/html/rfc2324'
             }
         ),
-
     }
 
     r = {}
@@ -283,9 +283,8 @@ def HA1(realm, username, password, algorithm):
     """
     if not realm:
         realm = u''
-    return H(b":".join([username.encode('utf-8'),
-                           realm.encode('utf-8'),
-                           password.encode('utf-8')]), algorithm)
+    to_join = [username.encode('utf-8'), realm.encode('utf-8'), password.encode('utf-8')]
+    return H(b":".join(to_join), algorithm)
 
 
 def HA2(credentials, request, algorithm):
