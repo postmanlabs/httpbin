@@ -309,7 +309,7 @@ def HA2(credentials, request, algorithm):
     raise ValueError
 
 
-def response(credentials, password, request):
+def auth_response(credentials, password, request):
     """Compile digest auth response
 
     If the qop directive's value is "auth" or "auth-int" , then compute the response as follows:
@@ -359,7 +359,7 @@ def check_digest_auth(request, user, passwd):
         credentials = parse_authorization_header(request.headers.get('Authorization'))
         if not credentials:
             return
-        response_hash = response(
+        response_hash = auth_response(
             credentials, passwd, dict(
                 uri=request.script_root + request.path,
                 body=request.data,
