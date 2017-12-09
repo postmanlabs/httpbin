@@ -30,6 +30,7 @@ setup(
          'Programming Language :: Python :: 2.7',
          'Programming Language :: Python :: 3.4',
     ],
+    test_suite="test_httpbin",
     packages=find_packages(),
     include_package_data = True, # include files listed in MANIFEST.in
     install_requires=[
