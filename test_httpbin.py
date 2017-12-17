@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import base64
-from hashlib import md5, sha256
+from hashlib import md5, sha256, sha512
 import os
 import contextlib
 import json
@@ -87,6 +87,8 @@ def _hash(data, algorithm):
     """Encode binary data according to specified algorithm, use MD5 by default"""
     if algorithm == 'SHA-256':
         return sha256(data).hexdigest()
+    elif algorithm == 'SHA-512':
+        return sha512(data).hexdigest()
     else:
         return md5(data).hexdigest()
 
