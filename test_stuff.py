@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import base64
-from six.moves.urllib.parse import urljoin
 from hashlib import md5, sha256
 import os
 import contextlib
 import json
 
+import six
+from six.moves.urllib.parse import urljoin
+
 import requests
 from wsgiadapter import WSGIAdapter
 from werkzeug.http import parse_dict_header, parse_options_header
-import six
 
 import httpbin
 
