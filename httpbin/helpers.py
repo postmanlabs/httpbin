@@ -15,8 +15,8 @@ import os
 from hashlib import md5, sha256, sha512
 from werkzeug.http import parse_authorization_header
 from werkzeug.datastructures import WWWAuthenticate
+from werkzeug import Response
 
-from flask import request, make_response
 from six.moves.urllib.parse import urlparse, urlunparse
 
 
@@ -107,7 +107,7 @@ def json_safe(string, content_type='application/octet-stream'):
         ]).decode('utf-8')
 
 
-def get_files():
+def get_files(request):
     """Returns files dict from request context."""
 
     files = dict()
@@ -125,7 +125,7 @@ def get_files():
     return files
 
 
-def get_headers(hide_env=True):
+def get_headers(request, hide_env=True):
     """Returns headers dict from request context."""
 
     headers = dict(request.headers.items())
@@ -153,6 +153,7 @@ def semiflatten(multi):
     else:
         return multi
 
+
 def get_url(request):
     """
     Since we might be hosted behind a proxy, we need to check the
@@ -169,7 +170,7 @@ def get_url(request):
     return urlunparse(url)
 
 
-def get_dict(*keys, **extras):
+def get_dict(request, *keys, **extras):
     """Returns request dict of given keys."""
 
     _keys = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json', 'method')
@@ -189,8 +190,8 @@ def get_dict(*keys, **extras):
         form=form,
         data=json_safe(data),
         origin=request.headers.get('X-Forwarded-For', request.remote_addr),
-        headers=get_headers(),
-        files=get_files(),
+        headers=get_headers(request),
+        files=get_files(request),
         json=_json,
         method=request.method,
     )
@@ -224,7 +225,8 @@ def status_code(code):
                 'x-more-info': 'http://vimeo.com/22053820'
             }
         ),
-        406: dict(data=json.dumps({
+        406: dict(
+            data=json.dumps({
                 'message': 'Client did not request a supported media type.',
                 'accept': ACCEPTED_MEDIA_TYPES
             }),
@@ -238,30 +240,28 @@ def status_code(code):
                 'x-more-info': 'http://tools.ietf.org/html/rfc2324'
             }
         ),
-
     }
 
-    r = make_response()
-    r.status_code = code
+    r = {}
+    r['status'] = code
 
     if code in code_map:
 
         m = code_map[code]
 
         if 'data' in m:
-            r.data = m['data']
+            r['response'] = m['data']
         if 'headers' in m:
-            r.headers = m['headers']
+            r['headers'] = m['headers']
 
-    return r
+    return Response(**r)
 
 
-def check_basic_auth(user, passwd):
+def check_basic_auth(request, user, passwd):
     """Checks user authentication using HTTP Basic Auth."""
 
     auth = request.authorization
     return auth and auth.username == user and auth.password == passwd
-
 
 
 # Digest auth helpers
@@ -283,12 +283,11 @@ def HA1(realm, username, password, algorithm):
     """
     if not realm:
         realm = u''
-    return H(b":".join([username.encode('utf-8'),
-                           realm.encode('utf-8'),
-                           password.encode('utf-8')]), algorithm)
+    to_join = [username.encode('utf-8'), realm.encode('utf-8'), password.encode('utf-8')]
+    return H(b":".join(to_join), algorithm)
 
 
-def HA2(credentails, request, algorithm):
+def HA2(credentials, request, algorithm):
     """Create HA2 md5 hash
 
     If the qop directive's value is "auth" or is unspecified, then HA2:
@@ -296,20 +295,20 @@ def HA2(credentails, request, algorithm):
     If the qop directive's value is "auth-int" , then HA2 is
         HA2 = md5(A2) = MD5(method:digestURI:MD5(entityBody))
     """
-    if credentails.get("qop") == "auth" or credentails.get('qop') is None:
+    if credentials.get("qop") == "auth" or credentials.get('qop') is None:
         return H(b":".join([request['method'].encode('utf-8'), request['uri'].encode('utf-8')]), algorithm)
-    elif credentails.get("qop") == "auth-int":
+    elif credentials.get("qop") == "auth-int":
         for k in 'method', 'uri', 'body':
             if k not in request:
                 raise ValueError("%s required" % k)
-        A2 = b":".join([request['method'].encode('utf-8'),
-                        request['uri'].encode('utf-8'),
-                        H(request['body'], algorithm).encode('utf-8')])
+        to_join = [request['method'], request['uri'], H(request['body'], algorithm)]
+        to_join = [item.encode('utf-8') for item in to_join]
+        A2 = b":".join(to_join)
         return H(A2, algorithm)
     raise ValueError
 
 
-def response(credentails, password, request):
+def auth_response(credentials, password, request):
     """Compile digest auth response
 
     If the qop directive's value is "auth" or "auth-int" , then compute the response as follows:
@@ -318,61 +317,69 @@ def response(credentails, password, request):
        RESPONSE = MD5(HA1:nonce:HA2)
 
     Arguments:
-    - `credentails`: credentails dict
+    - `credentials`: credentials dict
     - `password`: request user password
     - `request`: request dict
     """
     response = None
-    algorithm = credentails.get('algorithm')
+    algorithm = credentials.get('algorithm')
     HA1_value = HA1(
-        credentails.get('realm'),
-        credentails.get('username'),
+        credentials.get('realm'),
+        credentials.get('username'),
         password,
         algorithm
     )
-    HA2_value = HA2(credentails, request, algorithm)
-    if credentails.get('qop') is None:
+    HA2_value = HA2(credentials, request, algorithm)
+    if credentials.get('qop') is None:
         response = H(b":".join([
             HA1_value.encode('utf-8'),
-            credentails.get('nonce', '').encode('utf-8'),
+            credentials.get('nonce', '').encode('utf-8'),
             HA2_value.encode('utf-8')
         ]), algorithm)
-    elif credentails.get('qop') == 'auth' or credentails.get('qop') == 'auth-int':
+    elif credentials.get('qop') == 'auth' or credentials.get('qop') == 'auth-int':
         for k in 'nonce', 'nc', 'cnonce', 'qop':
-            if k not in credentails:
+            if k not in credentials:
                 raise ValueError("%s required for response H" % k)
-        response = H(b":".join([HA1_value.encode('utf-8'),
-                               credentails.get('nonce').encode('utf-8'),
-                               credentails.get('nc').encode('utf-8'),
-                               credentails.get('cnonce').encode('utf-8'),
-                               credentails.get('qop').encode('utf-8'),
-                               HA2_value.encode('utf-8')]), algorithm)
+        to_join = [
+            HA1_value,
+            credentials.get('nonce'),
+            credentials.get('nc'),
+            credentials.get('cnonce'),
+            credentials.get('qop'),
+            HA2_value]
+        to_join = [item.encode('utf-8') for item in to_join]
+        response = H(b":".join(to_join), algorithm)
     else:
         raise ValueError("qop value are wrong")
 
     return response
 
 
-def check_digest_auth(user, passwd):
+def check_digest_auth(request, user, passwd):
     """Check user authentication using HTTP Digest auth"""
-
     if request.headers.get('Authorization'):
-        credentails = parse_authorization_header(request.headers.get('Authorization'))
-        if not credentails:
+        credentials = parse_authorization_header(request.headers.get('Authorization'))
+        if not credentials:
             return
         request_uri = request.script_root + request.path
         if request.query_string:
             request_uri +=  '?' + request.query_string
-        response_hash = response(credentails, passwd, dict(uri=request_uri,
-                                                           body=request.data,
-                                                           method=request.method))
-        if credentails.get('response') == response_hash:
+        response_hash = auth_response(
+            credentials,
+            passwd,
+            dict(
+                uri=request_uri,
+                body=request.data,
+                method=request.method))
+        if credentials.get('response') == response_hash:
             return True
     return False
 
-def secure_cookie():
+
+def secure_cookie(request):
     """Return true if cookie should have secure attribute"""
     return request.environ['wsgi.url_scheme'] == 'https'
+
 
 def __parse_request_range(range_header_text):
     """ Return a tuple describing the byte range requested in a GET request
@@ -413,6 +420,7 @@ def __parse_request_range(range_header_text):
 
     return left, right
 
+
 def get_request_range(request_headers, upper_bound):
     first_byte_pos, last_byte_pos = __parse_request_range(request_headers['range'])
 
@@ -429,6 +437,7 @@ def get_request_range(request_headers, upper_bound):
         last_byte_pos = upper_bound - 1
 
     return first_byte_pos, last_byte_pos
+
 
 def parse_multi_value_header(header_str):
     """Break apart an HTTP header string that is potentially a quoted, comma separated list as used in entity headers in RFC2616."""
@@ -450,8 +459,8 @@ def next_stale_after_value(stale_after):
         return 'never'
 
 
-def digest_challenge_response(app, qop, algorithm, stale = False):
-    response = app.make_response('')
+def digest_challenge_response(request, qop, algorithm, stale=False):
+    response = Response()
     response.status_code = 401
 
     # RFC2616 Section4.2: HTTP headers are ASCII.  That means
@@ -468,8 +477,12 @@ def digest_challenge_response(app, qop, algorithm, stale = False):
     opaque = H(os.urandom(10), algorithm)
 
     auth = WWWAuthenticate("digest")
-    auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
-                    qop=('auth', 'auth-int') if qop is None else (qop,), algorithm=algorithm)
+    auth.set_digest(
+        'me@kennethreitz.com',
+        nonce,
+        opaque=opaque,
+        qop=('auth', 'auth-int') if qop is None else (qop,),
+        algorithm=algorithm)
     auth.stale = stale
     response.headers['WWW-Authenticate'] = auth.to_header()
     return response

@@ -2,15 +2,21 @@ dist: trusty
 language: python
 
 sudo: false
-matrix:
-    include:
-        - python: 2.7
-          env: TOXENV=py27
-        - python: 3.6
-          env: TOXENV=py36
+
+python:
+    - "2.6"
+    - "2.7"
+    - "3.4"
+    - "3.5"
+    - "3.6"
 
 install:
     - travis_retry pip install tox
+    - travis_retry pip install tox-travis
 
 script:
     - tox
+
+after_success:
+    - pip install coveralls
+    - coveralls

@@ -17,10 +17,7 @@ from decimal import Decimal
 from time import time as now
 
 from decorator import decorator
-from flask import Flask, Response
-
-
-app = Flask(__name__)
+from werkzeug import Response
 
 
 @decorator
@@ -69,7 +66,7 @@ def gzip(f, *args, **kwargs):
 
 @decorator
 def deflate(f, *args, **kwargs):
-    """Deflate Flask Response Decorator."""
+    """Deflate Response Decorator."""
 
     data = f(*args, **kwargs)
 
