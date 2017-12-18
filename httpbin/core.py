@@ -93,7 +93,7 @@ empties the input request stream.
 - gunicorn seems to support input_terminated but does not add the environ,
   so we add it here.
 - flask will hang and does not seem to properly terminate the request, so
-  we explicityly deny chunked requests.
+  we explicitly deny chunked requests.
 """
 @app.before_request
 def before_request():
