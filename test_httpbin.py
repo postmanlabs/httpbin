@@ -206,6 +206,25 @@ class HttpbinTestCase(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
+    """
+    This is currently a sort of negative-test.
+    We validate that when running Flask-only server that
+    Transfer-Encoding: chunked requests are unsupported and
+    we return 501 Not Implemented
+    """
+    def test_post_chunked(self):
+        data = '{"animal":"dog"}'
+        response = self.app.post(
+            '/post',
+            content_type='application/json',
+            headers=[('Transfer-Encoding', 'chunked')],
+            data=data,
+        )
+        self.assertEqual(response.status_code, 501)
+        #self.assertEqual(response.status_code, 200)
+        #self.assertEqual(json.loads(response.data.decode('utf-8'))['data'], '{"animal":"dog"}')
+        #self.assertEqual(json.loads(response.data.decode('utf-8'))['json'], {"animal": "dog"})
+
     def test_set_cors_headers_after_request(self):
         response = self.app.get('/get')
         self.assertEqual(

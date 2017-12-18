@@ -15,7 +15,7 @@ import time
 import uuid
 import argparse
 
-from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for
+from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for, abort
 from flask_common import Common
 from six.moves import range as xrange
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
@@ -84,6 +84,30 @@ if os.environ.get("BUGSNAG_API_KEY") is not None:
 # -----------
 # Middlewares
 # -----------
+"""
+https://github.com/kennethreitz/httpbin/issues/340
+Adds a middleware to provide chunked request encoding support running under
+gunicorn only.
+Werkzeug required environ 'wsgi.input_terminated' to be set otherwise it
+empties the input request stream.
+- gunicorn seems to support input_terminated but does not add the environ,
+  so we add it here.
+- flask will hang and does not seem to properly terminate the request, so
+  we explicityly deny chunked requests.
+"""
+@app.before_request
+def before_request():
+    if request.environ.get('HTTP_TRANSFER_ENCODING', '').lower() == 'chunked':
+        server = request.environ.get('SERVER_SOFTWARE', '')
+        if server.lower().startswith('gunicorn/'):
+            if 'wsgi.input_terminated' in request.environ:
+                app.logger.debug("environ wsgi.input_terminated already set, keeping: %s"
+                                   % request.environ['wsgi.input_terminated'])
+            else:
+                request.environ['wsgi.input_terminated'] = 1
+        else:
+            abort(501, "Chunked requests are not supported for server %s" % server)
+
 @app.after_request
 def set_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
