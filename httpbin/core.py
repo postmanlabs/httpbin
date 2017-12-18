@@ -519,6 +519,12 @@ def digest_auth(qop=None, user='user', passwd='passwd', algorithm='MD5', stale_a
         response.status_code = 403
         return response
 
+    if 'nonce' not in credentials:
+        response = jsonify({'errors': ['missing nonce set on challenge']})
+        response.set_cookie('fake', value='fake_value')
+        response.status_code = 403
+        return response
+
     current_nonce = credentials.get('nonce')
 
     stale_after_value = None
