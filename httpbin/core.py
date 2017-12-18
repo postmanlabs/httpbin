@@ -203,7 +203,7 @@ def view_get():
 def view_anything(anything=None):
     """Returns request data."""
 
-    return jsonify(get_dict('url', 'args', 'headers', 'origin', 'method', 'form', 'data', 'files', 'json'))
+    return jsonify(get_dict('url', 'args', 'headers', 'origin', 'method', 'form', 'data', 'files', 'json', 'files_with_content_type'))
 
 
 @app.route('/post', methods=('POST',))

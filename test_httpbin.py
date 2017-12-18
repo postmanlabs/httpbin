@@ -165,6 +165,29 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(data['method'], 'GET')
         self.assertTrue(response.data.endswith(b'\n'))
 
+    def test_anything_file_content_type(self):
+        # Form data is manually built here so we have extra control over the
+        # request input data. This way werkzeug won't bother us.
+        data = '--bound\r\nContent-Disposition: form-data; name="texty"; '
+        data += 'filename="file.txt"\r\nContent-Type: text/plain\r\n\r\n'
+        data += 'This is a test\n--bound--\r\n'
+        response = self.app.post(
+            '/anything',
+            content_type='multipart/form-data; boundary=bound',
+            data=data,
+        )
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data.decode('utf-8'))
+        self.assertTrue(len(data['files_with_content_type']) == 1)
+        self.assertTrue('texty' in data['files_with_content_type'])
+        file = data['files_with_content_type']['texty']
+        self.assertTrue('name' in file)
+        self.assertTrue('payload' in file)
+        self.assertTrue('content_type' in file)
+        self.assertEqual(file['name'], 'file.txt')
+        self.assertEqual(file['payload'], 'This is a test')
+        self.assertEqual(file['content_type'], 'text/plain')
+
     def test_base64(self):
         greeting = u'Здравствуй, мир!'
         b64_encoded = _string_to_base64(greeting)
