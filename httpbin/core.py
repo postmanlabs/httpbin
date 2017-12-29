@@ -44,6 +44,7 @@ ENV_COOKIES = (
 
 def jsonify(*args, **kwargs):
     response = flask_jsonify(*args, **kwargs)
+    response.status_code = 202
     if not response.data.endswith(b'\n'):
         response.data += b'\n'
     return response
