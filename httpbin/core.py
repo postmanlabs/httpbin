@@ -44,7 +44,6 @@ ENV_COOKIES = (
 
 def jsonify(*args, **kwargs):
     response = flask_jsonify(*args, **kwargs)
-    response.status_code = 202
     if not response.data.endswith(b'\n'):
         response.data += b'\n'
     return response
@@ -184,11 +183,17 @@ def view_anything(anything=None):
 
 
 @app.route('/post', methods=('POST',))
-def view_post():
+@app.route('/post/<int:code>', methods=('POST',))
+def view_post(code=None):
     """Returns POST Data."""
 
-    return jsonify(get_dict(
+    resp = jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
+    
+    if code is not None and code >= 200 and code < 300:
+        resp.status_code = code
+    
+    return resp
 
 
 @app.route('/put', methods=('PUT',))
