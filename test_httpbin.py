@@ -205,6 +205,19 @@ class HttpbinTestCase(unittest.TestCase):
             data=data,
         )
         self.assertEqual(response.status_code, 200)
+        
+    def test_post_file_with_202_returned_status(self):
+        # I built up the form data manually here because I couldn't find a way
+        # to convince the werkzeug test client to send files without the
+        # content-type of the file set.
+        data = '--bound\r\nContent-Disposition: form-data; name="media"; '
+        data += 'filename="test.bin"\r\n\r\n\xa5\xc6\n--bound--\r\n'
+        response = self.app.post(
+            '/post/202',
+            content_type='multipart/form-data; boundary=bound',
+            data=data,
+        )
+        self.assertEqual(response.status_code, 202)
 
     def test_set_cors_headers_after_request(self):
         response = self.app.get('/get')
