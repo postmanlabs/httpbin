@@ -190,7 +190,10 @@ def view_post(code=None):
     resp = jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
     
-    if resp.status_code == 200 and code is not None and code >= 200 and code < 300:
+    if code is not None and (code < 200 or code >= 300):
+        resp.status_code = 400
+    
+    if resp.status_code == 200 and code is not None:
         resp.status_code = code
     
     return resp
