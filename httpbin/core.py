@@ -519,7 +519,7 @@ def digest_auth(qop=None, user='user', passwd='passwd', algorithm='MD5', stale_a
         credentials = parse_authorization_header(authorization)
 
     if (not authorization or
-            not credentials or
+            not credentials or credentials.type.lower() != 'digest' or
             (require_cookie_handling and 'Cookie' not in request.headers)):
         response = digest_challenge_response(app, qop, algorithm)
         response.set_cookie('stale_after', value=stale_after)
