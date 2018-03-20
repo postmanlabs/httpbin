@@ -685,6 +685,7 @@ class HttpbinTestCase(unittest.TestCase):
             headers={ 'If-None-Match': 'abc' }
         )
         self.assertEqual(response.status_code, 304)
+        self.assertEqual(response.headers.get('ETag'), 'abc')
 
     def test_etag_if_none_match_matches_list(self):
         response = self.app.get(
@@ -692,6 +693,7 @@ class HttpbinTestCase(unittest.TestCase):
             headers={ 'If-None-Match': '"123", "abc"' }
         )
         self.assertEqual(response.status_code, 304)
+        self.assertEqual(response.headers.get('ETag'), 'abc')
 
     def test_etag_if_none_match_matches_star(self):
         response = self.app.get(
@@ -699,6 +701,7 @@ class HttpbinTestCase(unittest.TestCase):
             headers={ 'If-None-Match': '*' }
         )
         self.assertEqual(response.status_code, 304)
+        self.assertEqual(response.headers.get('ETag'), 'abc')
 
     def test_etag_if_none_match_w_prefix(self):
         response = self.app.get(
@@ -706,6 +709,7 @@ class HttpbinTestCase(unittest.TestCase):
             headers={ 'If-None-Match': 'W/"xyzzy", W/"r2d2xxxx", W/"c3piozzzz"' }
         )
         self.assertEqual(response.status_code, 304)
+        self.assertEqual(response.headers.get('ETag'), 'c3piozzzz')
 
     def test_etag_if_none_match_has_no_match(self):
         response = self.app.get(
@@ -713,6 +717,7 @@ class HttpbinTestCase(unittest.TestCase):
             headers={ 'If-None-Match': '123' }
         )
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get('ETag'), 'abc')
 
     def test_etag_if_match_matches(self):
         response = self.app.get(
@@ -720,6 +725,7 @@ class HttpbinTestCase(unittest.TestCase):
             headers={ 'If-Match': 'abc' }
         )
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get('ETag'), 'abc')
 
     def test_etag_if_match_matches_list(self):
         response = self.app.get(
@@ -727,6 +733,7 @@ class HttpbinTestCase(unittest.TestCase):
             headers={ 'If-Match': '"123", "abc"' }
         )
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get('ETag'), 'abc')
 
     def test_etag_if_match_matches_star(self):
         response = self.app.get(
@@ -734,6 +741,7 @@ class HttpbinTestCase(unittest.TestCase):
             headers={ 'If-Match': '*' }
         )
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get('ETag'), 'abc')
 
     def test_etag_if_match_has_no_match(self):
         response = self.app.get(
@@ -741,6 +749,7 @@ class HttpbinTestCase(unittest.TestCase):
             headers={ 'If-Match': '123' }
         )
         self.assertEqual(response.status_code, 412)
+        self.assertNotIn('ETag', response.headers)
 
     def test_etag_with_no_headers(self):
         response = self.app.get(

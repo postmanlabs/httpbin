@@ -633,7 +633,9 @@ def etag(etag):
 
     if if_none_match:
         if etag in if_none_match or '*' in if_none_match:
-            return status_code(304)
+            response = status_code(304)
+            response.headers['ETag'] = etag
+            return response
     elif if_match:
         if etag not in if_match and '*' not in if_match:
             return status_code(412)
