@@ -715,7 +715,7 @@ def range_request(numbytes):
             'Accept-Ranges' : 'bytes'
             })
         response.status_code = 404
-        response.data = 'number of bytes must be in the range (0, 10240]'
+        response.data = 'number of bytes must be in the range (0, 102400]'
         return response
 
     params = CaseInsensitiveDict(request.args.items())
