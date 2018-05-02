@@ -12,7 +12,7 @@ setup(
     # long_description=long_description,
 
     # The project URL.
-    url='https://github.com/kennethreitz/httpbin',
+    url='https://github.com/requests/httpbin',
 
     # Author details
     author='Kenneth Reitz',
