@@ -8,7 +8,6 @@ decorator = "*"
 brotlipy = "*"
 gevent = "*"
 Flask = "*"
-Flask-Common = "*"
 meinheld = "*"
 werkzeug = ">=0.14.1"
 
