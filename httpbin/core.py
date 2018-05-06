@@ -16,7 +16,6 @@ import uuid
 import argparse
 
 from flask import Flask, Response, request, render_template, redirect, jsonify as flask_jsonify, make_response, url_for, abort
-from flask_common import Common
 from six.moves import range as xrange
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
@@ -56,9 +55,6 @@ tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 app = Flask(__name__, template_folder=tmpl_dir)
 app.debug = bool(os.environ.get('DEBUG'))
-
-# Setup Flask-Common.
-common = Common(app)
 
 # Send app errors to Sentry.
 if 'SENTRY_DSN' in os.environ:
