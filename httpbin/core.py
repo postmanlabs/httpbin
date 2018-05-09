@@ -56,10 +56,6 @@ tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 app.debug = bool(os.environ.get('DEBUG'))
 
-# Send app errors to Sentry.
-if 'SENTRY_DSN' in os.environ:
-    sentry = Sentry(app, dsn=os.environ['SENTRY_DSN'])
-
 # Set up Bugsnag exception tracking, if desired. To use Bugsnag, install the
 # Bugsnag Python client with the command "pip install bugsnag", and set the
 # environment variable BUGSNAG_API_KEY. You can also optionally set
