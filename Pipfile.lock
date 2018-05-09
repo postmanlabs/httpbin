@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "4275c4555f82cc2b654d2c9720a4f9ad7e381fabb363d765531c09dd6dc8c652"
+            "sha256": "3294384315916c188615fb3c83ad7050095c8b17428b6301314184c572245ba1"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -13,12 +13,6 @@
         ]
     },
     "default": {
-        "blinker": {
-            "hashes": [
-                "sha256:471aee25f3992bd325afa3772f1063dbdbbca947a041b8b89466dc00d606f8b6"
-            ],
-            "version": "==1.4"
-        },
         "brotlipy": {
             "hashes": [
                 "sha256:07194f4768eb62a4f4ea76b6d0df6ade185e24ebd85877c351daa0a069f1111a",
@@ -200,13 +194,6 @@
                 "sha256:99a8ca03e29851d96616ad0404b4aad7d9ee16f25c9f9708a11faf2810f7b226"
             ],
             "version": "==2.18"
-        },
-        "raven": {
-            "hashes": [
-                "sha256:e4edf648829a64234800a10ed94ca08e0b38592f7449fa5e70931db62f5cd851",
-                "sha256:f908e9b39f02580e7f822030d119ed3b2e8d32300a2fec6373e5827d588bbae7"
-            ],
-            "version": "==6.7.0"
         },
         "six": {
             "hashes": [

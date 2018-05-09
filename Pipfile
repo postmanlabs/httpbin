@@ -10,5 +10,4 @@ gevent = "*"
 Flask = "*"
 meinheld = "*"
 werkzeug = ">=0.14.1"
-raven = { extras = [ "flask",] }
 six = "*"
