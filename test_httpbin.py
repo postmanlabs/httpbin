@@ -666,19 +666,6 @@ class HttpbinTestCase(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 416)
 
-    def test_tracking_disabled(self):
-        with _setenv('HTTPBIN_TRACKING', None):
-            response = self.app.get('/')
-        data = response.data.decode('utf-8')
-        self.assertNotIn('google-analytics', data)
-        self.assertNotIn('perfectaudience', data)
-
-    def test_tracking_enabled(self):
-        with _setenv('HTTPBIN_TRACKING', '1'):
-            response = self.app.get('/')
-        data = response.data.decode('utf-8')
-        self.assertIn('perfectaudience', data)
-
     def test_etag_if_none_match_matches(self):
         response = self.app.get(
             '/etag/abc',
