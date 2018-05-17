@@ -65,7 +65,7 @@ template = {
   "swagger": "2.0",
   "info": {
     "title": "httpbin.org",
-    "description": "A simple HTTP Service.",
+    "description": "A simple HTTP Service. <br/> <br/> <code>$ docker run -p 80:80 kennethreitz/httpbin</code>",
     "contact": {
       "responsibleOrganization": "Kenneth Reitz",
       "responsibleDeveloper": "Kenneth Reitz",
