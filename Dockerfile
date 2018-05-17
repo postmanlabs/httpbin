@@ -1,17 +1,11 @@
-FROM python:3-alpine
-
-ENV WEB_CONCURRENCY=4
+FROM ubuntu:18.04
 
 ADD . /httpbin
 
-RUN apk add -U ca-certificates libffi libstdc++ && \
-    apk add --virtual build-deps build-base libffi-dev && \
-    # Pip
-    pip install --no-cache-dir gunicorn /httpbin && \
-    # Cleaning up
-    apk del build-deps && \
-    rm -rf /var/cache/apk/*
+RUN apt update -y
+RUN apt install python3-pip -y
+RUN pip3 install --no-cache-dir gunicorn /httpbin
 
-EXPOSE 8080
+EXPOSE 80
 
-CMD ["gunicorn", "-b", "0.0.0.0:8080", "httpbin:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:80", "httpbin:app", "-k", "gevent"]

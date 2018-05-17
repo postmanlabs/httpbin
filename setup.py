@@ -7,7 +7,7 @@ import io
 
 setup(
     name="httpbin",
-    version="0.7.0",
+    version="0.8.0",
     description="HTTP Request and Response Service",
     # long_description=long_description,
 
@@ -35,6 +35,6 @@ setup(
     include_package_data = True, # include files listed in MANIFEST.in
     install_requires=[
         'Flask', 'MarkupSafe', 'decorator', 'itsdangerous', 'six', 'brotlipy',
-        'raven[flask]', 'werkzeug>=0.14.1'
+        'raven[flask]', 'werkzeug>=0.14.1', 'gevent'
     ],
 )
