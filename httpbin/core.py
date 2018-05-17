@@ -21,6 +21,7 @@ from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
 from werkzeug.wrappers import BaseResponse
 from werkzeug.http import parse_authorization_header
+from flasgger import Swagger, NO_SANITIZER
 
 from . import filters
 from .helpers import get_headers, status_code, get_dict, get_request_range, check_basic_auth, check_digest_auth, \
@@ -54,6 +55,52 @@ tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 app = Flask(__name__, template_folder=tmpl_dir)
 app.debug = bool(os.environ.get('DEBUG'))
+
+app.config['SWAGGER'] = {
+    'title': 'httpbin.org',
+    'uiversion': 3
+}
+
+template = {
+  "swagger": "2.0",
+  "info": {
+    "title": "httpbin.org",
+    "description": "A simple HTTP Service.",
+    "contact": {
+      "responsibleOrganization": "Kenneth Reitz",
+      "responsibleDeveloper": "Kenneth Reitz",
+      "email": "me@kennethreitz.org",
+      "url": "https://kennethreitz.org",
+    },
+    # "termsOfService": "http://me.com/terms",
+    "version": "0.9.0"
+  },
+  "host": "httpbin.org",  # overrides localhost:500
+  "basePath": "/",  # base bash for blueprint registration
+  "schemes": [
+    "http",
+    "https"
+  ]
+}
+
+swagger_config = {
+    "headers": [
+    ],
+    "specs": [
+        {
+            "endpoint": 'spec',
+            "route": '/spec.json',
+            "rule_filter": lambda rule: True,  # all in
+            "model_filter": lambda tag: True,  # all in
+        }
+    ],
+    "static_url_path": "/flasgger_static",
+    # "static_folder": "static",  # must be set by user
+    "swagger_ui": True,
+    "specs_route": "/"
+}
+
+swagger = Swagger(app, sanitizer=NO_SANITIZER, template=template, config=swagger_config)
 
 # Set up Bugsnag exception tracking, if desired. To use Bugsnag, install the
 # Bugsnag Python client with the command "pip install bugsnag", and set the
@@ -118,23 +165,28 @@ def set_cors_headers(response):
 # Routes
 # ------
 
-@app.route('/')
-def view_landing_page():
-    """Generates Landing Page."""
-    tracking_enabled = 'HTTPBIN_TRACKING' in os.environ
-    return render_template('index.html', tracking_enabled=tracking_enabled)
+# @app.route('/')
+# def view_landing_page():
+#     """Generates Landing Page."""
+#     tracking_enabled = 'HTTPBIN_TRACKING' in os.environ
+#     return render_template('index.html', tracking_enabled=tracking_enabled)
 
 
 @app.route('/html')
 def view_html_page():
-    """Simple Html Page"""
+    """Returns a simple HTML document.
+    ---
+    responses:
+      200:
+        description: An HTML page.
+    """
 
     return render_template('moby.html')
 
 
 @app.route('/robots.txt')
 def view_robots_page():
-    """Simple Html Page"""
+    """Returns a simple HTML document."""
 
     response = make_response()
     response.data = ROBOT_TXT
@@ -154,28 +206,48 @@ def view_deny_page():
 
 @app.route('/ip')
 def view_origin():
-    """Returns Origin IP."""
+    """Returns the requester's IP Address.
+    ---
+    responses:
+      200:
+        description: The Requester's IP Address.
+    """
 
     return jsonify(origin=request.headers.get('X-Forwarded-For', request.remote_addr))
 
 
 @app.route('/uuid')
 def view_uuid():
-    """Returns a UUID."""
+    """Return a UUID4.
+    ---
+    responses:
+      200:
+        description: A UUID4.
+    """
 
     return jsonify(uuid=str(uuid.uuid4()))
 
 
 @app.route('/headers')
 def view_headers():
-    """Returns HTTP HEADERS."""
+    """Return the incoming requests's HTTP headers.
+    ---
+    responses:
+      200:
+        description: The Rrquest's IP Address.
+    """
 
     return jsonify(get_dict('headers'))
 
 
 @app.route('/user-agent')
 def view_user_agent():
-    """Returns User-Agent."""
+    """Return the incoming requests's User-Agent header.
+    ---
+    responses:
+      200:
+        description: The request's User-Agent header..
+    """
 
     headers = get_headers()
 
@@ -184,7 +256,12 @@ def view_user_agent():
 
 @app.route('/get', methods=('GET',))
 def view_get():
-    """Returns GET Data."""
+    """The request's query parameters.
+    ---
+    responses:
+      200:
+        description: The request's query parameters.
+    """
 
     return jsonify(get_dict('url', 'args', 'headers', 'origin'))
 
@@ -199,7 +276,12 @@ def view_anything(anything=None):
 
 @app.route('/post', methods=('POST',))
 def view_post():
-    """Returns POST Data."""
+    """The request's POST parameters.
+    ---
+    responses:
+      200:
+        description: The request's POST parameters.
+    """
 
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
@@ -207,7 +289,12 @@ def view_post():
 
 @app.route('/put', methods=('PUT',))
 def view_put():
-    """Returns PUT Data."""
+    """The request's PUT parameters.
+    ---
+    responses:
+      200:
+        description: The request's PUT parameters.
+    """
 
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
@@ -215,7 +302,12 @@ def view_put():
 
 @app.route('/patch', methods=('PATCH',))
 def view_patch():
-    """Returns PATCH Data."""
+    """The request's PATCH parameters.
+    ---
+    responses:
+      200:
+        description: The request's PATCH parameters.
+    """
 
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
@@ -223,7 +315,12 @@ def view_patch():
 
 @app.route('/delete', methods=('DELETE',))
 def view_delete():
-    """Returns DELETE Data."""
+    """"The request's DELETE parameters.
+    ---
+    responses:
+      200:
+        description: The request's DELETE parameters.
+    """
 
     return jsonify(get_dict(
         'url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json'))
@@ -232,7 +329,12 @@ def view_delete():
 @app.route('/gzip')
 @filters.gzip
 def view_gzip_encoded_content():
-    """Returns GZip-Encoded Data."""
+    """Returns GZip-encoded data.
+    ---
+    responses:
+      200:
+        description: GZip-encoded data.
+    """
 
     return jsonify(get_dict(
         'origin', 'headers', method=request.method, gzipped=True))
@@ -241,7 +343,12 @@ def view_gzip_encoded_content():
 @app.route('/deflate')
 @filters.deflate
 def view_deflate_encoded_content():
-    """Returns Deflate-Encoded Data."""
+    """"Returns Deflate-encoded data.
+    ---
+    responses:
+      200:
+        description: Defalte-encoded data.
+    """
 
     return jsonify(get_dict(
         'origin', 'headers', method=request.method, deflated=True))
@@ -250,7 +357,12 @@ def view_deflate_encoded_content():
 @app.route('/brotli')
 @filters.brotli
 def view_brotli_encoded_content():
-    """Returns Brotli-Encoded Data."""
+    """"Returns Brotli-encoded data.
+    ---
+    responses:
+      200:
+        description: Brotli-encoded data.
+    """
 
     return jsonify(get_dict(
         'origin', 'headers', method=request.method, brotli=True))
@@ -258,7 +370,16 @@ def view_brotli_encoded_content():
 
 @app.route('/redirect/<int:n>')
 def redirect_n_times(n):
-    """302 Redirects n times."""
+    """302 Redirects n times.
+    ---
+    parameters:
+      - in: path
+        name: n
+        type: int
+    responses:
+      302:
+        description: A redirection.
+    """
     assert n > 0
 
     absolute = request.args.get('absolute', 'false').lower() == 'true'
@@ -278,7 +399,17 @@ def _redirect(kind, n, external):
 
 @app.route('/redirect-to', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
 def redirect_to():
-    """302/3XX Redirects to the given URL."""
+    """302/3XX Redirects to the given URL.
+    ---
+    parameters:
+      - name: url
+        type: string
+      - name: status_code
+        type: int
+    responses:
+      302:
+        description: A redirection.
+    """
 
     args = CaseInsensitiveDict(request.args.items())
 
@@ -298,7 +429,16 @@ def redirect_to():
 
 @app.route('/relative-redirect/<int:n>')
 def relative_redirect_n_times(n):
-    """302 Redirects n times."""
+    """Relatively 302 Redirects n times.
+    ---
+    parameters:
+      - in: path
+        name: n
+        type: int
+    responses:
+      302:
+        description: A redirection.
+    """
 
     assert n > 0
 
@@ -315,7 +455,16 @@ def relative_redirect_n_times(n):
 
 @app.route('/absolute-redirect/<int:n>')
 def absolute_redirect_n_times(n):
-    """302 Redirects n times."""
+    """Absolutely 302 Redirects n times.
+    ---
+    parameters:
+      - in: path
+        name: n
+        type: int
+    responses:
+      302:
+        description: A redirection.
+    """
 
     assert n > 0
 
@@ -327,7 +476,16 @@ def absolute_redirect_n_times(n):
 
 @app.route('/stream/<int:n>')
 def stream_n_messages(n):
-    """Stream n JSON messages"""
+    """Stream n JSON responses
+    ---
+    parameters:
+      - in: path
+        name: n
+        type: int
+    responses:
+      200:
+        description: Streamed JSON responses.
+    """
     response = get_dict('url', 'args', 'headers', 'origin')
     n = min(n, 100)
 
@@ -338,7 +496,7 @@ def stream_n_messages(n):
 
     return Response(generate_stream(), headers={
         "Content-Type": "application/json",
-        })
+    })
 
 
 @app.route('/status/<codes>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
@@ -372,7 +530,7 @@ def view_status_code(codes):
 
 @app.route('/response-headers', methods=['GET', 'POST'])
 def response_headers():
-    """Returns a set of response headers from the query string """
+    """Returns a set of response headers from the query string."""
     headers = MultiDict(request.args.items(multi=True))
     response = jsonify(list(headers.lists()))
 
@@ -395,7 +553,12 @@ def response_headers():
 
 @app.route('/cookies')
 def view_cookies(hide_env=True):
-    """Returns cookie data."""
+    """Returns cookie data.
+    ---
+    responses:
+      200:
+        description: Set cookies..
+    """
 
     cookies = dict(request.cookies.items())
 
@@ -418,7 +581,19 @@ def view_forms_post():
 
 @app.route('/cookies/set/<name>/<value>')
 def set_cookie(name, value):
-    """Sets a cookie and redirects to cookie list."""
+    """Sets a cookie and redirects to cookie list.
+    ---
+    parameters:
+      - in: path
+        name: name
+        type: string
+      - in: path
+        name: value
+        type: string
+    responses:
+      200:
+        description: Set cookies.
+    """
 
     r = app.make_response(redirect(url_for('view_cookies')))
     r.set_cookie(key=name, value=value, secure=secure_cookie())
@@ -452,7 +627,21 @@ def delete_cookies():
 
 @app.route('/basic-auth/<user>/<passwd>')
 def basic_auth(user='user', passwd='passwd'):
-    """Prompts the user for authorization using HTTP Basic Auth."""
+    """Prompts the user for authorization using HTTP Basic Auth.
+    ---
+    parameters:
+      - in: path
+        name: user
+        type: string
+      - in: path
+        name: passwd
+        type: string
+    responses:
+      200:
+        description: Sucessful authentication.
+      401:
+        description: Unsuccessful authentication.
+    """
 
     if not check_basic_auth(user, passwd):
         return status_code(401)
@@ -462,7 +651,21 @@ def basic_auth(user='user', passwd='passwd'):
 
 @app.route('/hidden-basic-auth/<user>/<passwd>')
 def hidden_basic_auth(user='user', passwd='passwd'):
-    """Prompts the user for authorization using HTTP Basic Auth."""
+    """"Prompts the user for authorization using HTTP Basic Auth.
+    ---
+    parameters:
+      - in: path
+        name: user
+        type: string
+      - in: path
+        name: passwd
+        type: string
+    responses:
+      200:
+        description: Sucessful authentication.
+      404:
+        description: Unsuccessful authentication.
+    """
 
     if not check_basic_auth(user, passwd):
         return status_code(404)
@@ -471,7 +674,14 @@ def hidden_basic_auth(user='user', passwd='passwd'):
 
 @app.route('/bearer')
 def bearer_auth():
-    """Authenticates using bearer authentication."""
+    """"Prompts the user for authorization using bearer authentication..
+    ---
+    responses:
+      200:
+        description: Sucessful authentication.
+      401:
+        description: Unsuccessful authentication.
+    """
     if 'Authorization' not in request.headers:
         response = app.make_response('')
         response.headers['WWW-Authenticate'] = 'Bearer'
@@ -485,6 +695,24 @@ def bearer_auth():
 
 @app.route('/digest-auth/<qop>/<user>/<passwd>')
 def digest_auth_md5(qop=None, user='user', passwd='passwd'):
+    """"Prompts the user for authorization using Digest Auth.
+    ---
+    parameters:
+      - in: path
+        name: qop
+        type: string
+      - in: path
+        name: user
+        type: string
+      - in: path
+        name: passwd
+        type: string
+    responses:
+      200:
+        description: Sucessful authentication.
+      401:
+        description: Unsuccessful authentication.
+    """
     return digest_auth(qop, user, passwd, "MD5", 'never')
 
 
@@ -556,7 +784,16 @@ def digest_auth(qop=None, user='user', passwd='passwd', algorithm='MD5', stale_a
 
 @app.route('/delay/<delay>')
 def delay_response(delay):
-    """Returns a delayed response"""
+    """"Returns a delayed response (max of 10 seconds).
+    ---
+    parameters:
+      - in: path
+        name: delay
+        type: int
+    responses:
+      200:
+        description: A delayed response.
+    """
     delay = min(float(delay), 10)
 
     time.sleep(delay)
@@ -567,7 +804,12 @@ def delay_response(delay):
 
 @app.route('/drip')
 def drip():
-    """Drips data over a duration after an optional initial delay."""
+    """Drips data over a duration after an optional initial delay.
+    ---
+    responses:
+      200:
+        description: A dripped response.
+    """
     args = CaseInsensitiveDict(request.args.items())
     duration = float(args.get('duration', 2))
     numbytes = min(int(args.get('numbytes', 10)),(10 * 1024 * 1024)) # set 10MB limit
@@ -598,7 +840,16 @@ def drip():
 
 @app.route('/base64/<value>')
 def decode_base64(value):
-    """Decodes base64url-encoded string"""
+    """"RDecodes base64url-encoded string.
+    ---
+    parameters:
+      - in: path
+        name: value
+        type: string
+    responses:
+      200:
+        description: Decoded base64 content.
+    """
     encoded = value.encode('utf-8') # base64 expects binary string as input
     return base64.urlsafe_b64decode(encoded).decode('utf-8')
 
@@ -646,12 +897,29 @@ def cache_control(value):
 
 @app.route('/encoding/utf8')
 def encoding():
+    """Returns a UTF-8 encoded body.
+     ---
+    responses:
+      200:
+        description: Encoded UTF-8 content.
+    """
+
     return render_template('UTF-8-demo.txt')
 
 
 @app.route('/bytes/<int:n>')
 def random_bytes(n):
-    """Returns n random bytes generated with given seed."""
+    """Returns n random bytes generated with given seed.
+     ---
+    parameters:
+      - in: path
+        name: n
+        type: int
+    responses:
+      200:
+        description: Bytes.
+    """
+
     n = min(n, 100 * 1024) # set 100KB limit
 
     params = CaseInsensitiveDict(request.args.items())
@@ -668,7 +936,16 @@ def random_bytes(n):
 
 @app.route('/stream-bytes/<int:n>')
 def stream_random_bytes(n):
-    """Streams n random bytes generated with given seed, at given chunk size per packet."""
+    """Streams n random bytes generated with given seed, at given chunk size per packet.
+     ---
+    parameters:
+      - in: path
+        name: n
+        type: int
+    responses:
+      200:
+        description: Bytes.
+    """
     n = min(n, 100 * 1024) # set 100KB limit
 
     params = CaseInsensitiveDict(request.args.items())
@@ -698,7 +975,16 @@ def stream_random_bytes(n):
 
 @app.route('/range/<int:numbytes>')
 def range_request(numbytes):
-    """Streams n random bytes generated with given seed, at given chunk size per packet."""
+    """Streams n random bytes generated with given seed, at given chunk size per packet.
+     ---
+    parameters:
+      - in: path
+        name: numbytes
+        type: int
+    responses:
+      200:
+        description: Bytes.
+    """
 
     if numbytes <= 0 or numbytes > (100 * 1024):
         response = Response(headers={
@@ -769,7 +1055,19 @@ def range_request(numbytes):
 
 @app.route('/links/<int:n>/<int:offset>')
 def link_page(n, offset):
-    """Generate a page containing n links to other pages which do the same."""
+    """Generate a page containing n links to other pages which do the same.
+     ---
+    parameters:
+      - in: path
+        name: n
+        type: int
+      - in: path
+        name: offset
+        type: int
+    responses:
+      200:
+        description: HTML links.
+    """
     n = min(max(1, n), 200) # limit to between 1 and 200 links
 
     link = "<a href='{0}'>{1}</a> "
@@ -793,7 +1091,12 @@ def links(n):
 
 @app.route('/image')
 def image():
-    """Returns a simple image of the type suggest by the Accept header."""
+    """Returns a simple image of the type suggest by the Accept header.
+    ---
+    responses:
+      200:
+        description: An image.
+    """
 
     headers = get_headers()
     if 'accept' not in headers:
@@ -815,24 +1118,48 @@ def image():
 
 @app.route('/image/png')
 def image_png():
+    """Returns a simple PNG image.
+    ---
+    responses:
+      200:
+        description: A PNG image.
+    """
     data = resource('images/pig_icon.png')
     return Response(data, headers={'Content-Type': 'image/png'})
 
 
 @app.route('/image/jpeg')
 def image_jpeg():
+    """Returns a simple JPEG image.
+    ---
+    responses:
+      200:
+        description: A JPEG image.
+    """
     data = resource('images/jackal.jpg')
     return Response(data, headers={'Content-Type': 'image/jpeg'})
 
 
 @app.route('/image/webp')
 def image_webp():
+    """Returns a simple WEBP image.
+    ---
+    responses:
+      200:
+        description: A WEBP image.
+    """
     data = resource('images/wolf_1.webp')
     return Response(data, headers={'Content-Type': 'image/webp'})
 
 
 @app.route('/image/svg')
 def image_svg():
+    """Returns a simple SVG image.
+    ---
+    responses:
+      200:
+        description: An SVG image.
+    """
     data = resource('images/svg_logo.svg')
     return Response(data, headers={'Content-Type': 'image/svg+xml'})
 
@@ -846,6 +1173,12 @@ def resource(filename):
 
 @app.route("/xml")
 def xml():
+    """Returns a simple XML document.
+    ---
+    responses:
+      200:
+        description: An XML document.
+    """
     response = make_response(render_template("sample.xml"))
     response.headers["Content-Type"] = "application/xml"
     return response
