@@ -12,6 +12,6 @@ RUN apk add -U ca-certificates libffi libstdc++ && \
     apk del build-deps && \
     rm -rf /var/cache/apk/*
 
-EXPOSE 8080
+EXPOSE 80
 
-CMD ["gunicorn", "-b", "0.0.0.0:8080", "httpbin:app", "-k", "gevent"]
+CMD ["gunicorn", "-b", "0.0.0.0:80", "httpbin:app", "-k", "gevent"]
