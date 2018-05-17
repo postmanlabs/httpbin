@@ -587,8 +587,8 @@ def set_cookie(name, value):
       - in: path
         name: name
         type: string
-      - in: value
-        name: name
+      - in: path
+        name: value
         type: string
     responses:
       200:
@@ -651,7 +651,21 @@ def basic_auth(user='user', passwd='passwd'):
 
 @app.route('/hidden-basic-auth/<user>/<passwd>')
 def hidden_basic_auth(user='user', passwd='passwd'):
-    """Prompts the user for authorization using HTTP Basic Auth."""
+    """"Prompts the user for authorization using HTTP Basic Auth.
+    ---
+    parameters:
+      - in: path
+        name: user
+        type: string
+      - in: path
+        name: passwd
+        type: string
+    responses:
+      200:
+        description: Sucessful authentication.
+      404:
+        description: Unsuccessful authentication.
+    """
 
     if not check_basic_auth(user, passwd):
         return status_code(404)
@@ -660,7 +674,14 @@ def hidden_basic_auth(user='user', passwd='passwd'):
 
 @app.route('/bearer')
 def bearer_auth():
-    """Authenticates using bearer authentication."""
+    """"Prompts the user for authorization using bearer authentication..
+    ---
+    responses:
+      200:
+        description: Sucessful authentication.
+      401:
+        description: Unsuccessful authentication.
+    """
     if 'Authorization' not in request.headers:
         response = app.make_response('')
         response.headers['WWW-Authenticate'] = 'Bearer'
@@ -674,6 +695,24 @@ def bearer_auth():
 
 @app.route('/digest-auth/<qop>/<user>/<passwd>')
 def digest_auth_md5(qop=None, user='user', passwd='passwd'):
+    """"Prompts the user for authorization using Digest Auth.
+    ---
+    parameters:
+      - in: path
+        name: qop
+        type: string
+      - in: path
+        name: user
+        type: string
+      - in: path
+        name: passwd
+        type: string
+    responses:
+      200:
+        description: Sucessful authentication.
+      401:
+        description: Unsuccessful authentication.
+    """
     return digest_auth(qop, user, passwd, "MD5", 'never')
 
 
@@ -745,7 +784,16 @@ def digest_auth(qop=None, user='user', passwd='passwd', algorithm='MD5', stale_a
 
 @app.route('/delay/<delay>')
 def delay_response(delay):
-    """Returns a delayed response"""
+    """"Returns a delayed response (max of 10 seconds).
+    ---
+    parameters:
+      - in: path
+        name: delay
+        type: int
+    responses:
+      200:
+        description: A delayed response.
+    """
     delay = min(float(delay), 10)
 
     time.sleep(delay)
@@ -756,7 +804,12 @@ def delay_response(delay):
 
 @app.route('/drip')
 def drip():
-    """Drips data over a duration after an optional initial delay."""
+    """Drips data over a duration after an optional initial delay.
+    ---
+    responses:
+      200:
+        description: A dripped response.
+    """
     args = CaseInsensitiveDict(request.args.items())
     duration = float(args.get('duration', 2))
     numbytes = min(int(args.get('numbytes', 10)),(10 * 1024 * 1024)) # set 10MB limit
@@ -787,7 +840,16 @@ def drip():
 
 @app.route('/base64/<value>')
 def decode_base64(value):
-    """Decodes base64url-encoded string"""
+    """"RDecodes base64url-encoded string.
+    ---
+    parameters:
+      - in: path
+        name: value
+        type: string
+    responses:
+      200:
+        description: Decoded base64 content.
+    """
     encoded = value.encode('utf-8') # base64 expects binary string as input
     return base64.urlsafe_b64decode(encoded).decode('utf-8')
 
@@ -835,12 +897,29 @@ def cache_control(value):
 
 @app.route('/encoding/utf8')
 def encoding():
+    """Returns a UTF-8 encoded body.
+     ---
+    responses:
+      200:
+        description: Encoded UTF-8 content.
+    """
+
     return render_template('UTF-8-demo.txt')
 
 
 @app.route('/bytes/<int:n>')
 def random_bytes(n):
-    """Returns n random bytes generated with given seed."""
+    """Returns n random bytes generated with given seed.
+     ---
+    parameters:
+      - in: path
+        name: n
+        type: int
+    responses:
+      200:
+        description: Bytes.
+    """
+
     n = min(n, 100 * 1024) # set 100KB limit
 
     params = CaseInsensitiveDict(request.args.items())
@@ -857,7 +936,16 @@ def random_bytes(n):
 
 @app.route('/stream-bytes/<int:n>')
 def stream_random_bytes(n):
-    """Streams n random bytes generated with given seed, at given chunk size per packet."""
+    """Streams n random bytes generated with given seed, at given chunk size per packet.
+     ---
+    parameters:
+      - in: path
+        name: n
+        type: int
+    responses:
+      200:
+        description: Bytes.
+    """
     n = min(n, 100 * 1024) # set 100KB limit
 
     params = CaseInsensitiveDict(request.args.items())
@@ -887,7 +975,16 @@ def stream_random_bytes(n):
 
 @app.route('/range/<int:numbytes>')
 def range_request(numbytes):
-    """Streams n random bytes generated with given seed, at given chunk size per packet."""
+    """Streams n random bytes generated with given seed, at given chunk size per packet.
+     ---
+    parameters:
+      - in: path
+        name: numbytes
+        type: int
+    responses:
+      200:
+        description: Bytes.
+    """
 
     if numbytes <= 0 or numbytes > (100 * 1024):
         response = Response(headers={
@@ -958,7 +1055,19 @@ def range_request(numbytes):
 
 @app.route('/links/<int:n>/<int:offset>')
 def link_page(n, offset):
-    """Generate a page containing n links to other pages which do the same."""
+    """Generate a page containing n links to other pages which do the same.
+     ---
+    parameters:
+      - in: path
+        name: n
+        type: int
+      - in: path
+        name: offset
+        type: int
+    responses:
+      200:
+        description: HTML links.
+    """
     n = min(max(1, n), 200) # limit to between 1 and 200 links
 
     link = "<a href='{0}'>{1}</a> "
@@ -982,7 +1091,12 @@ def links(n):
 
 @app.route('/image')
 def image():
-    """Returns a simple image of the type suggest by the Accept header."""
+    """Returns a simple image of the type suggest by the Accept header.
+    ---
+    responses:
+      200:
+        description: An image.
+    """
 
     headers = get_headers()
     if 'accept' not in headers:
@@ -1004,24 +1118,48 @@ def image():
 
 @app.route('/image/png')
 def image_png():
+    """Returns a simple PNG image.
+    ---
+    responses:
+      200:
+        description: A PNG image.
+    """
     data = resource('images/pig_icon.png')
     return Response(data, headers={'Content-Type': 'image/png'})
 
 
 @app.route('/image/jpeg')
 def image_jpeg():
+    """Returns a simple JPEG image.
+    ---
+    responses:
+      200:
+        description: A JPEG image.
+    """
     data = resource('images/jackal.jpg')
     return Response(data, headers={'Content-Type': 'image/jpeg'})
 
 
 @app.route('/image/webp')
 def image_webp():
+    """Returns a simple WEBP image.
+    ---
+    responses:
+      200:
+        description: A WEBP image.
+    """
     data = resource('images/wolf_1.webp')
     return Response(data, headers={'Content-Type': 'image/webp'})
 
 
 @app.route('/image/svg')
 def image_svg():
+    """Returns a simple SVG image.
+    ---
+    responses:
+      200:
+        description: An SVG image.
+    """
     data = resource('images/svg_logo.svg')
     return Response(data, headers={'Content-Type': 'image/svg+xml'})
 
@@ -1035,6 +1173,12 @@ def resource(filename):
 
 @app.route("/xml")
 def xml():
+    """Returns a simple XML document.
+    ---
+    responses:
+      200:
+        description: An XML document.
+    """
     response = make_response(render_template("sample.xml"))
     response.headers["Content-Type"] = "application/xml"
     return response
