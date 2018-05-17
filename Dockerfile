@@ -1,7 +1,5 @@
 FROM python:3-alpine
 
-ENV WEB_CONCURRENCY=4
-
 ADD . /httpbin
 
 RUN apk add -U ca-certificates libffi libstdc++ && \
