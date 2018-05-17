@@ -7,7 +7,7 @@ import io
 
 setup(
     name="httpbin",
-    version="0.7.0",
+    version="0.8.0",
     description="HTTP Request and Response Service",
     # long_description=long_description,
 
