@@ -73,7 +73,7 @@ template = {
       "url": "https://kennethreitz.org",
     },
     # "termsOfService": "http://me.com/terms",
-    "version": "0.8.0"
+    "version": "0.9.0"
   },
   "host": "httpbin.org",  # overrides localhost:500
   "basePath": "/",  # base bash for blueprint registration
