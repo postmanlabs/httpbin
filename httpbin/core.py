@@ -200,6 +200,8 @@ def view_html_page():
     ---
     tags:
       - Response formats
+    produces:
+      - text/html
     responses:
       200:
         description: An HTML page.
@@ -214,6 +216,8 @@ def view_robots_page():
     ---
     tags:
       - Response formats
+    produces:
+      - text/plain
     responses:
       200:
         description: Robots file
@@ -231,6 +235,8 @@ def view_deny_page():
     ---
     tags:
       - Response formats
+    produces:
+      - text/plain
     responses:
       200:
         description: Denied message
@@ -248,6 +254,8 @@ def view_origin():
     ---
     tags:
       - Request inspection
+    produces:
+      - application/json
     responses:
       200:
         description: The Requester's IP Address.
@@ -262,6 +270,8 @@ def view_uuid():
     ---
     tags:
       - Dynamic data
+    produces:
+      - application/json
     responses:
       200:
         description: A UUID4.
@@ -276,6 +286,8 @@ def view_headers():
     ---
     tags:
       - Request inspection
+    produces:
+      - application/json
     responses:
       200:
         description: The Rrquest's IP Address.
@@ -290,6 +302,8 @@ def view_user_agent():
     ---
     tags:
       - Request inspection
+    produces:
+      - application/json
     responses:
       200:
         description: The request's User-Agent header..
@@ -306,6 +320,8 @@ def view_get():
     ---
     tags:
       - HTTP Methods
+    produces:
+      - application/json
     responses:
       200:
         description: The request's query parameters.
@@ -321,6 +337,8 @@ def view_anything(anything=None):
     ---
     tags:
       - Anything
+    produces:
+      - application/json
     responses:
       200:
         description: Anything passed in request
@@ -335,6 +353,8 @@ def view_post():
     ---
     tags:
       - HTTP Methods
+    produces:
+      - application/json
     responses:
       200:
         description: The request's POST parameters.
@@ -350,6 +370,8 @@ def view_put():
     ---
     tags:
       - HTTP Methods
+    produces:
+      - application/json
     responses:
       200:
         description: The request's PUT parameters.
@@ -365,6 +387,8 @@ def view_patch():
     ---
     tags:
       - HTTP Methods
+    produces:
+      - application/json
     responses:
       200:
         description: The request's PATCH parameters.
@@ -380,6 +404,8 @@ def view_delete():
     ---
     tags:
       - HTTP Methods
+    produces:
+      - application/json
     responses:
       200:
         description: The request's DELETE parameters.
@@ -396,6 +422,8 @@ def view_gzip_encoded_content():
     ---
     tags:
       - Response formats
+    produces:
+      - application/json
     responses:
       200:
         description: GZip-encoded data.
@@ -412,6 +440,8 @@ def view_deflate_encoded_content():
     ---
     tags:
       - Response formats
+    produces:
+      - application/json
     responses:
       200:
         description: Defalte-encoded data.
@@ -428,6 +458,8 @@ def view_brotli_encoded_content():
     ---
     tags:
       - Response formats
+    produces:
+      - application/json
     responses:
       200:
         description: Brotli-encoded data.
@@ -447,6 +479,8 @@ def redirect_n_times(n):
       - in: path
         name: n
         type: int
+    produces:
+      - text/html
     responses:
       302:
         description: A redirection.
@@ -474,6 +508,8 @@ def redirect_to():
     ---
     tags:
       - Redirects
+    produces:
+      - text/html
     parameters:
       - name: url
         type: string
@@ -510,6 +546,8 @@ def relative_redirect_n_times(n):
       - in: path
         name: n
         type: int
+    produces:
+      - text/html
     responses:
       302:
         description: A redirection.
@@ -538,6 +576,8 @@ def absolute_redirect_n_times(n):
       - in: path
         name: n
         type: int
+    produces:
+      - text/html
     responses:
       302:
         description: A redirection.
@@ -561,6 +601,8 @@ def stream_n_messages(n):
       - in: path
         name: n
         type: int
+    produces:
+      - application/json
     responses:
       200:
         description: Streamed JSON responses.
@@ -587,6 +629,8 @@ def view_status_code(codes):
     parameters:
       - in: path
         name: codes
+    produces:
+      - text/plain
     responses:
       100:
         description: Informational responses
@@ -641,6 +685,8 @@ def response_headers():
           additionalProperties:
             type: string
         style: form
+    produces:
+      - application/json
     responses:
       200:
         description: Response headers
@@ -673,6 +719,8 @@ def view_cookies(hide_env=True):
     ---
     tags:
       - Cookies
+    produces:
+      - application/json
     responses:
       200:
         description: Set cookies..
@@ -710,6 +758,8 @@ def set_cookie(name, value):
       - in: path
         name: value
         type: string
+    produces:
+      - text/plain
     responses:
       200:
         description: Set cookies and redirects to cookie list.
@@ -737,6 +787,8 @@ def set_cookies():
           additionalProperties:
             type: string
         style: form
+    produces:
+      - text/plain
     responses:
       200:
         description: Redirect to cookie list
@@ -766,6 +818,8 @@ def delete_cookies():
           additionalProperties:
             type: string
         style: form
+    produces:
+      - text/plain
     responses:
       200:
         description: Redirect to cookie list
@@ -792,6 +846,8 @@ def basic_auth(user='user', passwd='passwd'):
       - in: path
         name: passwd
         type: string
+    produces:
+      - application/json
     responses:
       200:
         description: Sucessful authentication.
@@ -818,6 +874,8 @@ def hidden_basic_auth(user='user', passwd='passwd'):
       - in: path
         name: passwd
         type: string
+    produces:
+      - application/json
     responses:
       200:
         description: Sucessful authentication.
@@ -836,6 +894,13 @@ def bearer_auth():
     ---
     tags:
       - Auth
+    parameters:
+      - in: header
+        name: Authorization
+        schema:
+          type: string
+    produces:
+      - application/json
     responses:
       200:
         description: Sucessful authentication.
@@ -870,6 +935,8 @@ def digest_auth_md5(qop=None, user='user', passwd='passwd'):
       - in: path
         name: passwd
         type: string
+    produces:
+      - application/json
     responses:
       200:
         description: Sucessful authentication.
@@ -901,6 +968,8 @@ def digest_auth_nostale(qop=None, user='user', passwd='passwd', algorithm='MD5')
         type: string
         description: MD5, SHA-256, SHA-512
         default: MD5
+    produces:
+      - application/json
     responses:
       200:
         description: Sucessful authentication.
@@ -937,6 +1006,8 @@ def digest_auth(qop=None, user='user', passwd='passwd', algorithm='MD5', stale_a
         name: stale_after
         type: string
         default: never
+    produces:
+      - application/json
     responses:
       200:
         description: Sucessful authentication.
@@ -1011,6 +1082,8 @@ def delay_response(delay):
       - in: path
         name: delay
         type: int
+    produces:
+      - application/json
     responses:
       200:
         description: A delayed response.
@@ -1029,6 +1102,8 @@ def drip():
     ---
     tags:
       - Dynamic data
+    produces:
+      - application/octet-stream
     responses:
       200:
         description: A dripped response.
@@ -1063,7 +1138,7 @@ def drip():
 
 @app.route('/base64/<value>')
 def decode_base64(value):
-    """"RDecodes base64url-encoded string.
+    """"Decodes base64url-encoded string.
     ---
     tags:
       - Dynamic data
@@ -1071,12 +1146,18 @@ def decode_base64(value):
       - in: path
         name: value
         type: string
+        default: SFRUUEJJTiBpcyBhd2Vzb21l
+    produces:
+      - text/html
     responses:
       200:
         description: Decoded base64 content.
     """
     encoded = value.encode('utf-8') # base64 expects binary string as input
-    return base64.urlsafe_b64decode(encoded).decode('utf-8')
+    try:
+        return base64.urlsafe_b64decode(encoded).decode('utf-8')
+    except:
+        return "Incorrect Base64 data try: SFRUUEJJTiBpcyBhd2Vzb21l"
 
 
 @app.route('/cache', methods=('GET',))
@@ -1090,6 +1171,8 @@ def cache():
         name: If-Modified-Since
       - in: header
         name: If-None-Match
+    produces:
+      - application/json
     responses:
       200:
         description: Cached response
@@ -1118,6 +1201,8 @@ def etag(etag):
         name: If-None-Match
       - in: header
         name: If-Match
+    produces:
+      - application/json
     responses:
       200:
         description: Normal response
@@ -1152,6 +1237,8 @@ def cache_control(value):
       - in: path
         name: value
         type: integer
+    produces:
+      - application/json
     responses:
       200:
         description: Cache control set
@@ -1167,6 +1254,8 @@ def encoding():
     ---
     tags:
       - Response formats
+    produces:
+      - text/html
     responses:
       200:
         description: Encoded UTF-8 content.
@@ -1185,6 +1274,8 @@ def random_bytes(n):
       - in: path
         name: n
         type: int
+    produces:
+      - application/octet-stream
     responses:
       200:
         description: Bytes.
@@ -1214,6 +1305,8 @@ def stream_random_bytes(n):
       - in: path
         name: n
         type: int
+    produces:
+      - application/octet-stream
     responses:
       200:
         description: Bytes.
@@ -1255,6 +1348,8 @@ def range_request(numbytes):
       - in: path
         name: numbytes
         type: int
+    produces:
+      - application/octet-stream
     responses:
       200:
         description: Bytes.
@@ -1340,6 +1435,8 @@ def link_page(n, offset):
       - in: path
         name: offset
         type: int
+    produces:
+      - text/html
     responses:
       200:
         description: HTML links.
@@ -1371,6 +1468,12 @@ def image():
     ---
     tags:
       - Images
+    produces:
+      - image/webp
+      - image/svg+xml
+      - image/jpeg
+      - image/png
+      - image/*
     responses:
       200:
         description: An image.
@@ -1400,6 +1503,8 @@ def image_png():
     ---
     tags:
       - Images
+    produces:
+      - image/png
     responses:
       200:
         description: A PNG image.
@@ -1414,6 +1519,8 @@ def image_jpeg():
     ---
     tags:
       - Images
+    produces:
+      - image/jpeg
     responses:
       200:
         description: A JPEG image.
@@ -1428,6 +1535,8 @@ def image_webp():
     ---
     tags:
       - Images
+    produces:
+      - image/webp
     responses:
       200:
         description: A WEBP image.
@@ -1442,6 +1551,8 @@ def image_svg():
     ---
     tags:
       - Images
+    produces:
+      - image/svg+xml
     responses:
       200:
         description: An SVG image.
@@ -1463,6 +1574,8 @@ def xml():
     ---
     tags:
       - Response formats
+    produces:
+      - application/xml
     responses:
       200:
         description: An XML document.
@@ -1478,6 +1591,8 @@ def a_json_endpoint():
     ---
     tags:
       - Response formats
+    produces:
+      - application/json
     responses:
       200:
         description: An JSON document.
