@@ -1472,6 +1472,35 @@ def xml():
     return response
 
 
+@app.route("/json")
+def a_json_endpoint():
+    """Returns a simple JSON document.
+    ---
+    tags:
+      - Response formats
+    responses:
+      200:
+        description: An JSON document.
+    """
+    return flask_jsonify(
+        slideshow={
+            'title': 'Sample Slide Show',
+            'date': 'date of publication',
+            'author': 'Yours Truly',
+            'slides': [
+                {'type': 'all',
+                 'title': 'Wake up to WonderWidgets!'},
+                {'type': 'all',
+                 'title': 'Overview',
+                 'items': [
+                    'Why <em>WonderWidgets</em> are great',
+                    'Who <em>buys</em> WonderWidgets'
+                 ]}
+            ]
+        }
+    )
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=5000)
