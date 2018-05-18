@@ -56,6 +56,8 @@ tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 app.debug = bool(os.environ.get('DEBUG'))
 
+app.add_template_global('HTTPBIN_TRACKING' in os.environ, name='tracking_enabled')
+
 app.config['SWAGGER'] = {
     'title': 'httpbin.org',
     'uiversion': 3
@@ -65,7 +67,10 @@ template = {
   "swagger": "2.0",
   "info": {
     "title": "httpbin.org",
-    "description": "A simple HTTP Service. <br/> <br/> <code>$ docker run -p 80:80 kennethreitz/httpbin</code>",
+    "description": (
+        "A simple HTTP Request & Response Service."
+        "<br/> <br/> <b>Run locally: </b> <code>$ docker run -p 80:80 kennethreitz/httpbin</code>"
+    ),
     "contact": {
       "responsibleOrganization": "Kenneth Reitz",
       "responsibleDeveloper": "Kenneth Reitz",
@@ -75,11 +80,29 @@ template = {
     # "termsOfService": "http://me.com/terms",
     "version": "0.9.0"
   },
-  "host": "httpbin.org",  # overrides localhost:500
+  "host": "httpbin.org",  # overrides localhost:5000
   "basePath": "/",  # base bash for blueprint registration
   "schemes": [
-    "http",
-    "https"
+    "https",
+    "http"
+  ],
+  'protocol': 'https',
+  'tags': [
+      {
+       'name': 'HTTP Methods',
+       'description': 'Testing different HTTP verbs',
+       # 'externalDocs': {'description': 'Learn more', 'url': 'https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html'}
+      },
+      {'name': 'Auth', 'description': 'Auth methods'},
+      {'name': 'Status codes', 'description': 'Generates responses with given status code'},
+      {'name': 'Request inspection', 'description': 'Inspect the request data'},
+      {'name': 'Response inspection', 'description': 'Inspect the response data like caching and headers'},
+      {'name': 'Response formats', 'description': 'Returns responses in different data formats'},
+      {'name': 'Dynamic data', 'description': 'Generates random and dynamic data'},
+      {'name': 'Cookies', 'description': 'Creates, reads and deletes Cookies'},
+      {'name': 'Images', 'description': 'Returns different image formats'},
+      {'name': 'Redirects', 'description': 'Returns different redirect responses'},
+      {'name': 'Anything', 'description': 'Returns anything that is passed to request'},
   ]
 }
 
@@ -165,17 +188,18 @@ def set_cors_headers(response):
 # Routes
 # ------
 
-# @app.route('/')
-# def view_landing_page():
-#     """Generates Landing Page."""
-#     tracking_enabled = 'HTTPBIN_TRACKING' in os.environ
-#     return render_template('index.html', tracking_enabled=tracking_enabled)
+@app.route('/legacy')
+def view_landing_page():
+    """Generates Landing Page in legacy layout."""
+    return render_template('index.html')
 
 
 @app.route('/html')
 def view_html_page():
     """Returns a simple HTML document.
     ---
+    tags:
+      - Response formats
     responses:
       200:
         description: An HTML page.
@@ -186,7 +210,14 @@ def view_html_page():
 
 @app.route('/robots.txt')
 def view_robots_page():
-    """Returns a simple HTML document."""
+    """Returns some robots.txt rules.
+    ---
+    tags:
+      - Response formats
+    responses:
+      200:
+        description: Robots file
+    """
 
     response = make_response()
     response.data = ROBOT_TXT
@@ -196,7 +227,14 @@ def view_robots_page():
 
 @app.route('/deny')
 def view_deny_page():
-    """Simple Html Page"""
+    """Returns page denied by robots.txt rules.
+    ---
+    tags:
+      - Response formats
+    responses:
+      200:
+        description: Denied message
+    """
     response = make_response()
     response.data = ANGRY_ASCII
     response.content_type = "text/plain"
@@ -208,6 +246,8 @@ def view_deny_page():
 def view_origin():
     """Returns the requester's IP Address.
     ---
+    tags:
+      - Request inspection
     responses:
       200:
         description: The Requester's IP Address.
@@ -220,6 +260,8 @@ def view_origin():
 def view_uuid():
     """Return a UUID4.
     ---
+    tags:
+      - Dynamic data
     responses:
       200:
         description: A UUID4.
@@ -232,6 +274,8 @@ def view_uuid():
 def view_headers():
     """Return the incoming requests's HTTP headers.
     ---
+    tags:
+      - Request inspection
     responses:
       200:
         description: The Rrquest's IP Address.
@@ -244,6 +288,8 @@ def view_headers():
 def view_user_agent():
     """Return the incoming requests's User-Agent header.
     ---
+    tags:
+      - Request inspection
     responses:
       200:
         description: The request's User-Agent header..
@@ -258,6 +304,8 @@ def view_user_agent():
 def view_get():
     """The request's query parameters.
     ---
+    tags:
+      - HTTP Methods
     responses:
       200:
         description: The request's query parameters.
@@ -269,7 +317,14 @@ def view_get():
 @app.route('/anything', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
 @app.route('/anything/<path:anything>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
 def view_anything(anything=None):
-    """Returns request data."""
+    """Returns anything passed in request data.
+    ---
+    tags:
+      - Anything
+    responses:
+      200:
+        description: Anything passed in request
+    """
 
     return jsonify(get_dict('url', 'args', 'headers', 'origin', 'method', 'form', 'data', 'files', 'json'))
 
@@ -278,6 +333,8 @@ def view_anything(anything=None):
 def view_post():
     """The request's POST parameters.
     ---
+    tags:
+      - HTTP Methods
     responses:
       200:
         description: The request's POST parameters.
@@ -291,6 +348,8 @@ def view_post():
 def view_put():
     """The request's PUT parameters.
     ---
+    tags:
+      - HTTP Methods
     responses:
       200:
         description: The request's PUT parameters.
@@ -304,6 +363,8 @@ def view_put():
 def view_patch():
     """The request's PATCH parameters.
     ---
+    tags:
+      - HTTP Methods
     responses:
       200:
         description: The request's PATCH parameters.
@@ -317,6 +378,8 @@ def view_patch():
 def view_delete():
     """"The request's DELETE parameters.
     ---
+    tags:
+      - HTTP Methods
     responses:
       200:
         description: The request's DELETE parameters.
@@ -331,6 +394,8 @@ def view_delete():
 def view_gzip_encoded_content():
     """Returns GZip-encoded data.
     ---
+    tags:
+      - Response formats
     responses:
       200:
         description: GZip-encoded data.
@@ -345,6 +410,8 @@ def view_gzip_encoded_content():
 def view_deflate_encoded_content():
     """"Returns Deflate-encoded data.
     ---
+    tags:
+      - Response formats
     responses:
       200:
         description: Defalte-encoded data.
@@ -359,6 +426,8 @@ def view_deflate_encoded_content():
 def view_brotli_encoded_content():
     """"Returns Brotli-encoded data.
     ---
+    tags:
+      - Response formats
     responses:
       200:
         description: Brotli-encoded data.
@@ -372,6 +441,8 @@ def view_brotli_encoded_content():
 def redirect_n_times(n):
     """302 Redirects n times.
     ---
+    tags:
+      - Redirects
     parameters:
       - in: path
         name: n
@@ -401,6 +472,8 @@ def _redirect(kind, n, external):
 def redirect_to():
     """302/3XX Redirects to the given URL.
     ---
+    tags:
+      - Redirects
     parameters:
       - name: url
         type: string
@@ -431,6 +504,8 @@ def redirect_to():
 def relative_redirect_n_times(n):
     """Relatively 302 Redirects n times.
     ---
+    tags:
+      - Redirects
     parameters:
       - in: path
         name: n
@@ -457,6 +532,8 @@ def relative_redirect_n_times(n):
 def absolute_redirect_n_times(n):
     """Absolutely 302 Redirects n times.
     ---
+    tags:
+      - Redirects
     parameters:
       - in: path
         name: n
@@ -478,6 +555,8 @@ def absolute_redirect_n_times(n):
 def stream_n_messages(n):
     """Stream n JSON responses
     ---
+    tags:
+      - Dynamic data
     parameters:
       - in: path
         name: n
@@ -501,7 +580,25 @@ def stream_n_messages(n):
 
 @app.route('/status/<codes>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
 def view_status_code(codes):
-    """Return status code or random status code if more than one are given"""
+    """Return status code or random status code if more than one are given
+    ---
+    tags:
+      - Status codes
+    parameters:
+      - in: path
+        name: codes
+    responses:
+      100:
+        description: Informational responses
+      200:
+        description: Success
+      300:
+        description: Redirection
+      400:
+        description: Client Errors
+      500:
+        description: Server Errors
+    """
 
     if ',' not in codes:
         try:
@@ -530,7 +627,26 @@ def view_status_code(codes):
 
 @app.route('/response-headers', methods=['GET', 'POST'])
 def response_headers():
-    """Returns a set of response headers from the query string."""
+    """Returns a set of response headers from the query string.
+    ---
+    tags:
+      - Response inspection
+    parameters:
+      - in: query
+        name: freeform
+        explode: true
+        allowEmptyValue: true
+        schema:
+          type: object
+          additionalProperties:
+            type: string
+        style: form
+    responses:
+      200:
+        description: Response headers
+    """
+    # Pending swaggerUI update
+    # https://github.com/swagger-api/swagger-ui/issues/3850
     headers = MultiDict(request.args.items(multi=True))
     response = jsonify(list(headers.lists()))
 
@@ -555,6 +671,8 @@ def response_headers():
 def view_cookies(hide_env=True):
     """Returns cookie data.
     ---
+    tags:
+      - Cookies
     responses:
       200:
         description: Set cookies..
@@ -583,6 +701,8 @@ def view_forms_post():
 def set_cookie(name, value):
     """Sets a cookie and redirects to cookie list.
     ---
+    tags:
+      - Cookies
     parameters:
       - in: path
         name: name
@@ -592,7 +712,7 @@ def set_cookie(name, value):
         type: string
     responses:
       200:
-        description: Set cookies.
+        description: Set cookies and redirects to cookie list.
     """
 
     r = app.make_response(redirect(url_for('view_cookies')))
@@ -603,7 +723,24 @@ def set_cookie(name, value):
 
 @app.route('/cookies/set')
 def set_cookies():
-    """Sets cookie(s) as provided by the query string and redirects to cookie list."""
+    """Sets cookie(s) as provided by the query string and redirects to cookie list.
+    ---
+    tags:
+      - Cookies
+    parameters:
+      - in: query
+        name: freeform
+        explode: true
+        allowEmptyValue: true
+        schema:
+          type: object
+          additionalProperties:
+            type: string
+        style: form
+    responses:
+      200:
+        description: Redirect to cookie list
+    """
 
     cookies = dict(request.args.items())
     r = app.make_response(redirect(url_for('view_cookies')))
@@ -615,7 +752,24 @@ def set_cookies():
 
 @app.route('/cookies/delete')
 def delete_cookies():
-    """Deletes cookie(s) as provided by the query string and redirects to cookie list."""
+    """Deletes cookie(s) as provided by the query string and redirects to cookie list.
+    ---
+    tags:
+      - Cookies
+    parameters:
+      - in: query
+        name: freeform
+        explode: true
+        allowEmptyValue: true
+        schema:
+          type: object
+          additionalProperties:
+            type: string
+        style: form
+    responses:
+      200:
+        description: Redirect to cookie list
+    """
 
     cookies = dict(request.args.items())
     r = app.make_response(redirect(url_for('view_cookies')))
@@ -629,6 +783,8 @@ def delete_cookies():
 def basic_auth(user='user', passwd='passwd'):
     """Prompts the user for authorization using HTTP Basic Auth.
     ---
+    tags:
+      - Auth
     parameters:
       - in: path
         name: user
@@ -653,6 +809,8 @@ def basic_auth(user='user', passwd='passwd'):
 def hidden_basic_auth(user='user', passwd='passwd'):
     """"Prompts the user for authorization using HTTP Basic Auth.
     ---
+    tags:
+      - Auth
     parameters:
       - in: path
         name: user
@@ -676,6 +834,8 @@ def hidden_basic_auth(user='user', passwd='passwd'):
 def bearer_auth():
     """"Prompts the user for authorization using bearer authentication..
     ---
+    tags:
+      - Auth
     responses:
       200:
         description: Sucessful authentication.
@@ -697,10 +857,13 @@ def bearer_auth():
 def digest_auth_md5(qop=None, user='user', passwd='passwd'):
     """"Prompts the user for authorization using Digest Auth.
     ---
+    tags:
+      - Auth
     parameters:
       - in: path
         name: qop
         type: string
+        description: auth or auth-int
       - in: path
         name: user
         type: string
@@ -718,12 +881,68 @@ def digest_auth_md5(qop=None, user='user', passwd='passwd'):
 
 @app.route('/digest-auth/<qop>/<user>/<passwd>/<algorithm>')
 def digest_auth_nostale(qop=None, user='user', passwd='passwd', algorithm='MD5'):
+    """"Prompts the user for authorization using Digest Auth + Algorithm.
+    ---
+    tags:
+      - Auth
+    parameters:
+      - in: path
+        name: qop
+        type: string
+        description: auth or auth-int
+      - in: path
+        name: user
+        type: string
+      - in: path
+        name: passwd
+        type: string
+      - in: path
+        name: algorithm
+        type: string
+        description: MD5, SHA-256, SHA-512
+        default: MD5
+    responses:
+      200:
+        description: Sucessful authentication.
+      401:
+        description: Unsuccessful authentication.
+    """
     return digest_auth(qop, user, passwd, algorithm, 'never')
 
 
 @app.route('/digest-auth/<qop>/<user>/<passwd>/<algorithm>/<stale_after>')
 def digest_auth(qop=None, user='user', passwd='passwd', algorithm='MD5', stale_after='never'):
-    """Prompts the user for authorization using HTTP Digest auth"""
+    """"Prompts the user for authorization using Digest Auth + Algorithm.
+    allow settings the stale_after argument.
+    ---
+    tags:
+      - Auth
+    parameters:
+      - in: path
+        name: qop
+        type: string
+        description: auth or auth-int
+      - in: path
+        name: user
+        type: string
+      - in: path
+        name: passwd
+        type: string
+      - in: path
+        name: algorithm
+        type: string
+        description: MD5, SHA-256, SHA-512
+        default: MD5
+      - in: path
+        name: stale_after
+        type: string
+        default: never
+    responses:
+      200:
+        description: Sucessful authentication.
+      401:
+        description: Unsuccessful authentication.
+    """
     require_cookie_handling = (request.args.get('require-cookie', '').lower() in
                                ('1', 't', 'true'))
     if algorithm not in ('MD5', 'SHA-256', 'SHA-512'):
@@ -786,6 +1005,8 @@ def digest_auth(qop=None, user='user', passwd='passwd', algorithm='MD5', stale_a
 def delay_response(delay):
     """"Returns a delayed response (max of 10 seconds).
     ---
+    tags:
+      - Dynamic data
     parameters:
       - in: path
         name: delay
@@ -806,6 +1027,8 @@ def delay_response(delay):
 def drip():
     """Drips data over a duration after an optional initial delay.
     ---
+    tags:
+      - Dynamic data
     responses:
       200:
         description: A dripped response.
@@ -842,6 +1065,8 @@ def drip():
 def decode_base64(value):
     """"RDecodes base64url-encoded string.
     ---
+    tags:
+      - Dynamic data
     parameters:
       - in: path
         name: value
@@ -856,7 +1081,22 @@ def decode_base64(value):
 
 @app.route('/cache', methods=('GET',))
 def cache():
-    """Returns a 304 if an If-Modified-Since header or If-None-Match is present. Returns the same as a GET otherwise."""
+    """Returns a 304 if an If-Modified-Since header or If-None-Match is present. Returns the same as a GET otherwise.
+    ---
+    tags:
+      - Response inspection
+    parameters:
+      - in: header
+        name: If-Modified-Since
+      - in: header
+        name: If-None-Match
+    responses:
+      200:
+        description: Cached response
+      304:
+        description: Modified
+
+    """
     is_conditional = request.headers.get('If-Modified-Since') or request.headers.get('If-None-Match')
 
     if is_conditional is None:
@@ -869,7 +1109,22 @@ def cache():
 
 @app.route('/etag/<etag>', methods=('GET',))
 def etag(etag):
-    """Assumes the resource has the given etag and responds to If-None-Match and If-Match headers appropriately."""
+    """Assumes the resource has the given etag and responds to If-None-Match and If-Match headers appropriately.
+    ---
+    tags:
+      - Response inspection
+    parameters:
+      - in: header
+        name: If-None-Match
+      - in: header
+        name: If-Match
+    responses:
+      200:
+        description: Normal response
+      412:
+        description: match
+
+    """
     if_none_match = parse_multi_value_header(request.headers.get('If-None-Match'))
     if_match = parse_multi_value_header(request.headers.get('If-Match'))
 
@@ -889,7 +1144,18 @@ def etag(etag):
 
 @app.route('/cache/<int:value>')
 def cache_control(value):
-    """Sets a Cache-Control header."""
+    """Sets a Cache-Control header for n seconds.
+    ---
+    tags:
+      - Response inspection
+    parameters:
+      - in: path
+        name: value
+        type: integer
+    responses:
+      200:
+        description: Cache control set
+    """
     response = view_get()
     response.headers['Cache-Control'] = 'public, max-age={0}'.format(value)
     return response
@@ -898,7 +1164,9 @@ def cache_control(value):
 @app.route('/encoding/utf8')
 def encoding():
     """Returns a UTF-8 encoded body.
-     ---
+    ---
+    tags:
+      - Response formats
     responses:
       200:
         description: Encoded UTF-8 content.
@@ -909,8 +1177,10 @@ def encoding():
 
 @app.route('/bytes/<int:n>')
 def random_bytes(n):
-    """Returns n random bytes generated with given seed.
-     ---
+    """Returns n random bytes generated with given seed
+    ---
+    tags:
+      - Dynamic data
     parameters:
       - in: path
         name: n
@@ -920,7 +1190,7 @@ def random_bytes(n):
         description: Bytes.
     """
 
-    n = min(n, 100 * 1024) # set 100KB limit
+    n = min(n, 100 * 1024)  # set 100KB limit
 
     params = CaseInsensitiveDict(request.args.items())
     if 'seed' in params:
@@ -937,7 +1207,9 @@ def random_bytes(n):
 @app.route('/stream-bytes/<int:n>')
 def stream_random_bytes(n):
     """Streams n random bytes generated with given seed, at given chunk size per packet.
-     ---
+    ---
+    tags:
+      - Dynamic data
     parameters:
       - in: path
         name: n
@@ -976,7 +1248,9 @@ def stream_random_bytes(n):
 @app.route('/range/<int:numbytes>')
 def range_request(numbytes):
     """Streams n random bytes generated with given seed, at given chunk size per packet.
-     ---
+    ---
+    tags:
+      - Dynamic data
     parameters:
       - in: path
         name: numbytes
@@ -1056,7 +1330,9 @@ def range_request(numbytes):
 @app.route('/links/<int:n>/<int:offset>')
 def link_page(n, offset):
     """Generate a page containing n links to other pages which do the same.
-     ---
+    ---
+    tags:
+      - Dynamic data
     parameters:
       - in: path
         name: n
@@ -1093,6 +1369,8 @@ def links(n):
 def image():
     """Returns a simple image of the type suggest by the Accept header.
     ---
+    tags:
+      - Images
     responses:
       200:
         description: An image.
@@ -1120,6 +1398,8 @@ def image():
 def image_png():
     """Returns a simple PNG image.
     ---
+    tags:
+      - Images
     responses:
       200:
         description: A PNG image.
@@ -1132,6 +1412,8 @@ def image_png():
 def image_jpeg():
     """Returns a simple JPEG image.
     ---
+    tags:
+      - Images
     responses:
       200:
         description: A JPEG image.
@@ -1144,6 +1426,8 @@ def image_jpeg():
 def image_webp():
     """Returns a simple WEBP image.
     ---
+    tags:
+      - Images
     responses:
       200:
         description: A WEBP image.
@@ -1156,6 +1440,8 @@ def image_webp():
 def image_svg():
     """Returns a simple SVG image.
     ---
+    tags:
+      - Images
     responses:
       200:
         description: An SVG image.
@@ -1175,6 +1461,8 @@ def resource(filename):
 def xml():
     """Returns a simple XML document.
     ---
+    tags:
+      - Response formats
     responses:
       200:
         description: An XML document.
@@ -1182,6 +1470,35 @@ def xml():
     response = make_response(render_template("sample.xml"))
     response.headers["Content-Type"] = "application/xml"
     return response
+
+
+@app.route("/json")
+def a_json_endpoint():
+    """Returns a simple JSON document.
+    ---
+    tags:
+      - Response formats
+    responses:
+      200:
+        description: An JSON document.
+    """
+    return flask_jsonify(
+        slideshow={
+            'title': 'Sample Slide Show',
+            'date': 'date of publication',
+            'author': 'Yours Truly',
+            'slides': [
+                {'type': 'all',
+                 'title': 'Wake up to WonderWidgets!'},
+                {'type': 'all',
+                 'title': 'Overview',
+                 'items': [
+                    'Why <em>WonderWidgets</em> are great',
+                    'Who <em>buys</em> WonderWidgets'
+                 ]}
+            ]
+        }
+    )
 
 
 if __name__ == '__main__':
