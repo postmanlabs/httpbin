@@ -282,7 +282,7 @@ def view_uuid():
 
 @app.route('/headers')
 def view_headers():
-    """Return the incoming requests's HTTP headers.
+    """Return the incoming request's HTTP headers.
     ---
     tags:
       - Request inspection
@@ -290,10 +290,10 @@ def view_headers():
       - application/json
     responses:
       200:
-        description: The Rrquest's IP Address.
+        description: The request's headers.
     """
 
-    return jsonify(get_dict('headers'))
+    return jsonify(get_headers())
 
 
 @app.route('/user-agent')
