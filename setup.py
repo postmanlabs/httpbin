@@ -5,9 +5,12 @@ import io
 # long_description = io.open(
     # os.path.join(os.path.dirname(__file__), 'README.rst'), encoding='utf-8').read()
 
+with open(os.path.join(os.path.realpath(os.path.dirname(__file__)), 'httpbin', 'VERSION')) as version_file:
+    version = version_file.read().strip()
+
 setup(
     name="httpbin",
-    version="0.9.0",
+    version=version,
     description="HTTP Request and Response Service",
     # long_description=long_description,
 
