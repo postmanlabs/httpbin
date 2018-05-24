@@ -907,13 +907,13 @@ def bearer_auth():
       401:
         description: Unsuccessful authentication.
     """
-    if 'Authorization' not in request.headers:
+    authorization = request.headers.get('Authorization')
+    if not (authorization and authorization.startswith('Bearer ')):
         response = app.make_response('')
         response.headers['WWW-Authenticate'] = 'Bearer'
         response.status_code = 401
         return response
-    authorization = request.headers.get('Authorization')
-    token = authorization.lstrip('Bearer ')
+    token = authorization.split('Bearer ', 1).pop()
 
     return jsonify(authenticated=True, token=token)
 
