@@ -288,7 +288,7 @@ def HA1(realm, username, password, algorithm):
                            password.encode('utf-8')]), algorithm)
 
 
-def HA2(credentails, request, algorithm):
+def HA2(credentials, request, algorithm):
     """Create HA2 md5 hash
 
     If the qop directive's value is "auth" or is unspecified, then HA2:
@@ -296,9 +296,9 @@ def HA2(credentails, request, algorithm):
     If the qop directive's value is "auth-int" , then HA2 is
         HA2 = md5(A2) = MD5(method:digestURI:MD5(entityBody))
     """
-    if credentails.get("qop") == "auth" or credentails.get('qop') is None:
+    if credentials.get("qop") == "auth" or credentials.get('qop') is None:
         return H(b":".join([request['method'].encode('utf-8'), request['uri'].encode('utf-8')]), algorithm)
-    elif credentails.get("qop") == "auth-int":
+    elif credentials.get("qop") == "auth-int":
         for k in 'method', 'uri', 'body':
             if k not in request:
                 raise ValueError("%s required" % k)
@@ -309,7 +309,7 @@ def HA2(credentails, request, algorithm):
     raise ValueError
 
 
-def response(credentails, password, request):
+def response(credentials, password, request):
     """Compile digest auth response
 
     If the qop directive's value is "auth" or "auth-int" , then compute the response as follows:
@@ -318,34 +318,34 @@ def response(credentails, password, request):
        RESPONSE = MD5(HA1:nonce:HA2)
 
     Arguments:
-    - `credentails`: credentails dict
+    - `credentials`: credentials dict
     - `password`: request user password
     - `request`: request dict
     """
     response = None
-    algorithm = credentails.get('algorithm')
+    algorithm = credentials.get('algorithm')
     HA1_value = HA1(
-        credentails.get('realm'),
-        credentails.get('username'),
+        credentials.get('realm'),
+        credentials.get('username'),
         password,
         algorithm
     )
-    HA2_value = HA2(credentails, request, algorithm)
-    if credentails.get('qop') is None:
+    HA2_value = HA2(credentials, request, algorithm)
+    if credentials.get('qop') is None:
         response = H(b":".join([
             HA1_value.encode('utf-8'),
-            credentails.get('nonce', '').encode('utf-8'),
+            credentials.get('nonce', '').encode('utf-8'),
             HA2_value.encode('utf-8')
         ]), algorithm)
-    elif credentails.get('qop') == 'auth' or credentails.get('qop') == 'auth-int':
+    elif credentials.get('qop') == 'auth' or credentials.get('qop') == 'auth-int':
         for k in 'nonce', 'nc', 'cnonce', 'qop':
-            if k not in credentails:
+            if k not in credentials:
                 raise ValueError("%s required for response H" % k)
         response = H(b":".join([HA1_value.encode('utf-8'),
-                               credentails.get('nonce').encode('utf-8'),
-                               credentails.get('nc').encode('utf-8'),
-                               credentails.get('cnonce').encode('utf-8'),
-                               credentails.get('qop').encode('utf-8'),
+                               credentials.get('nonce').encode('utf-8'),
+                               credentials.get('nc').encode('utf-8'),
+                               credentials.get('cnonce').encode('utf-8'),
+                               credentials.get('qop').encode('utf-8'),
                                HA2_value.encode('utf-8')]), algorithm)
     else:
         raise ValueError("qop value are wrong")
@@ -357,16 +357,16 @@ def check_digest_auth(user, passwd):
     """Check user authentication using HTTP Digest auth"""
 
     if request.headers.get('Authorization'):
-        credentails = parse_authorization_header(request.headers.get('Authorization'))
-        if not credentails:
+        credentials = parse_authorization_header(request.headers.get('Authorization'))
+        if not credentials:
             return
         request_uri = request.script_root + request.path
         if request.query_string:
             request_uri +=  '?' + request.query_string
-        response_hash = response(credentails, passwd, dict(uri=request_uri,
+        response_hash = response(credentials, passwd, dict(uri=request_uri,
                                                            body=request.data,
                                                            method=request.method))
-        if credentails.get('response') == response_hash:
+        if credentials.get('response') == response_hash:
             return True
     return False
 
