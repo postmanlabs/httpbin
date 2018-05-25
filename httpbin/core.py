@@ -913,7 +913,8 @@ def bearer_auth():
         response.headers['WWW-Authenticate'] = 'Bearer'
         response.status_code = 401
         return response
-    token = authorization.split('Bearer ', 1).pop()
+    slice_start = len('Bearer ')
+    token = authorization[slice_start:]
 
     return jsonify(authenticated=True, token=token)
 
