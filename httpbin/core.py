@@ -55,6 +55,7 @@ tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 app = Flask(__name__, template_folder=tmpl_dir)
 app.debug = bool(os.environ.get('DEBUG'))
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 
 app.add_template_global('HTTPBIN_TRACKING' in os.environ, name='tracking_enabled')
 
