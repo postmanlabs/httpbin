@@ -1,2 +1,3 @@
 include README.rst LICENSE AUTHORS requirements.txt test_httpbin.py
 recursive-include httpbin/templates *
+recursive-include httpbin/static *
