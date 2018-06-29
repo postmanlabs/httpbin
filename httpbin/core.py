@@ -511,9 +511,12 @@ def redirect_to():
     produces:
       - text/html
     parameters:
-      - name: url
+      - in: query
+        name: url
         type: string
-      - name: status_code
+        required: true
+      - in: query
+        name: status_code
         type: int
     responses:
       302:
