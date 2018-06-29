@@ -1102,6 +1102,31 @@ def drip():
     ---
     tags:
       - Dynamic data
+    parameters:
+      - in: query
+        name: duration
+        type: number
+        description: The amount of time (in seconds) over which to drip each byte
+        default: 2
+        required: false
+      - in: query
+        name: numbytes
+        type: integer
+        description: The number of bytes to respond with
+        default: 10
+        required: false
+      - in: query
+        name: code
+        type: integer
+        description: The response code that will be returned
+        default: 200
+        required: false
+      - in: query
+        name: delay
+        type: number
+        description: The amount of time (in seconds) to delay before responding
+        default: 2
+        required: false
     produces:
       - application/octet-stream
     responses:
@@ -1124,7 +1149,7 @@ def drip():
     pause = duration / numbytes
     def generate_bytes():
         for i in xrange(numbytes):
-            yield u"*".encode('utf-8')
+            yield b"*"
             time.sleep(pause)
 
     response = Response(generate_bytes(), headers={
