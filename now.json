@@ -6,7 +6,5 @@
     "alias": [
         "httpbin.org"
     ],
-    "type": [
-        "docker"
-    ]
+    "type": "docker"
 }
