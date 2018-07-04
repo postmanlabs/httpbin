@@ -842,6 +842,29 @@ def set_cookies():
     return r
 
 
+@app.route('/cookies/set', methods=['PUT'])
+def set_advanced_cookies():
+    """
+    Sets a cookie as provided by the request form.
+
+    Supports specifying cookie breadcrumb fields other than
+    name and value.
+    """
+
+    r = app.make_response(redirect('/cookies'))
+
+    cookie = request.form
+    r.set_cookie(key=cookie.get("key"),
+                 value=cookie.get("value"),
+                 max_age=int(cookie.get("max_age")),
+                 expires=cookie.get("expires"),
+                 domain=cookie.get("domain"),
+                 path=cookie.get("path"),
+                 secure=secure_cookie(),
+                 httponly="httponly" in cookie)
+    return r
+
+
 @app.route('/cookies/delete')
 def delete_cookies():
     """Deletes cookie(s) as provided by the query string and redirects to cookie list.
