@@ -509,17 +509,58 @@ def redirect_to():
       - Redirects
     produces:
       - text/html
-    parameters:
-      - name: url
-        type: string
-      - name: status_code
-        type: int
+    get:
+      parameters:
+        - in: query
+          name: url
+          type: string
+          required: true
+        - in: query
+          name: status_code
+          type: int
+    post:
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: url
+          type: string
+          required: true
+        - in: formData
+          name: status_code
+          type: int
+          required: false
+    patch:
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: url
+          type: string
+          required: true
+        - in: formData
+          name: status_code
+          type: int
+          required: false
+    put:
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: url
+          type: string
+          required: true
+        - in: formData
+          name: status_code
+          type: int
+          required: false
     responses:
       302:
         description: A redirection.
     """
 
-    args = CaseInsensitiveDict(request.args.items())
+    argsDict = request.form.to_dict(flat=True) if request.method in ('POST', 'PATCH', 'PUT') else request.args.items()
+    args = CaseInsensitiveDict(argsDict)
 
     # We need to build the response manually and convert to UTF-8 to prevent
     # werkzeug from "fixing" the URL. This endpoint should set the Location
