@@ -11,8 +11,6 @@ See http://httpbin.org for more information.
 
 - http://httpbin.org
 - https://httpbin.org
-- http://eu.httpbin.org
-- https://eu.httpbin.org
 - https://hub.docker.com/r/kennethreitz/httpbin/
 
 
