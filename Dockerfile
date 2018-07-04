@@ -1,5 +1,10 @@
 FROM ubuntu:18.04
 
+LABEL name="httpbin"
+LABEL version="0.9.0"
+LABEL description="A simple HTTP service."
+LABEL org.kennethreitz.vendor="Kenneth Reitz"
+
 RUN apt update -y && apt install python3-pip -y
 
 EXPOSE 80
