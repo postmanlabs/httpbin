@@ -15,3 +15,4 @@ flasgger = "*"
 pyyaml = {git = "https://github.com/yaml/pyyaml.git"}
 
 [dev-packages]
+rope = "*"
