@@ -30,6 +30,9 @@ from .helpers import get_headers, status_code, get_dict, get_request_range, chec
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
+with open(os.path.join(os.path.realpath(os.path.dirname(__file__)), 'VERSION')) as version_file:
+    version = version_file.read().strip()
+
 ENV_COOKIES = (
     '_gauges_unique',
     '_gauges_unique_year',
@@ -79,7 +82,7 @@ template = {
       "url": "https://kennethreitz.org",
     },
     # "termsOfService": "http://me.com/terms",
-    "version": "0.9.0"
+    "version": version
   },
   "host": "httpbin.org",  # overrides localhost:5000
   "basePath": "/",  # base bash for blueprint registration
