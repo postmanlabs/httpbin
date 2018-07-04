@@ -1112,7 +1112,7 @@ def digest_auth(qop=None, user='user', passwd='passwd', algorithm='MD5', stale_a
     return response
 
 
-@app.route('/delay/<delay>')
+@app.route('/delay/<delay>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
 def delay_response(delay):
     """"Returns a delayed response (max of 10 seconds).
     ---
