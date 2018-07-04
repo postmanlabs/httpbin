@@ -58,6 +58,7 @@ tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 app = Flask(__name__, template_folder=tmpl_dir)
 app.debug = bool(os.environ.get('DEBUG'))
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 
 app.add_template_global('HTTPBIN_TRACKING' in os.environ, name='tracking_enabled')
 
@@ -86,8 +87,7 @@ template = {
   "host": "httpbin.org",  # overrides localhost:5000
   "basePath": "/",  # base bash for blueprint registration
   "schemes": [
-    "https",
-    "http"
+    "https"
   ],
   'protocol': 'https',
   'tags': [
@@ -513,17 +513,58 @@ def redirect_to():
       - Redirects
     produces:
       - text/html
-    parameters:
-      - name: url
-        type: string
-      - name: status_code
-        type: int
+    get:
+      parameters:
+        - in: query
+          name: url
+          type: string
+          required: true
+        - in: query
+          name: status_code
+          type: int
+    post:
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: url
+          type: string
+          required: true
+        - in: formData
+          name: status_code
+          type: int
+          required: false
+    patch:
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: url
+          type: string
+          required: true
+        - in: formData
+          name: status_code
+          type: int
+          required: false
+    put:
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - in: formData
+          name: url
+          type: string
+          required: true
+        - in: formData
+          name: status_code
+          type: int
+          required: false
     responses:
       302:
         description: A redirection.
     """
 
-    args = CaseInsensitiveDict(request.args.items())
+    argsDict = request.form.to_dict(flat=True) if request.method in ('POST', 'PATCH', 'PUT') else request.args.items()
+    args = CaseInsensitiveDict(argsDict)
 
     # We need to build the response manually and convert to UTF-8 to prevent
     # werkzeug from "fixing" the URL. This endpoint should set the Location
@@ -1075,7 +1116,7 @@ def digest_auth(qop=None, user='user', passwd='passwd', algorithm='MD5', stale_a
     return response
 
 
-@app.route('/delay/<delay>')
+@app.route('/delay/<delay>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'])
 def delay_response(delay):
     """"Returns a delayed response (max of 10 seconds).
     ---
@@ -1105,6 +1146,31 @@ def drip():
     ---
     tags:
       - Dynamic data
+    parameters:
+      - in: query
+        name: duration
+        type: number
+        description: The amount of time (in seconds) over which to drip each byte
+        default: 2
+        required: false
+      - in: query
+        name: numbytes
+        type: integer
+        description: The number of bytes to respond with
+        default: 10
+        required: false
+      - in: query
+        name: code
+        type: integer
+        description: The response code that will be returned
+        default: 200
+        required: false
+      - in: query
+        name: delay
+        type: number
+        description: The amount of time (in seconds) to delay before responding
+        default: 2
+        required: false
     produces:
       - application/octet-stream
     responses:
@@ -1127,7 +1193,7 @@ def drip():
     pause = duration / numbytes
     def generate_bytes():
         for i in xrange(numbytes):
-            yield u"*".encode('utf-8')
+            yield b"*"
             time.sleep(pause)
 
     response = Response(generate_bytes(), headers={

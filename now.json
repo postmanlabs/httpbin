@@ -1,0 +1,10 @@
+{
+    "name": "httpbin",
+    "regions": [
+        "all"
+    ],
+    "alias": [
+        "httpbin.org"
+    ],
+    "type": "docker"
+}
