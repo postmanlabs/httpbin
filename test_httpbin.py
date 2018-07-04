@@ -280,6 +280,37 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.get('/brotli')
         self.assertEqual(response.status_code, 200)
 
+    def test_bearer_auth(self):
+        token = 'abcd1234'
+        response = self.app.get(
+            '/bearer',
+            headers={'Authorization': 'Bearer ' + token}
+        )
+        self.assertEqual(response.status_code, 200)
+        assert json.loads(response.data.decode('utf-8'))['token'] == token
+
+    def test_bearer_auth_with_wrong_authorization_type(self):
+        """Sending an non-Bearer Authorization header to /bearer should return a 401"""
+        auth_headers = (
+            ('Authorization', 'Basic 1234abcd'),
+            ('Authorization', ''),
+            ('',  '')
+        )
+        for header in auth_headers:
+            response = self.app.get(
+                '/bearer',
+                headers={header[0]: header[1]}
+            )
+            self.assertEqual(response.status_code, 401)
+
+    def test_bearer_auth_with_missing_token(self):
+        """Sending an 'Authorization: Bearer' header with no token to /bearer should return a 401"""
+        response = self.app.get(
+            '/bearer',
+            headers={'Authorization': 'Bearer'}
+        )
+        self.assertEqual(response.status_code, 401)
+
     def test_digest_auth_with_wrong_password(self):
         auth_header = 'Digest username="user",realm="wrong",nonce="wrong",uri="/digest-auth/user/passwd/MD5",response="wrong",opaque="wrong"'
         response = self.app.get(
