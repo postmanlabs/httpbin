@@ -1,1 +1,6 @@
-{}
+{
+    "regions": [
+        "all"
+    ],
+    "alias": "httpbin.org"
+}
