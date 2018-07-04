@@ -83,8 +83,7 @@ template = {
   "host": "httpbin.org",  # overrides localhost:5000
   "basePath": "/",  # base bash for blueprint registration
   "schemes": [
-    "https",
-    "http"
+    "https"
   ],
   'protocol': 'https',
   'tags': [
