@@ -598,6 +598,26 @@ class HttpbinTestCase(unittest.TestCase):
             response.headers.get('Location'), '/post'
         )
 
+    def test_redirect_to_post_with_form_data(self):
+        """url and status_code parameters can appear as form data """
+        response = self.app.post('/redirect-to',
+                                 data='url=/get&status_code=302',
+                                 content_type='application/x-www-form-urlencoded')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.headers.get('Location'), '/get'
+        )
+
+    def test_redirect_to_post_with_overriding_form_data(self):
+        """form data parameters override query string"""
+        response = self.app.post('/redirect-to?url=/post&status_code=307',
+                                 data='url=/get&status_code=302',
+                                 content_type='application/x-www-form-urlencoded')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.headers.get('Location'), '/get'
+        )
+
     def test_redirect_absolute_param_n_higher_than_1(self):
         response = self.app.get('/redirect/5?absolute=true')
         self.assertEqual(

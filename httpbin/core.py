@@ -629,6 +629,8 @@ def redirect_to():
 
     args_dict = request.args.items()
     args = CaseInsensitiveDict(args_dict)
+    if request.method in ('POST', 'PATCH', 'PUT') and request.form:
+        args.update(request.form.to_dict(flat=True))
 
     # We need to build the response manually and convert to UTF-8 to prevent
     # werkzeug from "fixing" the URL. This endpoint should set the Location
