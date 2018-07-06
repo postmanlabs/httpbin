@@ -137,14 +137,14 @@
 
     <script src="{{url_for('flasgger.static', filename='swagger-ui-bundle.js')}}"> </script>
     <script src="{{url_for('flasgger.static', filename='swagger-ui-standalone-preset.js')}}"> </script>
-    <script src='{{url_for(' flasgger.static ', filename=' ')}}lib/jquery.min.js' type='text/javascript'></script>
+    <script src='{{url_for('flasgger.static', filename=' ')}}lib/jquery.min.js' type='text/javascript'></script>
     <script>
 
         window.onload = function () {
-            {% if config.JWT_AUTH_URL_RULE -%}
+            {% if config.JWT_AUTH_URL_RULE %}
             // JWT token holder
             var jwt_token;
-            {% - endif %}
+            {% endif %}
 
             fetch("{{ specs[0]['url'] }}")
                 .then(function (response) {
@@ -177,7 +177,7 @@
                                 plugins: [
                                     SwaggerUIBundle.plugins.DownloadUrl
                                 ],
-            {% if config.JWT_AUTH_URL_RULE -%}
+            {% if config.JWT_AUTH_URL_RULE %}
             requestInterceptor: function (request) {
                                 if (jwt_token) {
                                     request.headers.Authorization = "Bearer " + jwt_token;
@@ -195,7 +195,7 @@
 
                                 return response;
                             },
-                            {% - endif %}
+            {% endif %}
             // layout: "StandaloneLayout"  // uncomment to enable the green top header
         })
 
