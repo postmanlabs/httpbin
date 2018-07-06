@@ -114,6 +114,10 @@ class HttpbinTestCase(unittest.TestCase):
         httpbin.app.debug = True
         self.app = httpbin.app.test_client()
 
+    def test_index(self):   
+        response = self.app.get('/', headers={'User-Agent': 'test'})
+        self.assertEqual(response.status_code, 200)
+ 
     def get_data(self, response):
         if 'get_data' in dir(response):
             return response.get_data()
