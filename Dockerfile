@@ -1,7 +1,7 @@
 FROM ubuntu:18.04
 
 LABEL name="httpbin"
-LABEL version="0.9.1"
+LABEL version="0.9.2"
 LABEL description="A simple HTTP service."
 LABEL org.kennethreitz.vendor="Kenneth Reitz"
 
