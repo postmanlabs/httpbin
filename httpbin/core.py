@@ -342,7 +342,7 @@ def view_headers():
         description: The request's headers.
     """
 
-    return jsonify(get_headers())
+    return jsonify(get_dict('headers'))
 
 
 @app.route("/user-agent")

@@ -279,7 +279,7 @@ class HttpbinTestCase(unittest.TestCase):
         }
         response = self.app.get('/headers', headers=headers)
         self.assertEqual(response.status_code, 200)
-        self.assertTrue({'Accept', 'Host', 'User-Agent'}.issubset(set(response.json.keys())))
+        self.assertTrue({'Accept', 'Host', 'User-Agent'}.issubset(set(response.json['headers'].keys())))
         self.assertNotIn('Via', response.json)
 
     def test_headers_show_env(self):
@@ -291,7 +291,7 @@ class HttpbinTestCase(unittest.TestCase):
         }
         response = self.app.get('/headers?show_env=true', headers=headers)
         self.assertEqual(response.status_code, 200)
-        self.assertTrue({'Accept', 'Host', 'User-Agent', 'Via'}.issubset(set(response.json.keys())))
+        self.assertTrue({'Accept', 'Host', 'User-Agent', 'Via'}.issubset(set(response.json['headers'].keys())))
 
     def test_user_agent(self):
         response = self.app.get(
