@@ -1,6 +1,6 @@
 FROM ubuntu:18.04
 
-RUN apt update -y && apt install python3-pip -y
+RUN apt update -y && apt install python3-pip vim curl -y
 
 EXPOSE 80
 
@@ -8,4 +8,5 @@ ADD . /httpbin
 
 RUN pip3 install --no-cache-dir gunicorn /httpbin
 
-CMD ["gunicorn", "-b", "0.0.0.0:80", "httpbin:app", "-k", "gevent"]
+CMD ["gunicorn", "-b", "0.0.0.0:80", "httpbin:app", "-k", "gevent", "--access-logfile=-", "--log-level=debug"]
+
