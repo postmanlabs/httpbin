@@ -355,7 +355,7 @@ def view_user_agent():
       - application/json
     responses:
       200:
-        description: The request's User-Agent header..
+        description: The request's User-Agent header.
     """
 
     headers = get_headers()
@@ -831,7 +831,7 @@ def view_cookies(hide_env=True):
       - application/json
     responses:
       200:
-        description: Set cookies..
+        description: Set cookies.
     """
 
     cookies = dict(request.cookies.items())
@@ -998,7 +998,7 @@ def hidden_basic_auth(user="user", passwd="passwd"):
 
 @app.route("/bearer")
 def bearer_auth():
-    """Prompts the user for authorization using bearer authentication..
+    """Prompts the user for authorization using bearer authentication.
     ---
     tags:
       - Auth
