@@ -467,7 +467,7 @@ def view_patch():
 
 @app.route("/delete", methods=("DELETE",))
 def view_delete():
-    """"The request's DELETE parameters.
+    """The request's DELETE parameters.
     ---
     tags:
       - HTTP Methods
@@ -503,7 +503,7 @@ def view_gzip_encoded_content():
 @app.route("/deflate")
 @filters.deflate
 def view_deflate_encoded_content():
-    """"Returns Deflate-encoded data.
+    """Returns Deflate-encoded data.
     ---
     tags:
       - Response formats
@@ -520,7 +520,7 @@ def view_deflate_encoded_content():
 @app.route("/brotli")
 @filters.brotli
 def view_brotli_encoded_content():
-    """"Returns Brotli-encoded data.
+    """Returns Brotli-encoded data.
     ---
     tags:
       - Response formats
@@ -971,7 +971,7 @@ def basic_auth(user="user", passwd="passwd"):
 
 @app.route("/hidden-basic-auth/<user>/<passwd>")
 def hidden_basic_auth(user="user", passwd="passwd"):
-    """"Prompts the user for authorization using HTTP Basic Auth.
+    """Prompts the user for authorization using HTTP Basic Auth.
     ---
     tags:
       - Auth
@@ -998,7 +998,7 @@ def hidden_basic_auth(user="user", passwd="passwd"):
 
 @app.route("/bearer")
 def bearer_auth():
-    """"Prompts the user for authorization using bearer authentication..
+    """Prompts the user for authorization using bearer authentication..
     ---
     tags:
       - Auth
@@ -1029,7 +1029,7 @@ def bearer_auth():
 
 @app.route("/digest-auth/<qop>/<user>/<passwd>")
 def digest_auth_md5(qop=None, user="user", passwd="passwd"):
-    """"Prompts the user for authorization using Digest Auth.
+    """Prompts the user for authorization using Digest Auth.
     ---
     tags:
       - Auth
@@ -1057,7 +1057,7 @@ def digest_auth_md5(qop=None, user="user", passwd="passwd"):
 
 @app.route("/digest-auth/<qop>/<user>/<passwd>/<algorithm>")
 def digest_auth_nostale(qop=None, user="user", passwd="passwd", algorithm="MD5"):
-    """"Prompts the user for authorization using Digest Auth + Algorithm.
+    """Prompts the user for authorization using Digest Auth + Algorithm.
     ---
     tags:
       - Auth
@@ -1092,7 +1092,7 @@ def digest_auth_nostale(qop=None, user="user", passwd="passwd", algorithm="MD5")
 def digest_auth(
     qop=None, user="user", passwd="passwd", algorithm="MD5", stale_after="never"
 ):
-    """"Prompts the user for authorization using Digest Auth + Algorithm.
+    """Prompts the user for authorization using Digest Auth + Algorithm.
     allow settings the stale_after argument.
     ---
     tags:
@@ -1194,7 +1194,7 @@ def digest_auth(
 
 @app.route("/delay/<delay>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
 def delay_response(delay):
-    """"Returns a delayed response (max of 10 seconds).
+    """Returns a delayed response (max of 10 seconds).
     ---
     tags:
       - Dynamic data
@@ -1289,7 +1289,7 @@ def drip():
 
 @app.route("/base64/<value>")
 def decode_base64(value):
-    """"Decodes base64url-encoded string.
+    """Decodes base64url-encoded string.
     ---
     tags:
       - Dynamic data
