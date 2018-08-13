@@ -38,4 +38,7 @@ setup(
         'Flask', 'MarkupSafe', 'decorator', 'itsdangerous', 'six', 'brotlipy',
         'raven[flask]', 'werkzeug>=0.14.1', 'gevent', 'flasgger'
     ],
+    extras_require = {
+        'gssapi': 'gssapi',
+    }
 )
