@@ -814,7 +814,7 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.put('/once/test')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers.get('custom'), 'header')
-        self.assertEqual(response.data, '{"test": "response"}')
+        self.assertEqual(response.data, b'{"test": "response"}')
         response = self.app.put('/once/test')
         self.assertEqual(response.status_code, 404)
 
@@ -827,7 +827,7 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.app.get('/once/test')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, '{}')
+        self.assertEqual(response.data, b'{}')
 
     def test_url_is_mandatory_for_custom_url_creation(self):
         response = self.app.post(
