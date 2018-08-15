@@ -804,6 +804,41 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers.get('ETag'), 'abc')
 
+    def test_it_creates_a_custom_url(self):
+        response = self.app.post(
+            '/once',
+            content_type='application/json',
+            data='{"method":"PUT","url":"/test","response":{"test":"response"},"status":200,"headers":{"custom":"header"}}'
+        )
+        self.assertEqual(response.status_code, 200)
+        response = self.app.put('/once/test')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get('custom'), 'header')
+        self.assertEqual(response.data, '{"test": "response"}')
+        response = self.app.put('/once/test')
+        self.assertEqual(response.status_code, 404)
+
+    def test_custom_url_defaults(self):
+        response = self.app.post(
+            '/once',
+            content_type='application/json',
+            data='{"url":"/test"}'
+        )
+        self.assertEqual(response.status_code, 200)
+        response = self.app.get('/once/test')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, '{}')
+
+    def test_url_is_mandatory_for_custom_url_creation(self):
+        response = self.app.post(
+            '/once',
+            content_type='application/json',
+            data='{"method":"PUT","response":{"test":"response"},"status":200,"headers":{"custom":"header"}}'
+        )
+        self.assertEqual(response.status_code, 400)
+        response = self.app.put('/once/test')
+        self.assertEqual(response.status_code, 404)
+
     def test_parse_multi_value_header(self):
         self.assertEqual(parse_multi_value_header('xyzzy'), [ "xyzzy" ])
         self.assertEqual(parse_multi_value_header('"xyzzy"'), [ "xyzzy" ])

@@ -1776,6 +1776,43 @@ def a_json_endpoint():
         }
     )
 
+__custom_routes = { 'PUT': {}, 'DELETE': {}, 'POST': {}, 'GET': {} }
+@app.route('/once', methods=("POST",), defaults={'endpoint': None})
+@app.route('/once/<endpoint>', methods=("POST", "PUT", "GET", "DELETE"))
+def custom_endpoint(endpoint):
+    """Dynamically defines a custom endpoint
+    ---
+    tags:
+      - Dynamic data
+    parameters:
+      - in: path
+        name: endpoint
+        type: string
+    produces:
+      - application/json
+    responses:
+      200:
+        description: The response json sent into the request
+    """
+    if endpoint == None:
+        conf = request.get_json()
+        url = conf.get('url', None)
+        if url == None:
+            return Response(status=400)
+        method = conf.get('method', 'GET')
+        __custom_routes[method][url] = conf
+
+        return Response()
+
+    method = request.method
+    conf = __custom_routes[method].pop('/' + endpoint, None)
+    if conf == None:
+        return Response(status=404)
+
+    headers = conf.get('headers', {})
+    status = conf.get('status', 200)
+    data = conf.get('response', {})
+    return Response(json.dumps(data), status=status, headers=headers)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
