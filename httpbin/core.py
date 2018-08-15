@@ -941,8 +941,9 @@ def delete_cookies():
     return r
 
 
+@app.route("/basic-auth/<user>")
 @app.route("/basic-auth/<user>/<passwd>")
-def basic_auth(user="user", passwd="passwd"):
+def basic_auth(user="user", passwd=""):
     """Prompts the user for authorization using HTTP Basic Auth.
     ---
     tags:
