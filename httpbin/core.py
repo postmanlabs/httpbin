@@ -1796,6 +1796,8 @@ def custom_endpoint(endpoint):
     """
     if endpoint == None:
         conf = request.get_json()
+        if conf == None:
+            return Response(status=400)
         url = conf.get('url', None)
         if url == None:
             return Response(status=400)

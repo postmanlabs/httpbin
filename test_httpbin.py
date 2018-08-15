@@ -829,6 +829,12 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, b'{}')
 
+    def test_json_body_is_mandatory_for_custom_url_creation(self):
+        response = self.app.post(
+            '/once'
+        )
+        self.assertEqual(response.status_code, 400)
+
     def test_url_is_mandatory_for_custom_url_creation(self):
         response = self.app.post(
             '/once',
