@@ -1725,7 +1725,8 @@ def image_svg():
 
 def resource(filename):
     path = os.path.join(tmpl_dir, filename)
-    return open(path, "rb").read()
+    with open(path, "rb") as f:
+      return f.read()
 
 
 @app.route("/xml")
