@@ -12,7 +12,7 @@ import base64
 import re
 import time
 import os
-from hashlib import md5, sha256, sha512
+from hashlib import md5, sha1, sha256, sha512
 from werkzeug.http import parse_authorization_header
 from werkzeug.datastructures import WWWAuthenticate
 
@@ -268,7 +268,9 @@ def check_basic_auth(user, passwd):
 # qop is a quality of protection
 
 def H(data, algorithm):
-    if algorithm == 'SHA-256':
+    if algorithm == 'SHA':
+        return sha1(data).hexdigest()
+    elif algorithm == 'SHA-256':
         return sha256(data).hexdigest()
     elif algorithm == 'SHA-512':
         return sha512(data).hexdigest()

@@ -1075,7 +1075,7 @@ def digest_auth_nostale(qop=None, user="user", passwd="passwd", algorithm="MD5")
       - in: path
         name: algorithm
         type: string
-        description: MD5, SHA-256, SHA-512
+        description: MD5, SHA, SHA-256, SHA-512
         default: MD5
     produces:
       - application/json
@@ -1111,7 +1111,7 @@ def digest_auth(
       - in: path
         name: algorithm
         type: string
-        description: MD5, SHA-256, SHA-512
+        description: MD5, SHA, SHA-256, SHA-512
         default: MD5
       - in: path
         name: stale_after
@@ -1130,7 +1130,7 @@ def digest_auth(
         "t",
         "true",
     )
-    if algorithm not in ("MD5", "SHA-256", "SHA-512"):
+    if algorithm not in ("MD5", "SHA", "SHA-256", "SHA-512"):
         algorithm = "MD5"
 
     if qop not in ("auth", "auth-int"):
