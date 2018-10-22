@@ -1,6 +1,15 @@
 version: '2'
 services:
+
+    # run local httpbin server
     httpbin:
-      build: '.'
+      build: .
+      image: httpbin:latest
       ports:
         - '80:80'
+
+    # run tox-like tests (for python3 only)
+    unittest:
+      # reuse already built image
+      image: httpbin:latest
+      command: ./test_httpbin.py

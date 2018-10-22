@@ -1,2 +1,5 @@
-Dockerfile
-.git
+**
+
+!/httpbin
+!/requirements.txt
+!/test_httpbin.py
