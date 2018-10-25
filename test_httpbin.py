@@ -234,17 +234,28 @@ class HttpbinTestCase(unittest.TestCase):
         )
 
     def test_set_cors_credentials_headers_after_auth_request(self):
-        response = self.app.get('/basic-auth/foo/bar')
+        self._test_set_cors_credentials_headers_after_auth_request('/basic-auth/foo/bar', 'Basic Zm9vOmJhcg==')
+        self._test_set_cors_credentials_headers_after_auth_request('/basic-auth/foo', 'Basic Zm9vOg==')
+        self._test_set_cors_credentials_headers_after_auth_request('/basic-auth', 'Basic Og==')
+
+    def _test_set_cors_credentials_headers_after_auth_request(self, path, basic_auth):
+        response = self.app.get(path)
         self.assertEqual(
             response.headers.get('Access-Control-Allow-Credentials'), 'true'
         )
-        response = self.app.get('/basic-auth/foo')
         self.assertEqual(
-            response.headers.get('Access-Control-Allow-Credentials'), 'true'
+            response.headers.get('Www-Authenticate'), 'Basic realm="Fake Realm"'
         )
-        response = self.app.get('/basic-auth')
         self.assertEqual(
-            response.headers.get('Access-Control-Allow-Credentials'), 'true'
+            response.status_code, 401
+        )
+        response = self.app.get(path, headers={'Authorization': 'Basic BADHASH=='})
+        self.assertEqual(
+            response.status_code, 401
+        )
+        response = self.app.get(path, headers={'Authorization': basic_auth})
+        self.assertEqual(
+            response.status_code, 200
         )
 
     def test_set_cors_headers_after_request_with_request_origin(self):
