@@ -17,6 +17,9 @@ RUN /bin/bash -c "pip3 install --no-cache-dir -r <(pipenv lock -r)"
 ADD . /httpbin
 RUN pip3 install --no-cache-dir /httpbin
 
+ARG IGNORE_TEST_FAILURES=false
+RUN cd /httpbin;python3 test_httpbin.py || $IGNORE_TEST_FAILURES
+
 EXPOSE 80
 
 CMD ["gunicorn", "-b", "0.0.0.0:80", "httpbin:app", "-k", "gevent"]
