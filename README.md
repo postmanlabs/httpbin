@@ -7,8 +7,16 @@ A [Kenneth Reitz](http://kennethreitz.org/bitcoin) Project.
 
 Run locally:
 ```sh
-docker pull kennethreitz/httpbin
 docker run -p 80:80 kennethreitz/httpbin
+```
+
+Test locally:
+```sh
+# run unittest
+docker-compose up test
+
+# run httpbin server
+docker-compose up httpbin
 ```
 
 See http://httpbin.org for more information.

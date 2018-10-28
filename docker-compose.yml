@@ -1,6 +1,13 @@
 version: '2'
+
 services:
     httpbin:
-      build: '.'
+      build: .
+      image: httpbin:latest
       ports:
         - '80:80'
+
+    test:
+      image: httpbin:latest
+      working_dir: /httpbin
+      command: python3 -m unittest --verbose
