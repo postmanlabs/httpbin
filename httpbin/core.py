@@ -329,6 +329,26 @@ def view_uuid():
     return jsonify(uuid=str(uuid.uuid4()))
 
 
+@app.route("/method")
+def view_method():
+    """Return the incoming request's HTTP method.
+    ---
+    tags:
+      - Request inspection
+    produces:
+      - application/json
+    responses:
+      200:
+        description: The request's method.
+    """
+    return jsonify({"method": request.method})
+# Override Flask/Werkzeug rule method initialization
+# in order to allow arbitrary methods
+# to be passed into this viewpoint
+for rule in app.url_map.iter_rules(view_method.__name__):
+    rule.methods = None
+
+
 @app.route("/headers")
 def view_headers():
     """Return the incoming request's HTTP headers.
