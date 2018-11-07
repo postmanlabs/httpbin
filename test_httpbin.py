@@ -270,6 +270,12 @@ class HttpbinTestCase(unittest.TestCase):
             response.headers.get('Access-Control-Allow-Headers'), 'X-Test-Header'
         )
 
+    def test_method(self):
+        method = 'ARBITRARY-METHOD'
+        response = self.app.open('/method', method=method)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json.loads(response.data.decode('utf-8')), {"method": method})
+
     def test_headers(self):
         headers = {
             "Accept": "*/*",
