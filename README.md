@@ -22,7 +22,6 @@ See http://httpbin.org for more information.
 
 ## SEE ALSO
 
-- http://requestb.in
 - http://python-requests.org
 - https://grpcb.in/
 
