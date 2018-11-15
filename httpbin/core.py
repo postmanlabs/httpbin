@@ -33,6 +33,12 @@ from werkzeug.wrappers import BaseResponse
 from werkzeug.http import parse_authorization_header
 from flasgger import Swagger, NO_SANITIZER
 
+try:
+    import gssapi
+    HAS_GSSAPI = True
+except ImportError:
+    HAS_GSSAPI = False
+
 from . import filters
 from .helpers import (
     get_headers,
@@ -994,6 +1000,101 @@ def hidden_basic_auth(user="user", passwd="passwd"):
     if not check_basic_auth(user, passwd):
         return status_code(404)
     return jsonify(authenticated=True, user=user)
+
+
+@app.route("/gssapi")
+def gssapi_auth():
+    """Prompts the user for authorization using gssapi authentication.
+    ---
+    tags:
+      - Auth
+    parameters:
+      - in: header
+        name: Authorization
+        schema:
+          type: string
+    produces:
+      - application/json
+    responses:
+      200:
+        description: Sucessful authentication.
+      401:
+        description: Unsuccessful authentication.
+    """
+    # If we don't have a GSSAPI library available ...
+    if not HAS_GSSAPI:
+        app.logger.warning("Optional GSSAPI library unavailable and GSSAPI "
+                           "authentication requested. 'pip3 install gssapi' "
+                           "may help.")
+        server = request.environ.get("SERVER_SOFTWARE", "")
+        abort(501,
+              "GSSAPI authentication is not supported for server {}".format(
+                  server))
+
+    # If the client didn't sent an appropriate authentication header ...
+    authorization = request.headers.get("Authorization")
+    if not (authorization and authorization.startswith("Negotiate ")):
+        response = app.make_response("")
+        response.headers["WWW-Authenticate"] = "Negotiate"
+        response.status_code = 401
+        return response
+
+    response = {}
+    slice_start = len("Negotiate ")
+    c_b64encoded = authorization[slice_start:]
+    response['client_token'] =  c_b64encoded
+    c_bytes = base64.b64decode(c_b64encoded)
+
+    try:
+        creds = gssapi.Credentials(usage='accept')
+    except gssapi.exceptions.GSSError as exc:
+        # We likely don't have or cannot read our kerberos keytab
+        if 'KRB5_KTNAME' not in os.environ:
+            app.logger.warning("Unable to generate GSSAPI credential, "
+                               "'KRB5_KTNAME' appears to be missing from "
+                               "environment: %s.", exc)
+        else:
+            app.logger.warning("Unable to initialize GSSAPI context: %s.", exc)
+        server = request.environ.get("SERVER_SOFTWARE", "")
+        abort(501,
+              "GSSAPI authentication is not supported for server {}".format(
+                  server))
+
+    try:
+        ctx = gssapi.SecurityContext(creds=creds, usage='accept')
+    except gssapi.exceptions.GSSError as exc:
+        app.logger.warning("Unable to initialize GSSAPI context: %s.", exc)
+        server = request.environ.get("SERVER_SOFTWARE", "")
+        abort(501,
+              "GSSAPI authentication is not supported for server {}".format(
+                  server))
+
+    try:
+        s_bytes = ctx.step(c_bytes)
+        ctx.complete
+    except gssapi.exceptions.GSSError as exc:
+        response['authenticated'] = ctx.complete
+        response['error'] = {"major": exc.maj_code,
+                             "minor": exc.min_code,
+                             "message": str(exc)}
+        response = jsonify(response)
+        response.status_code = 401
+        return response
+
+    response['authenticated'] = ctx.complete
+    if ctx.complete:
+        s_b64encoded = base64.b64encode(s_bytes).decode('utf-8')
+        response['server_token'] = s_b64encoded
+        response['initiator'] = str(ctx.initiator_name)
+        response['flags'] = sorted([f.name for f in ctx.actual_flags])
+        response = jsonify(response)
+        response.headers["WWW-Authenticate"] = "Negotiate {}".format(
+            s_b64encoded)
+    else:
+        response.status_code = 401
+        response = jsonify(response)
+
+    return response
 
 
 @app.route("/bearer")
