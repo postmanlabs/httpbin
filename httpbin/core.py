@@ -215,6 +215,7 @@ def before_request():
 
 @app.after_request
 def set_cors_headers(response):
+    response.headers["X-Powered-By"] = 'httpbin/{0}'.format(version)
     response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin", "*")
     response.headers["Access-Control-Allow-Credentials"] = "true"
 
