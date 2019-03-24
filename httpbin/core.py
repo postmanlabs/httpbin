@@ -49,6 +49,7 @@ from .helpers import (
     next_stale_after_value,
     digest_challenge_response,
     get_serverinfo,
+    custom_response,
 )
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
@@ -1420,6 +1421,19 @@ def cache_control(value):
     response = view_get()
     response.headers["Cache-Control"] = "public, max-age={0}".format(value)
     return response
+
+
+@app.route("/customresponse/<base64_customresponse>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
+def customresponse(base64_customresponse):
+    """Return custom response specified as base64 encoded json in the URI.
+    ---
+    tags:
+      - Response formats
+    parameters:
+      - in: path
+        name: base64_customresponse
+    """
+    return custom_response(base64_customresponse)
 
 
 @app.route("/encoding/utf8")
