@@ -48,6 +48,7 @@ from .helpers import (
     parse_multi_value_header,
     next_stale_after_value,
     digest_challenge_response,
+    get_serverinfo,
     custom_response,
 )
 from .utils import weighted_choice
@@ -135,6 +136,7 @@ template = {
         {"name": "Dynamic data", "description": "Generates random and dynamic data"},
         {"name": "Cookies", "description": "Creates, reads and deletes Cookies"},
         {"name": "Images", "description": "Returns different image formats"},
+        {"name": "Server information", "description": "Returns server network information"},
         {"name": "Redirects", "description": "Returns different redirect responses"},
         {
             "name": "Anything",
@@ -216,6 +218,7 @@ def before_request():
 
 @app.after_request
 def set_cors_headers(response):
+    response.headers["X-Powered-By"] = 'httpbin/{0}'.format(version)
     response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin", "*")
     response.headers["Access-Control-Allow-Credentials"] = "true"
 
@@ -330,6 +333,21 @@ def view_uuid():
     return jsonify(uuid=str(uuid.uuid4()))
 
 
+@app.route("/serverinfo")
+def view_serverinfo():
+    """Return server network information.
+    ---
+    tags:
+      - Server information
+    produces:
+      - application/json
+    responses:
+      200:
+        description: Server hostname, ip aliases and ip addresses.
+    """
+    return jsonify(get_serverinfo())
+
+
 @app.route("/headers")
 def view_headers():
     """Return the incoming request's HTTP headers.
@@ -408,6 +426,7 @@ def view_anything(anything=None):
             "data",
             "files",
             "json",
+            "serverinfo",
         )
     )
 
