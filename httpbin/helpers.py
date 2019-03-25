@@ -168,21 +168,10 @@ def get_url(request):
     return urlunparse(url)
 
 
-def get_serverinfo():
-    """Returns server network information."""
-    import socket
-    serverinfo = socket.gethostbyname_ex(socket.gethostname())
-    return dict(
-            hostname=serverinfo[0],
-            aliaslist=serverinfo[1],
-            ipaddrlist=serverinfo[2]
-        )
-
-
 def get_dict(*keys, **extras):
     """Returns request dict of given keys."""
 
-    _keys = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json', 'method', 'serverinfo')
+    _keys = ('url', 'args', 'form', 'data', 'origin', 'headers', 'files', 'json', 'method')
 
     assert all(map(_keys.__contains__, keys))
     data = request.data
@@ -203,7 +192,6 @@ def get_dict(*keys, **extras):
         files=get_files(),
         json=_json,
         method=request.method,
-        serverinfo=get_serverinfo(),
     )
 
     out_d = dict()
@@ -263,33 +251,6 @@ def status_code(code):
             r.data = m['data']
         if 'headers' in m:
             r.headers = m['headers']
-
-    return r
-
-
-def custom_response(base64_customresponse):
-    """Returns response object of given custom response."""
-    base64_customresponse += "=" * ((4 - len(base64_customresponse) % 4) % 4)
-    customresponse_str = base64.urlsafe_b64decode(base64_customresponse)
-    customresponse = json.loads(customresponse_str)
-    
-    if not isinstance(customresponse,dict):
-        raise ValueError('decoded base64_customresponse does not convert to dict')
-
-    r = make_response()
-
-    if 'status_code' in customresponse:
-        r.status_code = customresponse['status_code']
-    else:
-        r.status_code = 200
-    if 'data' in customresponse:
-        r.data = customresponse['data']
-    elif 'b64data' in customresponse:
-        b64data = customresponse['b64data']
-        b64data += "=" * ((4 - len(b64data) % 4) % 4)
-        r.data = base64.urlsafe_b64decode(b64data)
-    if 'headers' in customresponse:
-        r.headers = customresponse['headers']
 
     return r
 
