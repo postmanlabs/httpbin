@@ -571,6 +571,10 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.get(path='/status/200,402,foo')
         self.assertEqual(response.status_code, 400)
 
+    def test_status_endpoint_anything(self):
+        response = self.app.get(path='/status/504/foo/bar')
+        self.assertEqual(response.status_code, 504)
+
     def test_xml_endpoint(self):
         response = self.app.get(path='/xml')
         self.assertEqual(
