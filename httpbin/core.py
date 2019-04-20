@@ -1216,6 +1216,31 @@ def delay_response(delay):
         get_dict("url", "args", "form", "data", "origin", "headers", "files")
     )
 
+@app.route("/random-delay/<delay>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
+def random_delay_response(delay):
+    """Returns a random delayed response (max of 10 seconds).
+    ---
+    tags:
+      - Dynamic data
+    parameters:
+      - in: path
+        name: delay
+        type: float
+    produces:
+      - application/json
+    responses:
+      200:
+        description: A delayed response.
+    """
+    random.seed(None)
+    delay = random.random() * min(float(delay), 10.0)
+
+    time.sleep(delay)
+
+    return jsonify(
+        get_dict("url", "args", "form", "data", "origin", "headers", "files")
+    )
+
 
 @app.route("/drip")
 def drip():
