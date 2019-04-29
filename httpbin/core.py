@@ -315,7 +315,7 @@ def view_env():
 
 @app.route('/ip')
 def view_origin():
-    """Returns environment variables of the server.
+    """Returns the requester's IP Address.
     ---
     tags:
       - Request inspection
@@ -323,7 +323,7 @@ def view_origin():
       - application/json
     responses:
       200:
-        description: The environment variables.
+        description: The Requester's IP Address.
     """
 
     return jsonify(origin=request.headers.get('X-Forwarded-For', request.remote_addr))
