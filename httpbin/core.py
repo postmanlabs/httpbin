@@ -313,7 +313,7 @@ def view_env():
 # for i, j in os.environ.items():
 # ...     print(i, j)
 
-    return jsonify([ [k,v] for k,v in os.environ.items() ])
+    return jsonify(dict([ [k,v] for k,v in os.environ.items() ]))
 
 
 @app.route('/ip')
