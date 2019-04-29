@@ -297,8 +297,8 @@ def view_deny_page():
     # return "YOU SHOULDN'T BE HERE"
 
 
-@app.route("/ip")
-def view_origin():
+@app.route('/env')
+def view_env():
     """Returns the requester's IP Address.
     ---
     tags:
@@ -310,7 +310,26 @@ def view_origin():
         description: The Requester's IP Address.
     """
 
-    return jsonify(origin=request.headers.get("X-Forwarded-For", request.remote_addr))
+# for i, j in os.environ.items():
+# ...     print(i, j)
+
+    return jsonify([ [k,v] for k,v in os.environ.items() ])
+
+
+@app.route('/ip')
+def view_origin():
+    """Returns environment variables of the server.
+    ---
+    tags:
+      - Request inspection
+    produces:
+      - application/json
+    responses:
+      200:
+        description: The environment variables.
+    """
+
+    return jsonify(origin=request.headers.get('X-Forwarded-For', request.remote_addr))
 
 
 @app.route("/uuid")
