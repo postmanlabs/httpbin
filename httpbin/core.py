@@ -299,7 +299,7 @@ def view_deny_page():
 
 @app.route('/env')
 def view_env():
-    """Returns the requester's IP Address.
+    """Returns the server's environment.
     ---
     tags:
       - Request inspection
@@ -307,11 +307,8 @@ def view_env():
       - application/json
     responses:
       200:
-        description: The Requester's IP Address.
+        description: The server's environment.
     """
-
-# for i, j in os.environ.items():
-# ...     print(i, j)
 
     return jsonify(dict([ [k,v] for k,v in os.environ.items() ]))
 
