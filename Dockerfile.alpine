@@ -12,11 +12,23 @@ WORKDIR /httpbin
 ADD . /httpbin
 
 RUN apk update --no-cache; \
-    apk add --no-cache python3 libffi && \
-    apk add --no-cache --virtual .build-deps git alpine-sdk python3-dev libffi-dev && \
-    pip3 install --no-cache-dir pipenv gunicorn && \
-    pipenv lock -r > /httpbin/requirements.txt && \
-    pip3 install --no-cache-dir /httpbin && \
+    apk add --no-cache \
+          libffi \
+          python3 && \
+    apk add --no-cache --virtual .build-deps \
+          alpine-sdk \
+          bash \
+          git \
+          libffi-dev \
+          python3-dev && \
+    pip3 install --no-cache-dir \
+          gunicorn \
+          pipenv && \
+    bash -c "pip3 install --no-cache-dir -r <(pipenv lock -r)" && \
+    rm -rf \
+          /root/.cache \
+          /root/.local && \
+    find /usr/lib -name __pycache__ | xargs rm -rf && \
     apk del .build-deps
 
 EXPOSE 80
