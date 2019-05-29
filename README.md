@@ -22,7 +22,7 @@ See http://httpbin.org for more information.
 
 ## SEE ALSO
 
-- http://requestb.in
+- https://requestbin.com
 - http://python-requests.org
 - https://grpcb.in/
 
