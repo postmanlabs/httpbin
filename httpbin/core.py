@@ -1338,7 +1338,7 @@ def cache():
     if is_conditional is None:
         response = view_get()
         response.headers["Last-Modified"] = http_date()
-        response.headers["ETag"] = uuid.uuid4().hex
+        response.headers["ETag"] = '"{}"'.format(uuid.uuid4().hex)
         return response
     else:
         return status_code(304)
