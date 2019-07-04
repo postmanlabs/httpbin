@@ -217,7 +217,7 @@ def before_request():
 def set_cors_headers(response):
     response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin", "*")
     response.headers["Access-Control-Allow-Credentials"] = "true"
-
+    response.headers["Hostname"] = os.uname()[1]
     if request.method == "OPTIONS":
         # Both of these headers are only used for the "preflight request"
         # http://www.w3.org/TR/cors/#access-control-allow-methods-response-header
@@ -296,6 +296,19 @@ def view_deny_page():
     return response
     # return "YOU SHOULDN'T BE HERE"
 
+@app.route("/hostname")
+def view_hostname():
+    """Returns the reponder's hostname.
+    ---
+    tags:
+      - Request inspection
+    produces:
+      - application/json
+    responses:
+      200:
+        description: The responder's hostname.
+    """
+    return jsonify(hostname = os.uname()[1])
 
 @app.route("/ip")
 def view_origin():
