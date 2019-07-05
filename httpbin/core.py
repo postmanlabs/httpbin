@@ -14,6 +14,7 @@ import random
 import time
 import uuid
 import argparse
+import socket
 
 from flask import (
     Flask,
@@ -217,7 +218,9 @@ def before_request():
 def set_cors_headers(response):
     response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin", "*")
     response.headers["Access-Control-Allow-Credentials"] = "true"
-    response.headers["Hostname"] = os.uname()[1]
+    hostname = socket.gethostname()
+    response.headers["Server-Name"] = hostname
+    response.headers["Server-IP"] = socket.gethostbyname(hostname)
     if request.method == "OPTIONS":
         # Both of these headers are only used for the "preflight request"
         # http://www.w3.org/TR/cors/#access-control-allow-methods-response-header
