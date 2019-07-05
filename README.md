@@ -29,3 +29,7 @@ See http://httpbin.org for more information.
 ## Build Status
 
 [![Build Status](https://travis-ci.org/requests/httpbin.svg?branch=master)](https://travis-ci.org/requests/httpbin)
+
+## Addition to original version
+GET /hostname - returns output of $(uname -a)[1]
+set "Server-Name" and "Server-IP" in response header

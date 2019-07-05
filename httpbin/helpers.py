@@ -128,7 +128,6 @@ def get_headers(hide_env=True):
     """Returns headers dict from request context."""
 
     headers = dict(request.headers.items())
-
     if hide_env and ('show_env' not in request.args):
         for key in ENV_HEADERS:
             try:
