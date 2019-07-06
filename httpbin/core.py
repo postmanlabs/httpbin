@@ -319,10 +319,10 @@ def view_tag(tag=None):
       404:
         description: The server's environmnet tag was not found.
     """
-    if not os.environ.get(f"HTTPBIN_{tag}"):
+    if not os.environ.get("HTTPBIN_%s" % tag):
         return Response(response="{}", status=404, mimetype="application/json")
 
-    return jsonify( {f"{tag}" : os.environ.get(f"HTTPBIN_{tag}")} )
+    return jsonify( {"%s" % tag : os.environ.get("HTTPBIN_%s" % tag)} )
 
 
 @app.route('/tags')
