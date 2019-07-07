@@ -812,43 +812,38 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(parse_multi_value_header('W/"xyzzy", W/"r2d2xxxx", W/"c3piozzzz"'), [ "xyzzy", "r2d2xxxx", "c3piozzzz" ])
         self.assertEqual(parse_multi_value_header('*'), [ "*" ])
 
-    @_setenv("XHTTPBIN_X_Tag_Name", "Tag Value")
-    @_setenv("XHTTPBIN_X_Other-Tag", "Other Value")
     def test_tags_get_header_tags(self):
-        response = self.app.open('/get')
-        self.assertEqual(response.headers.get('X-Tag-Name'), 'Tag Value')
-        self.assertEqual(response.headers.get('X-Other-Tag'), 'Other Value')
+        with _setenv("XHTTPBIN_X_Tag_Name", "Tag Value"), _setenv("XHTTPBIN_X_Other-Tag", "Other Value"):
+            response = self.app.open('/get')
+            self.assertEqual(response.headers.get('X-Tag-Name'), 'Tag Value')
+            self.assertEqual(response.headers.get('X-Other-Tag'), 'Other Value')
 
-    @_setenv("XHTTPBIN_X_Tag_Name", "Tag Value")
-    @_setenv("HTTPBIN_GetTag_Name", "GetTag Value")
-    @_setenv("HTTPBIN_Another-Tag", "Another-Tag Value")
     def test_tags_get_all_tags(self):
-        response = self.app.open('/tags')
-        self.assertEqual(response.headers.get('X-Tag-Name'), 'Tag Value')
-        self.assertEqual(json.loads(response.data.decode('utf-8'))['GetTag_Name'], 'GetTag Value')
-        self.assertEqual(json.loads(response.data.decode('utf-8'))['Another-Tag'], 'Another-Tag Value')
+        with _setenv("XHTTPBIN_X_Tag_Name", "Tag Value"), _setenv("HTTPBIN_GetTag_Name", "GetTag Value"), _setenv("HTTPBIN_Another-Tag", "Another-Tag Value"):
+            response = self.app.open('/tags')
+            self.assertEqual(response.headers.get('X-Tag-Name'), 'Tag Value')
+            self.assertEqual(json.loads(response.data.decode('utf-8'))['GetTag_Name'], 'GetTag Value')
+            self.assertEqual(json.loads(response.data.decode('utf-8'))['Another-Tag'], 'Another-Tag Value')
 
-    @_setenv("XHTTPBIN_X_Tag_Name", "Tag Value")
-    @_setenv("HTTPBIN_GetTag_Name", "GetTag Value")
     def test_tags_get_specific_tag(self):
-        response = self.app.open('/tags/get/GetTag_Name')
-        self.assertEqual(response.headers.get('X-Tag-Name'), 'Tag Value')
-        self.assertEqual(json.loads(response.data.decode('utf-8'))['GetTag_Name'], 'GetTag Value')
+        with _setenv("XHTTPBIN_X_Tag_Name", "Tag Value"), _setenv("HTTPBIN_GetTag_Name", "GetTag Value"):
+            response = self.app.open('/tags/get/GetTag_Name')
+            self.assertEqual(response.headers.get('X-Tag-Name'), 'Tag Value')
+            self.assertEqual(json.loads(response.data.decode('utf-8'))['GetTag_Name'], 'GetTag Value')
 
-    @_setenv("XHTTPBIN_X_Tag_Name", "Tag Value")
-    @_setenv("HTTPBIN_GetTag_Name", "GetTag Value")
     def test_tags_get_specific_undefined_tag(self):
-        response = self.app.open('/tags/get/TagDoesNotExist')
-        self.assertEqual(response.headers.get('X-Tag-Name'), 'Tag Value')
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(json.loads(response.data.decode('utf-8')), {})
+        with _setenv("XHTTPBIN_X_Tag_Name", "Tag Value"), _setenv("HTTPBIN_GetTag_Name", "GetTag Value"):
+            response = self.app.open('/tags/get/TagDoesNotExist')
+            self.assertEqual(response.headers.get('X-Tag-Name'), 'Tag Value')
+            self.assertEqual(response.status_code, 404)
+            self.assertEqual(json.loads(response.data.decode('utf-8')), {})
 
-    @_setenv("XHTTPBIN_X_Tag_Name", "Tag Value")
     def test_tags_get_all_tags_undefined(self):
-        response = self.app.open('/tags')
-        self.assertEqual(response.headers.get('X-Tag-Name'), 'Tag Value')
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(json.loads(response.data.decode('utf-8')), {})
+        with _setenv("XHTTPBIN_X_Tag_Name", "Tag Value"):
+            response = self.app.open('/tags')
+            self.assertEqual(response.headers.get('X-Tag-Name'), 'Tag Value')
+            self.assertEqual(response.status_code, 404)
+            self.assertEqual(json.loads(response.data.decode('utf-8')), {})
 
 if __name__ == '__main__':
     unittest.main()
