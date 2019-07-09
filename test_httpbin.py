@@ -114,10 +114,10 @@ class HttpbinTestCase(unittest.TestCase):
         httpbin.app.debug = True
         self.app = httpbin.app.test_client()
 
-    def test_index(self):   
+    def test_index(self):
         response = self.app.get('/', headers={'User-Agent': 'test'})
         self.assertEqual(response.status_code, 200)
- 
+
     def get_data(self, response):
         if 'get_data' in dir(response):
             return response.get_data()
@@ -811,6 +811,39 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(parse_multi_value_header('"xyzzy", "r2d2xxxx", "c3piozzzz"'), [ "xyzzy", "r2d2xxxx", "c3piozzzz" ])
         self.assertEqual(parse_multi_value_header('W/"xyzzy", W/"r2d2xxxx", W/"c3piozzzz"'), [ "xyzzy", "r2d2xxxx", "c3piozzzz" ])
         self.assertEqual(parse_multi_value_header('*'), [ "*" ])
+
+    def test_tags_get_header_tags(self):
+        with _setenv("XHTTPBIN_X_Tag_Name", "Tag Value"), _setenv("XHTTPBIN_X_Other-Tag", "Other Value"):
+            response = self.app.open('/get')
+            self.assertEqual(response.headers.get('X-Tag-Name'), 'Tag Value')
+            self.assertEqual(response.headers.get('X-Other-Tag'), 'Other Value')
+
+    def test_tags_get_all_tags(self):
+        with _setenv("XHTTPBIN_X_Tag_Name", "Tag Value"), _setenv("HTTPBIN_GetTag_Name", "GetTag Value"), _setenv("HTTPBIN_Another-Tag", "Another-Tag Value"):
+            response = self.app.open('/tags')
+            self.assertEqual(response.headers.get('X-Tag-Name'), 'Tag Value')
+            self.assertEqual(json.loads(response.data.decode('utf-8'))['GetTag_Name'], 'GetTag Value')
+            self.assertEqual(json.loads(response.data.decode('utf-8'))['Another-Tag'], 'Another-Tag Value')
+
+    def test_tags_get_specific_tag(self):
+        with _setenv("XHTTPBIN_X_Tag_Name", "Tag Value"), _setenv("HTTPBIN_GetTag_Name", "GetTag Value"):
+            response = self.app.open('/tags/get/GetTag_Name')
+            self.assertEqual(response.headers.get('X-Tag-Name'), 'Tag Value')
+            self.assertEqual(json.loads(response.data.decode('utf-8'))['GetTag_Name'], 'GetTag Value')
+
+    def test_tags_get_specific_undefined_tag(self):
+        with _setenv("XHTTPBIN_X_Tag_Name", "Tag Value"), _setenv("HTTPBIN_GetTag_Name", "GetTag Value"):
+            response = self.app.open('/tags/get/TagDoesNotExist')
+            self.assertEqual(response.headers.get('X-Tag-Name'), 'Tag Value')
+            self.assertEqual(response.status_code, 404)
+            self.assertEqual(json.loads(response.data.decode('utf-8')), {})
+
+    def test_tags_get_all_tags_undefined(self):
+        with _setenv("XHTTPBIN_X_Tag_Name", "Tag Value"):
+            response = self.app.open('/tags')
+            self.assertEqual(response.headers.get('X-Tag-Name'), 'Tag Value')
+            self.assertEqual(response.status_code, 404)
+            self.assertEqual(json.loads(response.data.decode('utf-8')), {})
 
 if __name__ == '__main__':
     unittest.main()

@@ -218,6 +218,10 @@ def set_cors_headers(response):
     response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin", "*")
     response.headers["Access-Control-Allow-Credentials"] = "true"
 
+    for k, v in os.environ.items():
+        if k.startswith('XHTTPBIN_'):
+            response.headers[k[9:].replace('_','-')] = v
+
     if request.method == "OPTIONS":
         # Both of these headers are only used for the "preflight request"
         # http://www.w3.org/TR/cors/#access-control-allow-methods-response-header
@@ -297,7 +301,53 @@ def view_deny_page():
     # return "YOU SHOULDN'T BE HERE"
 
 
-@app.route("/ip")
+@app.route('/tags/get/<tag>')
+def view_tag(tag=None):
+    """Returns the requested server's environmnet tag.
+    ---
+    tags:
+      - Response inspection
+    parameters:
+      - in: path
+        name: tag
+        type: string
+    produces:
+      - application/json
+    responses:
+      200:
+        description: The server's environmnet tag and value.
+      404:
+        description: The server's environmnet tag was not found.
+    """
+    if not os.environ.get("HTTPBIN_%s" % tag):
+        return Response(response="{}", status=404, mimetype="application/json")
+
+    return jsonify( {"%s" % tag : os.environ.get("HTTPBIN_%s" % tag)} )
+
+
+@app.route('/tags')
+def view_tags():
+    """Returns the server's environmnet tags.
+    ---
+    tags:
+      - Response inspection
+    produces:
+      - application/json
+    responses:
+      200:
+        description: The server's environmnet tags.
+      404:
+        description: No server's environmnet tag where found.
+    """
+    tags = dict([ [k[8:],v] for k,v in os.environ.items() if k.startswith("HTTPBIN_") ])
+
+    if not tags:
+        return Response(response="{}", status=404, mimetype="application/json")
+
+    return jsonify(tags)
+
+
+@app.route('/ip')
 def view_origin():
     """Returns the requester's IP Address.
     ---
