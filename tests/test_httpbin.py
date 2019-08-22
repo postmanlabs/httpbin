@@ -146,10 +146,9 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data.decode('utf-8'))
         self.assertEqual(data['args'], {})
-        self.assertEqual(data['headers']['Host'], 'localhost')
         self.assertEqual(data['headers']['User-Agent'], 'test')
         # self.assertEqual(data['origin'], None)
-        self.assertEqual(data['url'], 'http://localhost/get')
+        self.assertRegex(data['url'], '^http://[^/]*/get$')
         self.assertTrue(response.data.endswith(b'\n'))
 
     def test_anything(self):
@@ -159,8 +158,7 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data.decode('utf-8'))
         self.assertEqual(data['args'], {})
-        self.assertEqual(data['headers']['Host'], 'localhost')
-        self.assertEqual(data['url'], 'http://localhost/anything/foo/bar')
+        self.assertRegex(data['url'], '^http://[^/]*/anything/foo/bar$')
         self.assertEqual(data['method'], 'GET')
         self.assertTrue(response.data.endswith(b'\n'))
 
@@ -581,8 +579,8 @@ class HttpbinTestCase(unittest.TestCase):
 
     def test_redirect_absolute_param_n_higher_than_1(self):
         response = self.app.get('/redirect/5?absolute=true')
-        self.assertEqual(
-            response.headers.get('Location'), 'http://localhost/absolute-redirect/4'
+        self.assertRegex(
+            response.headers.get('Location'), '^http://[^/]*/absolute-redirect/4$'
         )
 
     def test_redirect_n_equals_to_1(self):
@@ -607,15 +605,15 @@ class HttpbinTestCase(unittest.TestCase):
 
     def test_absolute_redirect_n_higher_than_1(self):
         response = self.app.get('/absolute-redirect/5')
-        self.assertEqual(
-            response.headers.get('Location'), 'http://localhost/absolute-redirect/4'
+        self.assertRegex(
+            response.headers.get('Location'), '^http://[^/]*/absolute-redirect/4$'
         )
 
     def test_absolute_redirect_n_equals_to_1(self):
         response = self.app.get('/absolute-redirect/1')
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response.headers.get('Location'), 'http://localhost/get'
+        self.assertRegex(
+            response.headers.get('Location'), '^http://[^/]*/get$'
         )
 
     def test_request_range(self):
