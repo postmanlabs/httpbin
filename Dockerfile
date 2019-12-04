@@ -1,4 +1,4 @@
-FROM python:alpine3.10
+FROM python:alpine3.10 AS compile-image
 
 LABEL name="httpbin"
 LABEL version="0.9.2"
@@ -7,6 +7,9 @@ LABEL org.kennethreitz.vendor="Kenneth Reitz"
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
+
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 ADD Pipfile Pipfile.lock /httpbin/
 WORKDIR /httpbin
@@ -19,6 +22,11 @@ RUN apk add --update --no-cache bash && pip3 install --no-cache-dir pipenv \
 
 ADD . /httpbin
 RUN pip3 install --no-cache-dir /httpbin
+
+
+FROM python:alpine3.10
+COPY --from=compile-image /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 EXPOSE 8080
 
