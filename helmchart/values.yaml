@@ -5,8 +5,8 @@
 replicaCount: 1
 
 image:
-  repository: gcr.io/mvno-e3a61b6e-3/httpbin
-  tag: alpine
+  repository: janrk/httpbin
+  tag: latest
   pullPolicy: Always
   # pullPolicy: IfNotPresent
 
