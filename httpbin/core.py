@@ -1436,7 +1436,13 @@ def random_bytes(n):
         description: Bytes.
     """
 
-    n = min(n, 100 * 1024)  # set 100KB limit
+    if n <= 0 or n > (100 * 1024):
+        response = Response(
+            headers={"ETag": "range%d" % n, "Accept-Ranges": "bytes"}
+        )
+        response.status_code = 404
+        response.data = "number of bytes must be in the range (0, 102400]"
+        return response
 
     params = CaseInsensitiveDict(request.args.items())
     if "seed" in params:
@@ -1466,7 +1472,13 @@ def stream_random_bytes(n):
       200:
         description: Bytes.
     """
-    n = min(n, 100 * 1024)  # set 100KB limit
+    if n <= 0 or n > (100 * 1024):
+        response = Response(
+            headers={"ETag": "range%d" % n, "Accept-Ranges": "bytes"}
+        )
+        response.status_code = 404
+        response.data = "number of bytes must be in the range (0, 102400]"
+        return response
 
     params = CaseInsensitiveDict(request.args.items())
     if "seed" in params:
