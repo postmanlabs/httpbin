@@ -812,13 +812,19 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(parse_multi_value_header('"xyzzy", "r2d2xxxx", "c3piozzzz"'), [ "xyzzy", "r2d2xxxx", "c3piozzzz" ])
         self.assertEqual(parse_multi_value_header('W/"xyzzy", W/"r2d2xxxx", W/"c3piozzzz"'), [ "xyzzy", "r2d2xxxx", "c3piozzzz" ])
         self.assertEqual(parse_multi_value_header('*'), [ "*" ])
+        
+    def test_too_many_requests(self):
+        response = self.app.get('/too-many-requests')
+        self.assertEqual(response.status_code, 429)
 
     def test_retry_after_seconds(self):
         response = self.app.get('/retry-after/seconds/60')
+        self.assertEqual(response.status_code, 429)
         self.assertEqual(response.headers.get('Retry-After'), '60')
 
     def test_retry_after_date(self):
         response = self.app.get('/retry-after/date/60')
+        self.assertEqual(response.status_code, 429)
         # difficult to test the actual response, but we can at least test that it is a parseable date
         self.assertTrue(time.strptime(response.headers.get('Retry-After'), "%a, %d %b %Y %H:%M:%S GMT"))
 
