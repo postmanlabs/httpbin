@@ -136,7 +136,7 @@ template = {
         {"name": "Redirects", "description": "Returns different redirect responses"},
         {
             "name": "Rate limiting",
-            "description": "Test client-side rate limiting with Retry-After headers",
+            "description": "Test client-side rate limiting with 429 responses and optional Retry-After headers",
         },
         {
             "name": "Anything",
@@ -779,6 +779,26 @@ def view_status_code(codes):
     code = weighted_choice(choices)
 
     return status_code(code)
+
+
+@app.route(
+    "/too-many-requests", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
+)
+def response_retry_after():
+    """Return 429 status code with no Retry-After header
+    ---
+    tags:
+      - Rate limiting
+    produces:
+      - text/plain
+    responses:
+      429:
+        description: Too Many Requests
+    """
+    response = make_response()
+    response.status_code = 429
+
+    return response
 
 
 @app.route(
