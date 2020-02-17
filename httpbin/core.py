@@ -804,6 +804,9 @@ def response_retry_after():
 @app.route(
     "/retry-after/date/<seconds>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
 )
+@app.route(
+    "/retry-after/<seconds>/date", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
+)
 def response_retry_after_date(seconds):
     """Return 429 status code with a Retry-After header per RFC 6585 in Date format
     ---
@@ -832,6 +835,9 @@ def response_retry_after_date(seconds):
 
 @app.route(
     "/retry-after/seconds/<seconds>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
+)
+@app.route(
+    "/retry-after/<seconds>/seconds", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
 )
 def response_retry_after_seconds(seconds):
     """Return 429 status code with a Retry-After header per RFC 6585
