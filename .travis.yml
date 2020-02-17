@@ -14,6 +14,7 @@ matrix:
           sudo: true
 
 install:
+    - travis_retry pip install 'six>=1.12.0'
     - travis_retry pip install tox
 
 script:

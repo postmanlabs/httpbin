@@ -6,6 +6,7 @@ import unittest
 import contextlib
 import six
 import json
+import time
 from werkzeug.http import parse_dict_header
 from hashlib import md5, sha256, sha512
 from six import BytesIO
@@ -811,6 +812,37 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(parse_multi_value_header('"xyzzy", "r2d2xxxx", "c3piozzzz"'), [ "xyzzy", "r2d2xxxx", "c3piozzzz" ])
         self.assertEqual(parse_multi_value_header('W/"xyzzy", W/"r2d2xxxx", W/"c3piozzzz"'), [ "xyzzy", "r2d2xxxx", "c3piozzzz" ])
         self.assertEqual(parse_multi_value_header('*'), [ "*" ])
+        
+    def test_too_many_requests(self):
+        response = self.app.get('/too-many-requests')
+        self.assertEqual(response.status_code, 429)
+
+    def test_retry_after_seconds(self):
+        response = self.app.get('/retry-after/seconds/60')
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(response.headers.get('Retry-After'), '60')
+        response = self.app.get('/retry-after/60/seconds')
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(response.headers.get('Retry-After'), '60')
+
+    def test_retry_after_date(self):
+        response = self.app.get('/retry-after/date/60')
+        self.assertEqual(response.status_code, 429)
+        # difficult to test the actual response, but we can at least test that it is a parseable date
+        self.assertTrue(time.strptime(response.headers.get('Retry-After'), "%a, %d %b %Y %H:%M:%S GMT"))
+        response = self.app.get('/retry-after/60/date')
+        self.assertEqual(response.status_code, 429)
+        # difficult to test the actual response, but we can at least test that it is a parseable date
+        self.assertTrue(time.strptime(response.headers.get('Retry-After'), "%a, %d %b %Y %H:%M:%S GMT"))
+
+    def test_invalid_retry_after_seconds(self):
+        response = self.app.get('/retry-after/seconds/a')
+        self.assertEqual(response.status_code, 400)
+
+    def test_invalid_retry_after_date(self):
+        response = self.app.get('/retry-after/date/a')
+        self.assertEqual(response.status_code, 400)
+
 
 if __name__ == '__main__':
     unittest.main()

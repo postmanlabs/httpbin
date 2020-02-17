@@ -89,7 +89,6 @@ app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
 app.add_template_global("HTTPBIN_TRACKING" in os.environ, name="tracking_enabled")
 
 app.config["SWAGGER"] = {"title": "httpbin.org", "uiversion": 3}
-
 template = {
     "swagger": "2.0",
     "info": {
@@ -136,11 +135,16 @@ template = {
         {"name": "Images", "description": "Returns different image formats"},
         {"name": "Redirects", "description": "Returns different redirect responses"},
         {
+            "name": "Rate limiting",
+            "description": "Test client-side rate limiting with 429 responses and optional Retry-After headers",
+        },
+        {
             "name": "Anything",
             "description": "Returns anything that is passed to request",
         },
     ],
 }
+
 
 swagger_config = {
     "headers": [],
@@ -775,6 +779,90 @@ def view_status_code(codes):
     code = weighted_choice(choices)
 
     return status_code(code)
+
+
+@app.route(
+    "/too-many-requests", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
+)
+def response_retry_after():
+    """Return 429 status code with no Retry-After header
+    ---
+    tags:
+      - Rate limiting
+    produces:
+      - text/plain
+    responses:
+      429:
+        description: Too Many Requests
+    """
+    response = make_response()
+    response.status_code = 429
+
+    return response
+
+
+@app.route(
+    "/retry-after/date/<seconds>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
+)
+@app.route(
+    "/retry-after/<seconds>/date", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
+)
+def response_retry_after_date(seconds):
+    """Return 429 status code with a Retry-After header per RFC 6585 in Date format
+    ---
+    tags:
+      - Rate limiting
+    parameters:
+      - in: path
+        name: seconds
+    produces:
+      - text/plain
+    responses:
+      429:
+        description: Too Many Requests
+    """
+    try:
+        retry_after = int(seconds)
+    except ValueError:
+        return Response("Invalid number of seconds", status=400)
+
+    response = make_response()
+    response.status_code = 429
+    response.headers['retry-after'] = http_date(time.time() + retry_after)
+
+    return response
+
+
+@app.route(
+    "/retry-after/seconds/<seconds>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
+)
+@app.route(
+    "/retry-after/<seconds>/seconds", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
+)
+def response_retry_after_seconds(seconds):
+    """Return 429 status code with a Retry-After header per RFC 6585
+    ---
+    tags:
+      - Rate limiting
+    parameters:
+      - in: path
+        name: seconds
+    produces:
+      - text/plain
+    responses:
+      429:
+        description: Too Many Requests
+    """
+    try:
+        retry_after = int(seconds)
+    except ValueError:
+        return Response("Invalid number of seconds", status=400)
+
+    response = make_response()
+    response.status_code = 429
+    response.headers['retry-after'] = retry_after
+
+    return response
 
 
 @app.route("/response-headers", methods=["GET", "POST"])
