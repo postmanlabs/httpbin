@@ -411,6 +411,45 @@ def view_anything(anything=None):
     )
 
 
+@app.route("/everything", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
+@app.route(
+    "/everything/<path:everything>",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"],
+)
+def view_anything(everything=None):
+    """Returns anything passed in request data.
+    ---
+    tags:
+      - Everything
+    produces:
+      - application/json
+    responses:
+      200:
+        description: Everything passed in request
+    """
+    try:
+      cookies = dict(request.cookies.items())
+    except:
+      cookies = {}
+
+    dict_to_return = get_dict(
+                        "url",
+                        "args",
+                        "headers",
+                        "origin",
+                        "method",
+                        "form",
+                        "data",
+                        "files",
+                        "json",
+                    )
+    dict_to_return['cookies'] = cookies
+
+    return jsonify(
+        dict_to_return
+    )
+
+
 @app.route("/post", methods=("POST",))
 def view_post():
     """The request's POST parameters.
