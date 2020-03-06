@@ -417,7 +417,7 @@ def view_anything(anything=None):
     methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"],
 )
 def view_everything(everything=None):
-    """Returns anything passed in request data.
+    """Returns everything passed in request data.
     ---
     tags:
       - Everything
