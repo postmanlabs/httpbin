@@ -194,7 +194,7 @@
             "hashes": [
                 "sha256:a6be69091dac236ea9c6bc7d012beab42010fa914c459791d627dad4910eb665"
             ],
-            "version": "==1.0"
+            "version": "==1.1"
         },
         "meinheld": {
             "hashes": [
