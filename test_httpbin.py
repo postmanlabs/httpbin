@@ -148,9 +148,7 @@ class HttpbinTestCase(unittest.TestCase):
         data = json.loads(response.data.decode('utf-8'))
         self.assertEqual(data['args'], {})
         self.assertEqual(data['headers']['Host'], 'localhost')
-        self.assertEqual(data['headers']['Content-Length'], '0')
         self.assertEqual(data['headers']['User-Agent'], 'test')
-        # self.assertEqual(data['origin'], None)
         self.assertEqual(data['url'], 'http://localhost/get')
         self.assertTrue(response.data.endswith(b'\n'))
 
@@ -162,7 +160,6 @@ class HttpbinTestCase(unittest.TestCase):
         data = json.loads(response.data.decode('utf-8'))
         self.assertEqual(data['args'], {})
         self.assertEqual(data['headers']['Host'], 'localhost')
-        self.assertEqual(data['headers']['Content-Length'], '0')
         self.assertEqual(data['url'], 'http://localhost/anything/foo/bar')
         self.assertEqual(data['method'], 'GET')
         self.assertTrue(response.data.endswith(b'\n'))
@@ -307,6 +304,22 @@ class HttpbinTestCase(unittest.TestCase):
     def test_brotli(self):
         response = self.app.get('/brotli')
         self.assertEqual(response.status_code, 200)
+
+    def test_basic_auth_get_when_basic_auth_credentials_set_should_return_ok(self):
+        response = self.app.get('/basic-auth/foo/bar', headers={'Authorization': 'Basic Zm9vOmJhcg=='})
+        self.assertEqual(response.status_code, 200)
+
+    def test_basic_auth_get_when_no_basic_auth_credentials_set_should_return_unauthorized(self):
+        response = self.app.get('/basic-auth/foo/bar')
+        self.assertEqual(response.status_code, 401)
+
+    def test_basic_auth_post_when_basic_auth_credentials_set_should_return_ok(self):
+        response = self.app.get('/basic-auth/foo/bar', headers={'Authorization': 'Basic Zm9vOmJhcg=='})
+        self.assertEqual(response.status_code, 200)
+
+    def test_basic_auth_post_when_no_basic_auth_credentials_set_should_return_unauthorized(self):
+        response = self.app.post('/basic-auth/foo/bar')
+        self.assertEqual(response.status_code, 401)
 
     def test_bearer_auth(self):
         token = 'abcd1234'
