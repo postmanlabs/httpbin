@@ -308,6 +308,22 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.get('/brotli')
         self.assertEqual(response.status_code, 200)
 
+    def test_basic_auth_get_when_basic_auth_credentials_set_should_return_ok(self):
+        response = self.app.get('/basic-auth/foo/bar', headers={'Authorization': 'Basic Zm9vOmJhcg=='})
+        self.assertEqual(response.status_code, 200)
+
+    def test_basic_auth_get_when_no_basic_auth_credentials_set_should_return_unauthorized(self):
+        response = self.app.get('/basic-auth/foo/bar')
+        self.assertEqual(response.status_code, 401)
+
+    def test_basic_auth_post_when_basic_auth_credentials_set_should_return_ok(self):
+        response = self.app.get('/basic-auth/foo/bar', headers={'Authorization': 'Basic Zm9vOmJhcg=='})
+        self.assertEqual(response.status_code, 200)
+
+    def test_basic_auth_post_when_no_basic_auth_credentials_set_should_return_unauthorized(self):
+        response = self.app.post('/basic-auth/foo/bar')
+        self.assertEqual(response.status_code, 401)
+
     def test_bearer_auth(self):
         token = 'abcd1234'
         response = self.app.get(
