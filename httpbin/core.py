@@ -1287,28 +1287,28 @@ def drip():
     return response
 
 
-@app.route("/base64/<value>")
-def decode_base64(value):
-    """Decodes base64url-encoded string.
-    ---
-    tags:
-      - Dynamic data
-    parameters:
-      - in: path
-        name: value
-        type: string
-        default: SFRUUEJJTiBpcyBhd2Vzb21l
-    produces:
-      - text/html
-    responses:
-      200:
-        description: Decoded base64 content.
-    """
-    encoded = value.encode("utf-8")  # base64 expects binary string as input
-    try:
-        return base64.urlsafe_b64decode(encoded).decode("utf-8")
-    except:
-        return "Incorrect Base64 data try: SFRUUEJJTiBpcyBhd2Vzb21l"
+# @app.route("/base64/<value>")
+# def decode_base64(value):
+#     """Decodes base64url-encoded string.
+#     ---
+#     tags:
+#       - Dynamic data
+#     parameters:
+#       - in: path
+#         name: value
+#         type: string
+#         default: SFRUUEJJTiBpcyBhd2Vzb21l
+#     produces:
+#       - text/html
+#     responses:
+#       200:
+#         description: Decoded base64 content.
+#     """
+#     encoded = value.encode("utf-8")  # base64 expects binary string as input
+#     try:
+#         return base64.urlsafe_b64decode(encoded).decode("utf-8")
+#     except:
+#         return "Incorrect Base64 data try: SFRUUEJJTiBpcyBhd2Vzb21l"
 
 
 @app.route("/cache", methods=("GET",))

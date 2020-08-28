@@ -167,12 +167,12 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(data['method'], 'GET')
         self.assertTrue(response.data.endswith(b'\n'))
 
-    def test_base64(self):
-        greeting = u'Здравствуй, мир!'
-        b64_encoded = _string_to_base64(greeting)
-        response = self.app.get(b'/base64/' + b64_encoded)
-        content = response.data.decode('utf-8')
-        self.assertEqual(greeting, content)
+    # def test_base64(self):
+    #     greeting = u'Здравствуй, мир!'
+    #     b64_encoded = _string_to_base64(greeting)
+    #     response = self.app.get(b'/base64/' + b64_encoded)
+    #     content = response.data.decode('utf-8')
+    #     self.assertEqual(greeting, content)
 
     def test_post_binary(self):
         response = self.app.post('/post',
