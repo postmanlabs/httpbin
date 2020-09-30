@@ -20,7 +20,7 @@ See http://httpbin.org for more information.
 - https://hub.docker.com/r/kennethreitz/httpbin/
 
 
-## SEE ALSO
+## ALSO CHECKOUT
 
 - http://requestb.in
 - http://python-requests.org
