@@ -10,6 +10,7 @@ This module provides the core HttpBin experience.
 import base64
 import json
 import os
+import math
 import random
 import time
 import uuid
@@ -1216,6 +1217,28 @@ def delay_response(delay):
         get_dict("url", "args", "form", "data", "origin", "headers", "files")
     )
 
+
+@app.route("/factorial/<n>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
+def factorial_response(n):
+    """Returns the factorial of the given number
+    ---
+    tags:
+      - Dynamic data
+    parameters:
+      - in: path
+        name: n
+        type: int
+    produces:
+      - application/json
+    responses:
+      200:
+        description: The factorial of n
+    """
+    factorial = math.factorial(int(n))
+
+    return jsonify(
+        get_dict("url", "args", "form", "data", "origin", "headers", "files")
+    )
 
 @app.route("/drip")
 def drip():
