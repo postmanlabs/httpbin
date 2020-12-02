@@ -10,7 +10,7 @@ This module provides response filter decorators.
 import gzip as gzip2
 import zlib
 
-import brotli as _brotli
+import brotlicffi as _brotli
 
 from six import BytesIO
 from decimal import Decimal
