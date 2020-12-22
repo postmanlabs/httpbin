@@ -698,7 +698,6 @@ def absolute_redirect_n_times(n):
 
     return _redirect("absolute", n, True)
 
-
 @app.route("/stream/<int:n>")
 def stream_n_messages(n):
     """Stream n JSON responses
@@ -724,7 +723,6 @@ def stream_n_messages(n):
             yield json.dumps(response) + "\n"
 
     return Response(generate_stream(), headers={"Content-Type": "application/json"})
-
 
 @app.route(
     "/status/<codes>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
@@ -1776,6 +1774,128 @@ def a_json_endpoint():
             ],
         }
     )
+
+import gzip as gzip2
+from six import BytesIO
+import zlib
+
+@app.route("/stream/gzip/<int:n>")
+def stream_n_gzip_messages(n):
+    """Stream n JSON responses
+    ---
+    tags:
+      - Dynamic data
+    parameters:
+      - in: path
+        name: n
+        type: int
+    produces:
+      - application/json
+    responses:
+      200:
+        description: Streamed JSON responses.
+    """
+    response = get_dict("url", "args", "headers", "origin")
+    n = min(n, 100)
+    plain_data = []
+
+    for j in range(n):
+        response["id"] = j
+        content = json.dumps(response) + "\n"
+        plain_data.append(content)
+
+    complete_data = ''.join(plain_data)
+    gzip_buffer = BytesIO()
+    gzip_file = gzip2.GzipFile(
+        mode='wb',
+        compresslevel=4,
+        fileobj=gzip_buffer
+    )
+    gzip_file.write(complete_data.encode('ascii'))
+    gzip_file.close()
+
+    gzip_data = gzip_buffer.getvalue()
+    chunks, chunk_size = len(gzip_data), int(len(gzip_data) / n)
+    gzipped_array = [ gzip_data[i:i+chunk_size] for i in range(0, chunks, chunk_size) ]
+
+    def generate_stream():
+        for i in range(n):
+            content = gzipped_array[i]
+            yield (content)
+
+    return Response(generate_stream(), headers={"Content-Type": "application/json", "Content-Encoding": "gzip"})
+
+@app.route("/stream/deflate/<int:n>")
+def stream_n_deflated_messages(n):
+    """Stream n JSON responses
+    ---
+    tags:
+      - Dynamic data
+    parameters:
+      - in: path
+        name: n
+        type: int
+    produces:
+      - application/json
+    responses:
+      200:
+        description: Streamed JSON responses.
+    """
+    response = get_dict("url", "args", "headers", "origin")
+    n = min(n, 100)
+
+    def generate_stream():
+        for i in range(n):
+            response["id"] = i
+            content = json.dumps(response) + "\n"
+            deflater = zlib.compressobj()
+            deflated_data = deflater.compress(content.encode('ascii'))
+            deflated_data += deflater.flush()
+
+            yield (deflated_data)
+
+    return Response(generate_stream(), headers={"Content-Type": "application/json", "Content-Encoding": "deflate"})
+
+@app.route("/stream/brotli/<int:n>")
+def stream_n_brotli_messages(n):
+    """Stream n JSON responses
+    ---
+    tags:
+      - Dynamic data
+    parameters:
+      - in: path
+        name: n
+        type: int
+    produces:
+      - application/json
+    responses:
+      200:
+        description: Streamed JSON responses.
+    """
+    response = get_dict("url", "args", "headers", "origin")
+    n = min(n, 100)
+
+    def generate_stream():
+        for i in range(n):
+            response["id"] = i
+            content = json.dumps(response) + "\n"
+            # gzip_buffer = BytesIO()
+            # gzip_file = gzip2.GzipFile(
+            #     mode='wb',
+            #     compresslevel=4,
+            #     fileobj=gzip_buffer
+            # )
+            # gzip_file.write(content.encode('ascii'))
+            # gzip_file.close()
+
+            # gzip_data = gzip_buffer.getvalue()
+            deflater = zlib.compressobj()
+            deflated_data = deflater.compress(content.encode('ascii'))
+            deflated_data += deflater.flush()
+
+            yield (deflated_data)
+
+    return Response(generate_stream(), headers={"Content-Type": "application/json", "Content-Encoding": "br"})
 
 
 if __name__ == "__main__":
