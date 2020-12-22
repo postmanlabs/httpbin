@@ -15,6 +15,11 @@ import time
 import uuid
 import argparse
 
+import gzip as gzip2
+from six import BytesIO
+import zlib
+import brotli as _brotli
+
 from flask import (
     Flask,
     Response,
@@ -1774,11 +1779,6 @@ def a_json_endpoint():
             ],
         }
     )
-
-import gzip as gzip2
-from six import BytesIO
-import zlib
-import brotli as _brotli
 
 def split_data_into_chunkes(data, n):
     data_size, chunk_size = len(data), int(len(data) / n)
