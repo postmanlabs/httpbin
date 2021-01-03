@@ -411,6 +411,118 @@ def view_anything(anything=None):
     )
 
 
+@app.route("/everything", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
+@app.route(
+    "/everything/<path:everything>",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"],
+)
+def view_everything(everything=None):
+    """Returns everything passed in request data.
+    ---
+    tags:
+      - Everything
+    produces:
+      - application/json
+    responses:
+      200:
+        description: Everything passed in request
+    """
+    try:
+      cookies = dict(request.cookies.items())
+    except:
+      cookies = {}
+
+    dict_to_return = get_dict(
+                        "url",
+                        "args",
+                        "headers",
+                        "origin",
+                        "method",
+                        "form",
+                        "data",
+                        "files",
+                        "json",
+                    )
+    dict_to_return['cookies'] = cookies
+
+    return jsonify(
+        dict_to_return
+    )
+
+
+@app.route("/the_proxy_everything", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
+def the_proxy_everything(everything=None):
+    """Returns everything passed in request data.
+    ---
+    tags:
+      - Everything
+    produces:
+      - application/json
+    responses:
+      200:
+        description: Everything passed in request
+    """
+    try:
+      cookies = dict(request.cookies.items())
+    except:
+      cookies = {}
+
+    dict_to_return = get_dict(
+                        "url",
+                        "args",
+                        "headers",
+                        "origin",
+                        "method",
+                        "form",
+                        "data",
+                        "files",
+                        "json",
+                    )
+    dict_to_return['cookies'] = cookies
+
+    return jsonify(
+        dict_to_return
+    )
+
+
+@app.route("/proxy_everything", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
+@app.route(
+    "/proxy_everything/<path:proxy_everything>",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"],
+)
+def proxy_everything(everything=None):
+    """Returns everything passed in request data.
+    ---
+    tags:
+      - Everything
+    produces:
+      - application/json
+    responses:
+      200:
+        description: Everything passed in request
+    """
+    try:
+      cookies = dict(request.cookies.items())
+    except:
+      cookies = {}
+
+    dict_to_return = get_dict(
+                        "url",
+                        "args",
+                        "headers",
+                        "origin",
+                        "method",
+                        "form",
+                        "data",
+                        "files",
+                        "json",
+                    )
+    dict_to_return['cookies'] = cookies
+
+    return jsonify(
+        dict_to_return
+    )
+
 @app.route("/post", methods=("POST",))
 def view_post():
     """The request's POST parameters.
