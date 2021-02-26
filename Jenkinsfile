@@ -26,17 +26,19 @@ pipeline {
         // Builds Docker Image
         stage('Build Image') {
             steps {
-                sh 'sudo docker build -t jdtest:v1.0 .'
+                sh "sudo docker build -t jdtest:\"${BUILD_ID}\" ."
             }
         }
 
         // Deploys the image as container
         stage('Run Image') {
             steps {
+                // Get Last Successful Build
+                SUCCESS_BUILD = 'wget -qO- http://jenkins_url:8080/job/jobname/lastSuccessfulBuild/buildNumber'
                 // Stop and remove previous container
-                sh 'sudo docker stop jd'
+                sh "docker rm -f jd-\"${SUCCESS_BUILD}\" && echo \"container ${SUCCESS_BUILD} removed\" || echo \"container ${SUCCESS_BUILD} does not exist\""
                 sh 'sudo docker system prune'
-                sh 'sudo docker run -d -p 5000:80 --name jd jdtest:v1.0'
+                sh "sudo docker run -d -p 5000:80 --name jd-\"${BUILD_ID}\" jdtest:\"${BUILD_ID}\""
             }
         }
     }
