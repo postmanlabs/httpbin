@@ -10,7 +10,7 @@ pipeline {
         stage('Testing Prerequisite'){
             steps {
                 sh 'sudo pip3 install pipenv'
-                sh 'pipenv shell' 
+                // sh 'pipenv shell' 
                 sh 'pipenv install --ignore-pipfile'
             }
         }
