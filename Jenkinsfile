@@ -33,11 +33,20 @@ pipeline {
         // Deploys the image as container
         stage('Run Image') {
             steps {
-                script {
-                    def SUCCESS_BUILD = sh(script: "wget -qO- http://192.168.29.248:8080/job/test%20pipe/lastSuccessfulBuild/buildNumber", returnStdout: true).trim()
+                script{
+                    def SUCCESS_BUILD = 0
+                    def build = currentBuild.previousBuild
+                    while (build != null) {
+                        if (build.result == "SUCCESS")
+                        {
+                            SUCCESS_BUILD = build.id as Integer
+                            break
+                        }
+                        build = build.previousBuild
+                    }
+                    println SUCCESS_BUILD
                 }
                 
-
                 // Stop and remove previous container
                 sh "sudo docker rm -f jd-\"${SUCCESS_BUILD}\" && echo \"container ${SUCCESS_BUILD} removed\" || echo \"container ${SUCCESS_BUILD} does not exist\""
                 sh 'sudo docker system prune'
