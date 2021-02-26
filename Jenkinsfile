@@ -33,7 +33,7 @@ pipeline {
         // Deploys the image as container
         stage('Run Image') {
             steps {
-                sh 'sudo docker run -d -p 80:5000 --name jd jdtest:v1.0'
+                sh 'sudo docker run -d -p 5000:80 --name jd jdtest:v1.0'
             }
         }
     }
