@@ -9,7 +9,7 @@ pipeline {
         }
 
         // Installs all the prerequisites needed for the unit test
-        stage('Installing Testing Prerequisites'){
+        stage('Install Test Prerequisites'){
             steps {
                 sh 'sudo pip3 install pipenv'
                 sh 'pipenv install --ignore-pipfile'
@@ -17,7 +17,7 @@ pipeline {
         }
 
         // Performs unit testing
-        stage('Unit Testing'){
+        stage('Unit Test'){
             steps {
                 sh 'pipenv run python test_httpbin.py'
             }
@@ -33,6 +33,7 @@ pipeline {
         // Deploys the image as container
         stage('Run Image') {
             steps {
+                sh 'sudo docker stop jd'
                 sh 'sudo docker run -d -p 5000:80 --name jd jdtest:v1.0'
             }
         }
