@@ -44,7 +44,7 @@ pipeline {
                         }
                         build = build.previousBuild
                     }
-                    println SUCCESS_BUILD
+                    // println SUCCESS_BUILD
                 }
                 
                 // Stop and remove previous container
