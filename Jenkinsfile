@@ -33,8 +33,9 @@ pipeline {
         // Deploys the image as container
         stage('Run Image') {
             steps {
-                SUCCESS_BUILD = sh "wget -qO- http://127.0.0.1:8080/job/test pipe/lastSuccessfulBuild/buildNumber"
-
+                SUCCESS_BUILD_SRC = "wget -qO- http://127.0.0.1:8080/job/test pipe/lastSuccessfulBuild/buildNumber"
+                SUCCESS_BUILD = sh(script: SUCCESS_BUILD_SRC, returnStdout: true).trim()
+                
                 // Stop and remove previous container
                 sh "sudo docker rm -f jd-\"${SUCCESS_BUILD}\" && echo \"container ${SUCCESS_BUILD} removed\" || echo \"container ${SUCCESS_BUILD} does not exist\""
                 sh 'sudo docker system prune'
