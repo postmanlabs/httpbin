@@ -9,7 +9,7 @@ pipeline {
 
         stage('Testing Prerequisite'){
             steps {
-                sh 'pip3 install --no-cache-dir pipenv'
+                sh 'sudo pip3 install pipenv'
                 sh 'pipenv shell' 
                 sh 'pipenv install --ignore-pipfile'
             }
