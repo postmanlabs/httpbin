@@ -34,6 +34,7 @@ pipeline {
         stage('Run Image') {
             steps {
                 script{
+                    // Get last successful build ID
                     def SUCCESS_BUILD = 0
                     def build = currentBuild.previousBuild
                     while (build != null) {
@@ -44,15 +45,13 @@ pipeline {
                         }
                         build = build.previousBuild
                     }
-                    // println SUCCESS_BUILD
-                
-                
-                // Stop and remove previous container
-                sh "sudo docker rm -f jd-\"${SUCCESS_BUILD}\" && echo \"container ${SUCCESS_BUILD} removed\" || echo \"container ${SUCCESS_BUILD} does not exist\""
-                sh 'sudo docker system prune'
 
-                // Run latest container
-                sh "sudo docker run -d -p 5000:80 --name jd-\"${BUILD_ID}\" jdtest:\"${BUILD_ID}\""
+                    // Stop and remove previous container
+                    sh "sudo docker rm -f jd-\"${SUCCESS_BUILD}\" && echo \"container ${SUCCESS_BUILD} removed\" || echo \"container ${SUCCESS_BUILD} does not exist\""
+                    sh 'sudo docker system prune'
+
+                    // Run latest container
+                    sh "sudo docker run -d -p 5000:80 --name jd-\"${BUILD_ID}\" jdtest:\"${BUILD_ID}\""
 
                 }
             }
