@@ -1,3 +1,6 @@
+// Get last succesful build
+def SUCCESS_BUILD = 'wget -qO- http://jenkins_url:8080/job/jobname/lastSuccessfulBuild/buildNumber'
+
 pipeline {
 	agent any
     stages {
@@ -33,9 +36,6 @@ pipeline {
         // Deploys the image as container
         stage('Run Image') {
             steps {
-                // Get Last Successful Build
-                SUCCESS_BUILD = 'wget -qO- http://jenkins_url:8080/job/jobname/lastSuccessfulBuild/buildNumber'
-                
                 // Stop and remove previous container
                 sh "docker rm -f jd-\"${SUCCESS_BUILD}\" && echo \"container ${SUCCESS_BUILD} removed\" || echo \"container ${SUCCESS_BUILD} does not exist\""
                 sh 'sudo docker system prune'
