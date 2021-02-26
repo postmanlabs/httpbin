@@ -8,20 +8,20 @@ pipeline {
             }
         }
 
-        // // Installs all the prerequisites needed for the unit test
-        // stage('Install Test Prerequisites'){
-        //     steps {
-        //         sh 'sudo pip3 install pipenv'
-        //         sh 'pipenv install --ignore-pipfile'
-        //     }
-        // }
+        // Installs all the prerequisites needed for the unit test
+        stage('Install Test Prerequisites'){
+            steps {
+                sh 'sudo pip3 install pipenv'
+                sh 'pipenv install --ignore-pipfile'
+            }
+        }
 
-        // // Performs unit testing
-        // stage('Unit Test'){
-        //     steps {
-        //         sh 'pipenv run python test_httpbin.py'
-        //     }
-        // }
+        // Performs unit testing
+        stage('Unit Test'){
+            steps {
+                sh 'pipenv run python test_httpbin.py'
+            }
+        }
 
         // Builds Docker Image
         stage('Build Image') {
@@ -48,7 +48,7 @@ pipeline {
 
                     // Stop and remove previous container
                     sh "sudo docker rm -f jd-\"${SUCCESS_BUILD}\" && echo \"container ${SUCCESS_BUILD} removed\" || echo \"container ${SUCCESS_BUILD} does not exist\""
-                    sh 'sudo docker system prune'
+                    sh 'sudo docker system prune -f'
 
                     // Run latest container
                     sh "sudo docker run -d -p 5000:80 --name jd-\"${BUILD_ID}\" jdtest:\"${BUILD_ID}\""
