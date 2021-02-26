@@ -17,8 +17,8 @@ pipeline {
 
         stage('Unit Testing'){
             steps {
-                sh 'pipenv shell'
-                sh 'python test_httpbin.py'
+                // sh 'pipenv shell'
+                sh 'pipenv run python test_httpbin.py'
             }
         }
 
