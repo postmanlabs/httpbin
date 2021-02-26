@@ -35,7 +35,7 @@ pipeline {
             steps {
                 // Stop and remove previous container
                 sh 'sudo docker stop jd'
-                sh 'sudo docker container rm jd'
+                sh 'sudo docker system prune'
                 sh 'sudo docker run -d -p 5000:80 --name jd jdtest:v1.0'
             }
         }
