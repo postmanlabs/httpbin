@@ -35,9 +35,12 @@ pipeline {
             steps {
                 // Get Last Successful Build
                 SUCCESS_BUILD = 'wget -qO- http://jenkins_url:8080/job/jobname/lastSuccessfulBuild/buildNumber'
+                
                 // Stop and remove previous container
                 sh "docker rm -f jd-\"${SUCCESS_BUILD}\" && echo \"container ${SUCCESS_BUILD} removed\" || echo \"container ${SUCCESS_BUILD} does not exist\""
                 sh 'sudo docker system prune'
+
+                // Run latest container
                 sh "sudo docker run -d -p 5000:80 --name jd-\"${BUILD_ID}\" jdtest:\"${BUILD_ID}\""
             }
         }
