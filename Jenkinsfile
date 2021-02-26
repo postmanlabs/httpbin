@@ -1,5 +1,5 @@
 // Get last succesful build
-def SUCCESS_BUILD = 'wget -qO- http://jenkins_url:8080/job/jobname/lastSuccessfulBuild/buildNumber'
+def SUCCESS_BUILD = sh "wget -qO- http://127.0.0.1:8080/job/test pipe/lastSuccessfulBuild/buildNumber"
 
 pipeline {
 	agent any
@@ -11,20 +11,20 @@ pipeline {
             }
         }
 
-        // Installs all the prerequisites needed for the unit test
-        stage('Install Test Prerequisites'){
-            steps {
-                sh 'sudo pip3 install pipenv'
-                sh 'pipenv install --ignore-pipfile'
-            }
-        }
+        // // Installs all the prerequisites needed for the unit test
+        // stage('Install Test Prerequisites'){
+        //     steps {
+        //         sh 'sudo pip3 install pipenv'
+        //         sh 'pipenv install --ignore-pipfile'
+        //     }
+        // }
 
-        // Performs unit testing
-        stage('Unit Test'){
-            steps {
-                sh 'pipenv run python test_httpbin.py'
-            }
-        }
+        // // Performs unit testing
+        // stage('Unit Test'){
+        //     steps {
+        //         sh 'pipenv run python test_httpbin.py'
+        //     }
+        // }
 
         // Builds Docker Image
         stage('Build Image') {
