@@ -37,9 +37,10 @@ pipeline {
                     // sh "sudo docker build -t rahools/greendeck-httpbin:\"${BUILD_ID}\" ."
                     // sh "sudo docker push rahools/greendeck-httpbin:\"${BUILD_ID}\""
 
-                    dockerImg = docker.build registry + ":$BUILD_ID"
+                    dockerImg = docker.build registry
                     docker.withRegistry('', registryCred) {
-                        dockerImg.push()
+                        dockerImg.push(":$BUILD_ID")
+                        dockerImg.push('latest')
                     }
                 }
             }
