@@ -1,10 +1,12 @@
-environment {
-    registry = "rahools/greendeck-httpbin"
-    registry-cred = 'dockerhub'
-}
-
 pipeline {
+    environment {
+        registry = "rahools/greendeck-httpbin"
+        registryCred = 'dockerhub'
+        dockerImg = ''
+    }
+
 	agent any
+    
     stages {
         // Gets the latest source code from the SCM
         stage('Clone Repository') {
@@ -36,7 +38,7 @@ pipeline {
                     // sh "sudo docker push rahools/greendeck-httpbin:\"${BUILD_ID}\""
 
                     dockerImg = docker.build registry + ":$BUILD_ID"
-                    docker.withRegistry('', registry-cred) {
+                    docker.withRegistry('', registryCred) {
                         dockerImg.push()
                     }
                 }
