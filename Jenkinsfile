@@ -1,6 +1,6 @@
 pipeline {
     environment {
-        registry = "rahools/greendeck-httpbin"
+        registry = "rahools/httpbin"
         registryCred = 'dockerhub'
         dockerImg = ''
     }
@@ -62,11 +62,11 @@ pipeline {
                     }
 
                     // Stop and remove previous container
-                    sh "sudo docker rm -f rahools/greendeck-docker-cont-\"${SUCCESS_BUILD}\" && echo \"container ${SUCCESS_BUILD} removed\" || echo \"container ${SUCCESS_BUILD} does not exist\""
+                    sh "sudo docker rm -f httpbin-cont-\"${SUCCESS_BUILD}\" && echo \"container ${SUCCESS_BUILD} removed\" || echo \"container ${SUCCESS_BUILD} does not exist\""
                     sh 'sudo docker system prune -f'
 
                     // Run latest container
-                    sh "sudo docker run -d -p 5050:80 --name greendeck-docker-cont-\"${BUILD_ID}\" rahools/greendeck-docker-image:\"${BUILD_ID}\""
+                    sh "sudo docker run -d -p 5050:80 --name httpbin-cont-\"${BUILD_ID}\" rahools/httpbin:\"${BUILD_ID}\""
 
                 }
             }
