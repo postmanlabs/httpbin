@@ -1,3 +1,8 @@
+environment {
+    registry = "rahools/greendeck-httpbin"
+    registry-cred = 'dockerhub'
+}
+
 pipeline {
 	agent any
     stages {
@@ -26,8 +31,15 @@ pipeline {
         // Builds Docker Image
         stage('Build Image') {
             steps {
-                sh "sudo docker build -t rahools/greendeck-httpbin:\"${BUILD_ID}\" ."
-                sh "sudo docker push rahools/greendeck-httpbin:\"${BUILD_ID}\""
+                script {
+                    // sh "sudo docker build -t rahools/greendeck-httpbin:\"${BUILD_ID}\" ."
+                    // sh "sudo docker push rahools/greendeck-httpbin:\"${BUILD_ID}\""
+
+                    dockerImg = docker.build registry + ":$BUILD_ID"
+                    docker.withRegistry('', registry-cred) {
+                        dockerImg.push()
+                    }
+                }
             }
         }
 
