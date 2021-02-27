@@ -39,7 +39,7 @@ pipeline {
 
                     dockerImg = docker.build registry
                     docker.withRegistry('', registryCred) {
-                        dockerImg.push(":$BUILD_ID")
+                        dockerImg.push("$BUILD_ID")
                         dockerImg.push('latest')
                     }
                 }
