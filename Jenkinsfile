@@ -50,25 +50,27 @@ pipeline {
         stage('Run Image') {
             steps {
                 script{
-                    // Get last successful build ID
-                    def SUCCESS_BUILD = 0
-                    def build = currentBuild.previousBuild
-                    while (build != null) {
-                        if (build.result == "SUCCESS")
-                        {
-                            SUCCESS_BUILD = build.id as Integer
-                            break
-                        }
-                        build = build.previousBuild
-                    }
+                    // // Get last successful build ID
+                    // def SUCCESS_BUILD = 0
+                    // def build = currentBuild.previousBuild
+                    // while (build != null) {
+                    //     if (build.result == "SUCCESS")
+                    //     {
+                    //         SUCCESS_BUILD = build.id as Integer
+                    //         break
+                    //     }
+                    //     build = build.previousBuild
+                    // }
 
-                    // Stop and remove previous container
-                    sh "sudo docker rm -f httpbin-cont-\"${SUCCESS_BUILD}\" && echo \"container ${SUCCESS_BUILD} removed\" || echo \"container ${SUCCESS_BUILD} does not exist\""
-                    sh 'sudo docker system prune -f'
+                    // // Stop and remove previous container
+                    // sh "sudo docker rm -f httpbin-cont-\"${SUCCESS_BUILD}\" && echo \"container ${SUCCESS_BUILD} removed\" || echo \"container ${SUCCESS_BUILD} does not exist\""
+                    // sh 'sudo docker system prune -f'
 
-                    // Run latest container
-                    sh "sudo docker run -d -p 5050:80 --name httpbin-cont-\"${BUILD_ID}\" rahools/httpbin:\"${BUILD_ID}\""
+                    // // Run latest container
+                    // sh "sudo docker run -d -p 5050:80 --name httpbin-cont-\"${BUILD_ID}\" rahools/httpbin:\"${BUILD_ID}\""
 
+                    // Run latest image with help of docker-compose 
+                    sh "sudo docker-compose -f docker-compose.prod.yml up -d"
                 }
             }
         }
