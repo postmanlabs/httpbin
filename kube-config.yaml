@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpbin-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: httpbin-pod
+
+  template:
+    metadata:
+      labels:
+        app: httpbin-pod
+    spec:
+      containers:
+        - name: httpbin-pod
+          image: rahools/httpbin # to fill
+          ports:
+            - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpbin-service
+spec:
+  selector:
+    app: httpbin-pod
+  ports:
+    - protocol: "TCP"
+
+      # Port accessible inside cluster
+      port: 8080
+      
+      # Port to forward to inside the pod
+      targetPort: 80
+
+      # Port accessible outside cluster
+      nodePort: 80
+  type: LoadBalancer
