@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM python:3.6-alpine
 
 LABEL name="httpbin"
 LABEL version="0.9.2"
@@ -8,14 +8,15 @@ LABEL org.kennethreitz.vendor="Kenneth Reitz"
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
-RUN apt update -y && apt install python3-pip git -y && pip3 install --no-cache-dir pipenv
-
-ADD Pipfile Pipfile.lock /httpbin/
+ADD . /httpbin/
 WORKDIR /httpbin
-RUN /bin/bash -c "pip3 install --no-cache-dir -r <(pipenv lock -r)"
-
-ADD . /httpbin
-RUN pip3 install --no-cache-dir /httpbin
+RUN apk add --no-cache git gcc musl-dev libffi-dev libstdc++ \
+ && pip3 install --no-cache-dir pipenv \
+ && pipenv lock -r > req.txt \
+ && ln -s /usr/lib/libstdc++.so.6 /usr/lib/libstdc++.so \
+ && pip3 install --no-cache-dir --upgrade pip setuptools==45.2.0 \
+ && pip3 install --no-cache-dir -r req.txt \
+ && pip3 install --no-cache-dir /httpbin
 
 EXPOSE 80
 
