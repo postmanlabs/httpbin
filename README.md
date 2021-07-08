@@ -11,6 +11,10 @@ docker pull kennethreitz/httpbin
 docker run -p 80:80 kennethreitz/httpbin
 ```
 
+### Optional Env Flags
+
+`UNSAFE_BODY_DECOMPRESSION=1` enable decompressing of compressed request bodies. With this option enabled your instance is vulnerable to [Zip Bombing](https://en.wikipedia.org/wiki/Zip_bomb).
+
 See http://httpbin.org for more information.
 
 ## Officially Deployed at:
