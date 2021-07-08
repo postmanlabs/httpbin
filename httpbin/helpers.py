@@ -12,6 +12,9 @@ import base64
 import re
 import time
 import os
+import gzip as gzip2
+import brotli as _brotli
+import zlib
 from hashlib import md5, sha256, sha512
 from werkzeug.http import parse_authorization_header
 from werkzeug.datastructures import WWWAuthenticate
@@ -80,6 +83,8 @@ ANGRY_ASCII ="""
           '-......-'
      YOU SHOULDN'T BE HERE
 """
+
+UNSAFE_BODY_DECOMPRESSION = bool(os.environ.get("UNSAFE_BODY_DECOMPRESSION"))
 
 
 def json_safe(string, content_type='application/octet-stream'):
@@ -168,6 +173,17 @@ def get_url(request):
     return urlunparse(url)
 
 
+def get_content_encoding():
+    """Returns the clean content encoding"""
+    raw_encoding = request.headers.get('Content-Encoding') or ""
+    return raw_encoding.split('/')[-1].lower()
+
+
+def should_decompress(data):
+    """Checks if this request body should be decompressed"""
+    return UNSAFE_BODY_DECOMPRESSION and get_content_encoding() in ['gzip', 'brotli', 'deflate'] and data
+
+
 def get_dict(*keys, **extras):
     """Returns request dict of given keys."""
 
@@ -175,6 +191,17 @@ def get_dict(*keys, **extras):
 
     assert all(map(_keys.__contains__, keys))
     data = request.data
+    if should_decompress(data):
+        try:
+            encoding = get_content_encoding()
+            if(encoding == 'gzip'):
+                data = gzip2.decompress(data)
+            elif(encoding == 'brotli'):
+                data = _brotli.decompress(data)
+            elif(encoding == 'deflate'):
+                data = zlib.decompress(data)
+        except Exception as err:
+            data = str(err).encode('utf-8')
     form = semiflatten(request.form)
 
     try:
