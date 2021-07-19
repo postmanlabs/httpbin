@@ -77,7 +77,10 @@ def jsonify(*args, **kwargs):
 
 
 # Prevent WSGI from correcting the casing of the Location header
+# and forcing it to be absolute. This moved from BaseResponse to
+# Response in werkzeug 2.0.0, so we set both to be safe.
 BaseResponse.autocorrect_location_header = False
+Response.autocorrect_location_header = False
 
 # Find the correct template folder when running from a different location
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
