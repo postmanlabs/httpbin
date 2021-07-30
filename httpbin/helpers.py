@@ -361,7 +361,7 @@ def check_digest_auth(user, passwd):
             return
         request_uri = request.script_root + request.path
         if request.query_string:
-            request_uri +=  '?' + request.query_string
+            request_uri +=  '?' + str(request.query_string, 'utf-8')
         response_hash = response(credentials, passwd, dict(uri=request_uri,
                                                            body=request.data,
                                                            method=request.method))
