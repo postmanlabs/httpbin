@@ -1,0 +1,33 @@
+---
+name: "push"
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  build:
+    name: "Build"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repo 
+        uses: actions/checkout@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.K6_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.K6_DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: "Build image"
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          file: Dockerfile
+          tags: loadimpact/httpbin:latest,loadimpact/httpbin:${{ github.event.release.tag_name }}
