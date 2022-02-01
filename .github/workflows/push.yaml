@@ -30,4 +30,4 @@ jobs:
           context: .
           push: true
           file: Dockerfile
-          tags: loadimpact/httpbin:latest,loadimpact/httpbin:${{ github.event.release.tag_name }}
+          tags: grafana/httpbin:latest,grafana/httpbin:${{ github.event.release.tag_name }}
