@@ -19,4 +19,4 @@ RUN pip3 install --no-cache-dir /httpbin
 
 EXPOSE 80
 
-CMD ["gunicorn", "-b", "0.0.0.0:80", "httpbin:app", "-k", "gevent"]
+ENTRYPOINT ["gunicorn", "-b", "0.0.0.0:80", "httpbin:app", "-k", "gevent"]

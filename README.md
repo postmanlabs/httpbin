@@ -11,6 +11,12 @@ docker pull kennethreitz/httpbin
 docker run -p 80:80 kennethreitz/httpbin
 ```
 
+You can configure the server behaviour by providing gunicorn flags as docker
+command.  For example, to configure access logging to STDOUT, run the following:
+```sh
+docker run -p 80:80 kennethreitz/httpbin --access-logfile -
+```
+
 See http://httpbin.org for more information.
 
 ## Officially Deployed at:
