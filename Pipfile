@@ -9,7 +9,7 @@ brotlipy = "*"
 gevent = "*"
 Flask = "*"
 meinheld = "*"
-werkzeug = ">=0.15"
+werkzeug = "~=2.1"
 six = "*"
 flasgger = "*"
 pyyaml = {git = "https://github.com/yaml/pyyaml.git"}
