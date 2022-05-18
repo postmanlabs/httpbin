@@ -1,9 +1,9 @@
 FROM ubuntu:18.04
 
-LABEL name="httpbin"
-LABEL version="0.9.2"
+LABEL name="httpbin-devops"
+LABEL version="1.0"
 LABEL description="A simple HTTP service."
-LABEL org.kennethreitz.vendor="Kenneth Reitz"
+LABEL org.abhishek.vendor="Abhishek Nallana"
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
@@ -14,9 +14,9 @@ ADD Pipfile Pipfile.lock /httpbin/
 WORKDIR /httpbin
 RUN /bin/bash -c "pip3 install --no-cache-dir -r <(pipenv lock -r)"
 
-ADD . /httpbin
-RUN pip3 install --no-cache-dir /httpbin
+ADD . /httpbin-devops
+RUN pip3 install --no-cache-dir /httpbin-devops
 
-EXPOSE 80
+EXPOSE 90
 
-CMD ["gunicorn", "-b", "0.0.0.0:80", "httpbin:app", "-k", "gevent"]
+CMD ["gunicorn", "-b", "0.0.0.0:90", "httpbin-devops:app", "-k", "gevent"]
