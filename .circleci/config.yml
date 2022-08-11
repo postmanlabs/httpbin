@@ -1,21 +1,23 @@
 version: '2.1'
 orbs:
   deploy-tools: zengrc/deploytools@1.0.0
+
 workflows:
   build-and-deploy-main:
     jobs:
       - deploy-tools/build-and-push-image:
+          name: Build
+          repo_name: example
           filters:
             branches:
               only:
-                - main
-          name: Build
-          repo_name: example
+                - master
+
       - deploy-tools/deploy:
-          cluster: development-1
-          health_endpoint: 'https://example.dev.zengrc.io/service/ready'
           name: Deploy development-1
-          namespace: example-dev
+          cluster: development-1
           repo_name: example
+          health_endpoint: 'https://example.dev.zengrc.io/service/ready'
+          namespace: example-dev
           requires:
             - Build
