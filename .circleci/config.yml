@@ -13,7 +13,7 @@ workflows:
           repo_name: example
       - deploy-tools/deploy:
           cluster: development-1
-          health_endpoint: 'https://<project-name>.dev.zengrc.io/service/ready'
+          health_endpoint: 'https://example.dev.zengrc.io/service/ready'
           name: Deploy development-1
           namespace: example-dev
           repo_name: example
