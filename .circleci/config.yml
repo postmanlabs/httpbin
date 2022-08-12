@@ -6,6 +6,8 @@ workflows:
   build-and-deploy-main:
     jobs:
       - deploy-tools/build-and-push-image:
+          context:
+            - base-development-1
           name: Build
           repo_name: example
           filters:
@@ -16,6 +18,8 @@ workflows:
       - deploy-tools/deploy:
           name: Deploy development-1
           cluster: development-1
+          context:
+            - base-development-1
           repo_name: example
           health_endpoint: 'https://example.dev.zengrc.io/service/ready'
           namespace: example-dev
