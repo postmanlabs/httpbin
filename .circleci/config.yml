@@ -21,7 +21,6 @@ workflows:
           context:
             - base-development-1
           repo_name: example
-          health_endpoint: 'https://example.dev.zengrc.io/service/ready'
           namespace: example-dev
           requires:
             - Build
