@@ -21,6 +21,7 @@ workflows:
           context:
             - base-development-1
           repo_name: example
+          verify: false
           namespace: example-dev
           requires:
             - Build
