@@ -1,0 +1,21 @@
+Metadata-Version: 2.1
+Name: httpbin
+Version: 0.9.2
+Summary: HTTP Request and Response Service
+Home-page: https://github.com/requests/httpbin
+Author: Kenneth Reitz
+Author-email: me@kennethreitz.org
+License: MIT
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Natural Language :: English
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.6
+License-File: LICENSE
+License-File: AUTHORS
+
+A simple HTTP Request & Response Service, written in Python + Flask.
+
