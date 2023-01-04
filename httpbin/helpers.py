@@ -131,12 +131,11 @@ def get_headers(hide_env=True):
 
     if hide_env and ('show_env' not in request.args):
         for key in ENV_HEADERS:
-            try:
-                del headers[key]
-            except KeyError:
-                pass
+            # Use the pop method to remove items from the headers dictionary
+            headers.pop(key, None)
 
-    return CaseInsensitiveDict(headers.items())
+    return headers
+
 
 
 def semiflatten(multi):
