@@ -958,7 +958,7 @@ def basic_auth(user="user", passwd="passwd"):
       - application/json
     responses:
       200:
-        description: Sucessful authentication.
+        description: Successful authentication.
       401:
         description: Unsuccessful authentication.
     """
@@ -986,7 +986,7 @@ def hidden_basic_auth(user="user", passwd="passwd"):
       - application/json
     responses:
       200:
-        description: Sucessful authentication.
+        description: Successful authentication.
       404:
         description: Unsuccessful authentication.
     """
@@ -1011,7 +1011,7 @@ def bearer_auth():
       - application/json
     responses:
       200:
-        description: Sucessful authentication.
+        description: Successful authentication.
       401:
         description: Unsuccessful authentication.
     """
@@ -1048,7 +1048,7 @@ def digest_auth_md5(qop=None, user="user", passwd="passwd"):
       - application/json
     responses:
       200:
-        description: Sucessful authentication.
+        description: Successful authentication.
       401:
         description: Unsuccessful authentication.
     """
@@ -1081,7 +1081,7 @@ def digest_auth_nostale(qop=None, user="user", passwd="passwd", algorithm="MD5")
       - application/json
     responses:
       200:
-        description: Sucessful authentication.
+        description: Successful authentication.
       401:
         description: Unsuccessful authentication.
     """
@@ -1121,7 +1121,7 @@ def digest_auth(
       - application/json
     responses:
       200:
-        description: Sucessful authentication.
+        description: Successful authentication.
       401:
         description: Unsuccessful authentication.
     """
