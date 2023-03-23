@@ -1,12 +1,11 @@
 [[source]]
 url = "https://pypi.python.org/simple"
 verify_ssl = true
+name = "pypi"
 
 [packages]
 gunicorn = "*"
 decorator = "*"
-brotlipy = "*"
-gevent = "*"
 Flask = "*"
 meinheld = "*"
 werkzeug = ">=0.14.1"
