@@ -215,20 +215,24 @@ def before_request():
 
 @app.after_request
 def set_cors_headers(response):
-    response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin", "*")
-    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response_headers = {}  # temporary dict to merge with the original one
+    response_headers["Access-Control-Allow-Origin"] = request.headers.get("Origin", "*")
+    response_headers["Access-Control-Allow-Credentials"] = "true"
 
     if request.method == "OPTIONS":
         # Both of these headers are only used for the "preflight request"
         # http://www.w3.org/TR/cors/#access-control-allow-methods-response-header
-        response.headers[
+        response_headers[
             "Access-Control-Allow-Methods"
         ] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-        response.headers["Access-Control-Max-Age"] = "3600"  # 1 hour cache
+        response_headers["Access-Control-Max-Age"] = "3600"  # 1 hour cache
         if request.headers.get("Access-Control-Request-Headers") is not None:
             response.headers["Access-Control-Allow-Headers"] = request.headers[
                 "Access-Control-Request-Headers"
             ]
+    # Allow the various Access-Control-* headers to be overwritten
+    # This can be useful for the /response-headers endpoint for example
+    response.headers = {**response_headers, **response.headers}
     return response
 
 
