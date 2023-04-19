@@ -782,7 +782,7 @@ def view_status_code(codes):
 
 
 @app.route("/response-headers", methods=["GET", "POST"])
-def cors_headers():
+def response_headers():
     """Returns a set of response headers from the query string.
     ---
     tags:
@@ -1570,7 +1570,7 @@ def range_request(numbytes):
             yield (bytes(chunks))
 
     content_range = "bytes %d-%d/%d" % (first_byte_pos, last_byte_pos, numbytes)
-    cors_headers = {
+    response_headers = {
         "Content-Type": "application/octet-stream",
         "ETag": "range%d" % numbytes,
         "Accept-Ranges": "bytes",
@@ -1578,7 +1578,7 @@ def range_request(numbytes):
         "Content-Range": content_range,
     }
 
-    response = Response(generate_bytes(), headers=cors_headers)
+    response = Response(generate_bytes(), headers=response_headers)
 
     if (first_byte_pos == 0) and (last_byte_pos == (numbytes - 1)):
         response.status_code = 200
