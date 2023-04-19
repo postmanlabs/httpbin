@@ -215,24 +215,24 @@ def before_request():
 
 @app.after_request
 def set_cors_headers(response):
-    response_headers = {}  # temporary dict to merge with the original one
-    response_headers["Access-Control-Allow-Origin"] = request.headers.get("Origin", "*")
-    response_headers["Access-Control-Allow-Credentials"] = "true"
+    cors_headers = {}  # will be filled with CORS defaults
+    cors_headers["Access-Control-Allow-Origin"] = request.headers.get("Origin", "*")
+    cors_headers["Access-Control-Allow-Credentials"] = "true"
 
     if request.method == "OPTIONS":
         # Both of these headers are only used for the "preflight request"
         # http://www.w3.org/TR/cors/#access-control-allow-methods-response-header
-        response_headers[
+        cors_headers[
             "Access-Control-Allow-Methods"
         ] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-        response_headers["Access-Control-Max-Age"] = "3600"  # 1 hour cache
+        cors_headers["Access-Control-Max-Age"] = "3600"  # 1 hour cache
         if request.headers.get("Access-Control-Request-Headers") is not None:
             response.headers["Access-Control-Allow-Headers"] = request.headers[
                 "Access-Control-Request-Headers"
             ]
     # Allow the various Access-Control-* headers to be overwritten
     # This can be useful for the /response-headers endpoint for example
-    response.headers = {**response_headers, **response.headers}
+    response.headers = {**cors_headers, **response.headers}
     return response
 
 
@@ -782,7 +782,7 @@ def view_status_code(codes):
 
 
 @app.route("/response-headers", methods=["GET", "POST"])
-def response_headers():
+def cors_headers():
     """Returns a set of response headers from the query string.
     ---
     tags:
@@ -1570,7 +1570,7 @@ def range_request(numbytes):
             yield (bytes(chunks))
 
     content_range = "bytes %d-%d/%d" % (first_byte_pos, last_byte_pos, numbytes)
-    response_headers = {
+    cors_headers = {
         "Content-Type": "application/octet-stream",
         "ETag": "range%d" % numbytes,
         "Accept-Ranges": "bytes",
@@ -1578,7 +1578,7 @@ def range_request(numbytes):
         "Content-Range": content_range,
     }
 
-    response = Response(generate_bytes(), headers=response_headers)
+    response = Response(generate_bytes(), headers=cors_headers)
 
     if (first_byte_pos == 0) and (last_byte_pos == (numbytes - 1)):
         response.status_code = 200
