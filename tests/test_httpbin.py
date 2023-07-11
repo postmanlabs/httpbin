@@ -4,11 +4,10 @@ import os
 import base64
 import unittest
 import contextlib
-import six
 import json
 from werkzeug.http import parse_dict_header
 from hashlib import md5, sha256, sha512
-from six import BytesIO
+from io import BytesIO
 
 import httpbin
 from httpbin.helpers import parse_multi_value_header
@@ -509,17 +508,9 @@ class HttpbinTestCase(unittest.TestCase):
 
     def test_bytes_with_seed(self):
         response = self.app.get('/bytes/10?seed=0')
-        # The RNG changed in python3, so even though we are
-        # setting the seed, we can't expect the value to be the
-        # same across both interpreters.
-        if six.PY3:
-            self.assertEqual(
-                response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
-            )
-        else:
-            self.assertEqual(
-                response.data, b'\xd8\xc2kB\x82g\xc8Mz\x95'
-            )
+        self.assertEqual(
+            response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
+        )
 
     def test_stream_bytes(self):
         response = self.app.get('/stream-bytes/1024')
@@ -528,17 +519,9 @@ class HttpbinTestCase(unittest.TestCase):
 
     def test_stream_bytes_with_seed(self):
         response = self.app.get('/stream-bytes/10?seed=0')
-        # The RNG changed in python3, so even though we are
-        # setting the seed, we can't expect the value to be the
-        # same across both interpreters.
-        if six.PY3:
-            self.assertEqual(
-                response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
-            )
-        else:
-            self.assertEqual(
-                response.data, b'\xd8\xc2kB\x82g\xc8Mz\x95'
-            )
+        self.assertEqual(
+            response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
+        )
 
     def test_delete_endpoint_returns_body(self):
         response = self.app.delete(
@@ -811,6 +794,3 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(parse_multi_value_header('"xyzzy", "r2d2xxxx", "c3piozzzz"'), [ "xyzzy", "r2d2xxxx", "c3piozzzz" ])
         self.assertEqual(parse_multi_value_header('W/"xyzzy", W/"r2d2xxxx", W/"c3piozzzz"'), [ "xyzzy", "r2d2xxxx", "c3piozzzz" ])
         self.assertEqual(parse_multi_value_header('*'), [ "*" ])
-
-if __name__ == '__main__':
-    unittest.main()
