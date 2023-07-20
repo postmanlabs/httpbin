@@ -20,4 +20,4 @@ RUN chmod +x /httpbin/httpbin.bash
 
 EXPOSE 80
 
-ENTRYPOINT ["/httpbin/httpbin.bash"]
+CMD ["/httpbin/httpbin.bash"]
