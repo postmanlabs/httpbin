@@ -10,4 +10,3 @@ dist/
 *.swp
 .vscode/
 .idea
-local/

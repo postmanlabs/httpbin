@@ -9,12 +9,6 @@ job-defaults: &job-defaults
     AWS_REGION: us-west-2
     AWS_ACCOUNT_ID: "883127560329"
 
-setup-env: &setup-env
-  run:
-    name: Setup ENV
-    command: |
-      ./.circleci/setup-aws-config.sh
-
 machine-setup: &machine-setup
   machine:
     image: ubuntu-2204:2023.07.2
@@ -36,7 +30,6 @@ jobs:
     <<: *job-defaults
     steps:
       - checkout
-      - <<: *setup-env
       - run: APP_VERSION=${CIRCLE_TAG:-$CIRCLE_SHA1} docker-compose build httpbin
       - <<: *persist-workspace
 
@@ -47,7 +40,6 @@ jobs:
     <<: *job-defaults
     steps:
       - <<: *attach-workspace
-      - <<: *setup-env
       - run: |
           ./ops/docker-login.sh
           docker-compose push httpbin
