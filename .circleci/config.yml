@@ -42,7 +42,7 @@ jobs:
       - <<: *attach-workspace
       - run: |
           ./ops/docker-login.sh
-          docker-compose push httpbin
+          APP_VERSION=${CIRCLE_TAG:-$CIRCLE_SHA1} docker-compose push httpbin
 
 workflows:
   build-test-and-deploy:
