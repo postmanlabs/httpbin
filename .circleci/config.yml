@@ -1,0 +1,67 @@
+version: 2.1
+
+job-defaults: &job-defaults
+  working_directory: &working_directory
+                       ~/app
+  environment:
+    AWS_PROFILE: dev/vault
+    AWS_DEFAULT_REGION: us-west-2
+    AWS_REGION: us-west-2
+    AWS_ACCOUNT_ID: "883127560329"
+
+machine-setup: &machine-setup
+  machine:
+    image: ubuntu-2204:2023.07.2
+    docker_layer_caching: true
+
+persist-workspace: &persist-workspace
+  persist_to_workspace:
+    root: .
+    paths:
+      - "*"
+
+attach-workspace: &attach-workspace
+  attach_workspace:
+    at: *working_directory
+
+jobs:
+  build:
+    <<: *machine-setup
+    <<: *job-defaults
+    steps:
+      - checkout
+      - run: APP_VERSION=${CIRCLE_TAG:-$CIRCLE_SHA1} docker-compose build httpbin
+      - <<: *persist-workspace
+
+#  TODO: Here should be some test as well to verify that container is actually starting in the image and can respond to basic commands
+
+  deploy-image:
+    <<: *machine-setup
+    <<: *job-defaults
+    steps:
+      - <<: *attach-workspace
+      - run: |
+          ./ops/docker-login.sh
+          docker-compose push httpbin
+
+workflows:
+  build-test-and-deploy:
+    jobs:
+      - build:
+          context:
+            - circleci
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              only: /.*/
+      - deploy-image:
+          context:
+            - circleci
+          requires:
+            - build
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+(?:-\w+){0,1}$/
+            branches:
+              ignore: /.*/
