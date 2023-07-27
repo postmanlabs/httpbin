@@ -33,7 +33,7 @@ jobs:
       - run: APP_VERSION=${CIRCLE_TAG:-$CIRCLE_SHA1} docker-compose build httpbin
       - run:
           name: Saving docker image
-          command: APP_VERSION=${CIRCLE_TAG:-$CIRCLE_SHA1} docker save -o httpbin.tar httpbin
+          command: docker save -o httpbin.tar quay.io/verygoodsecurity/httpbin
       - <<: *persist-workspace
 
 #  TODO: Here should be some test as well to verify that container is actually starting in the image and can respond to basic commands
