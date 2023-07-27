@@ -1,6 +1,11 @@
-version: '2'
+version: '3'
+
 services:
-    httpbin:
-      build: '.'
-      ports:
-        - '80:80'
+
+  httpbin:
+    image: quay.io/verygoodsecurity/httpbin:${APP_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: vgs.dockerfile
+    ports:
+      - '8000:8000'

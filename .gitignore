@@ -9,3 +9,5 @@ dist/
 *.egg-info
 *.swp
 .vscode/
+.idea
+local/

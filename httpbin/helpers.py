@@ -218,9 +218,9 @@ def status_code(code):
         307: redirect,
         401: dict(headers={'WWW-Authenticate': 'Basic realm="Fake Realm"'}),
         402: dict(
-            data='Fuck you, pay me!',
+            data='Client must make a payment to access the requested resource.',
             headers={
-                'x-more-info': 'http://vimeo.com/22053820'
+                'x-more-info': 'https://www.rfc-editor.org/rfc/rfc9110.html#section-15.5.3'
             }
         ),
         406: dict(data=json.dumps({
