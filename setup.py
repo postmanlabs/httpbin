@@ -36,6 +36,6 @@ setup(
     include_package_data = True, # include files listed in MANIFEST.in
     install_requires=[
         'Flask<2.3', 'MarkupSafe', 'decorator', 'itsdangerous', 'brotlipy',
-        'raven[flask]', 'werkzeug<2.3', 'gevent', 'flasgger', 'jinja2'
+        'werkzeug<2.3', 'gevent', 'flasgger', 'jinja2'
     ],
 )
