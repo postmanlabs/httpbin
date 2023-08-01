@@ -421,7 +421,7 @@ class HttpbinTestCase(unittest.TestCase):
                                                                      body, stale_after + 1)
         self.assertEqual(stale_response.status_code, 401)
         header = stale_response.headers.get('WWW-Authenticate')
-        self.assertIn('stale=TRUE', header)
+        self.assertIn('stale=true', header.lower())
 
     def _test_digest_response_for_auth_request(self, header, username, password, qop, uri, body, nc=1, nonce=None):
         auth_type, auth_info = header.split(None, 1)
@@ -473,13 +473,13 @@ class HttpbinTestCase(unittest.TestCase):
         wrong_pass_response, nonce = self._test_digest_response_for_auth_request(header, username, "wrongPassword", qop, uri, body)
         self.assertEqual(wrong_pass_response.status_code, 401)
         header = wrong_pass_response.headers.get('WWW-Authenticate')
-        self.assertNotIn('stale=TRUE', header)
+        self.assertNotIn('stale=true', header.lower())
 
         reused_nonce_response, nonce =  self._test_digest_response_for_auth_request(header, username, password, qop, uri, \
                                                                               body, nonce=nonce)
         self.assertEqual(reused_nonce_response.status_code, 401)
         header = reused_nonce_response.headers.get('WWW-Authenticate')
-        self.assertIn('stale=TRUE', header)
+        self.assertIn('stale=true', header.lower())
 
     def test_drip(self):
         response = self.app.get('/drip?numbytes=400&duration=2&delay=1')
