@@ -29,5 +29,5 @@ jobs:
           docker build . --file Dockerfile --tag $DOCKER_USER/$REPO_NAME:${{ steps.datetime.outputs.datetime }} --tag $DOCKER_USER/$REPO_NAME:latest
     - name: Docker_Push
       run: |
-          docker push $DOCKER_USER/$REPO_NAME:${{ steps.date.outputs.date }}
+          docker push $DOCKER_USER/$REPO_NAME:${{ steps.datetime.outputs.datetime }}
           docker push $DOCKER_USER/$REPO_NAME:latest
