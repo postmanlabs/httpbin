@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Docker_Build
-      run: docker build . --file Dockerfile --tag httpbin:$(date +%s) --tag httpbin:latest
+      run: docker build . --file Dockerfile --tag xizhendu/httpbin:$(date +%s) --tag xizhendu/httpbin:latest
     - name: Docker_Login
       run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
     - name: Docker_Push
