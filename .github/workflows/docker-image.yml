@@ -1,5 +1,11 @@
 name: Docker Image CI
 
+# Env variable
+env:
+  DOCKER_USER: ${{secrets.DOCKER_USER}}
+  DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+  REPO_NAME: ${{secrets.REPO_NAME}}
+
 on:
   push:
     branches: [ "dev" ]
@@ -12,9 +18,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Docker_Build
-      run: docker build . --file Dockerfile --tag xizhendu/httpbin:$(date +%s) --tag xizhendu/httpbin:latest
     - name: Docker_Login
-      run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+    - name: Get current datetime
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y%m%d-%H%M%S')"
+    - name: Docker_Build
+      run:  |
+          docker build . --file Dockerfile --tag $DOCKER_USER/$REPO_NAME:${{ steps.date.outputs.date }}
     - name: Docker_Push
-      run: docker push xizhendu/httpbin:latest
+      run: |
+          docker push $DOCKER_USER/$REPO_NAME:${{ steps.date.outputs.date }}
