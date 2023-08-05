@@ -1,0 +1,8 @@
+flask
+requests
+datetime
+flask_jwt_extended
+pyyaml
+pyOpenSSL
+psycopg2-binary
+gunicorn
