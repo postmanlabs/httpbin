@@ -21,12 +21,13 @@ jobs:
     - name: Docker_Login
       run: |
           docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-    - name: Get current datetime
-      id: date
-      run: echo "::set-output name=date::$(date +'%Y%m%d-%H%M%S')"
+    - name: Get Datetime
+      id: datetime
+      run: echo "datetime=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
     - name: Docker_Build
       run:  |
-          docker build . --file Dockerfile --tag $DOCKER_USER/$REPO_NAME:${{ steps.date.outputs.date }}
+          docker build . --file Dockerfile --tag $DOCKER_USER/$REPO_NAME:${{ steps.datetime.outputs.datetime }} --tag $DOCKER_USER/$REPO_NAME:latest
     - name: Docker_Push
       run: |
           docker push $DOCKER_USER/$REPO_NAME:${{ steps.date.outputs.date }}
+          docker push $DOCKER_USER/$REPO_NAME:latest
