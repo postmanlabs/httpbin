@@ -1,9 +1,5 @@
 name: Docker Image CI
 
-env:
-  DOCKER_USER: xizhendu
-  DOCKER_PASSWORD: DockerRocks.123
-
 on:
   push:
     branches: [ "dev" ]
