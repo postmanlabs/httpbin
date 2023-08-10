@@ -5,7 +5,7 @@ verify_ssl = true
 [packages]
 gunicorn = "*"
 decorator = "*"
-brotlipy = "*"
+brotlicffi = "*"
 gevent = "*"
 Flask = "*"
 meinheld = "*"

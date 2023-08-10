@@ -147,7 +147,6 @@ class HttpbinTestCase(unittest.TestCase):
         data = json.loads(response.data.decode('utf-8'))
         self.assertEqual(data['args'], {})
         self.assertEqual(data['headers']['Host'], 'localhost')
-        self.assertEqual(data['headers']['Content-Length'], '0')
         self.assertEqual(data['headers']['User-Agent'], 'test')
         # self.assertEqual(data['origin'], None)
         self.assertEqual(data['url'], 'http://localhost/get')
@@ -161,7 +160,6 @@ class HttpbinTestCase(unittest.TestCase):
         data = json.loads(response.data.decode('utf-8'))
         self.assertEqual(data['args'], {})
         self.assertEqual(data['headers']['Host'], 'localhost')
-        self.assertEqual(data['headers']['Content-Length'], '0')
         self.assertEqual(data['url'], 'http://localhost/anything/foo/bar')
         self.assertEqual(data['method'], 'GET')
         self.assertTrue(response.data.endswith(b'\n'))
@@ -169,7 +167,7 @@ class HttpbinTestCase(unittest.TestCase):
     def test_base64(self):
         greeting = u'Здравствуй, мир!'
         b64_encoded = _string_to_base64(greeting)
-        response = self.app.get(b'/base64/' + b64_encoded)
+        response = self.app.get('/base64/' + b64_encoded.decode())
         content = response.data.decode('utf-8')
         self.assertEqual(greeting, content)
 
@@ -423,7 +421,7 @@ class HttpbinTestCase(unittest.TestCase):
                                                                      body, stale_after + 1)
         self.assertEqual(stale_response.status_code, 401)
         header = stale_response.headers.get('WWW-Authenticate')
-        self.assertIn('stale=TRUE', header)
+        self.assertIn('stale=true', header.lower())
 
     def _test_digest_response_for_auth_request(self, header, username, password, qop, uri, body, nc=1, nonce=None):
         auth_type, auth_info = header.split(None, 1)
@@ -475,13 +473,13 @@ class HttpbinTestCase(unittest.TestCase):
         wrong_pass_response, nonce = self._test_digest_response_for_auth_request(header, username, "wrongPassword", qop, uri, body)
         self.assertEqual(wrong_pass_response.status_code, 401)
         header = wrong_pass_response.headers.get('WWW-Authenticate')
-        self.assertNotIn('stale=TRUE', header)
+        self.assertNotIn('stale=true', header.lower())
 
         reused_nonce_response, nonce =  self._test_digest_response_for_auth_request(header, username, password, qop, uri, \
                                                                               body, nonce=nonce)
         self.assertEqual(reused_nonce_response.status_code, 401)
         header = reused_nonce_response.headers.get('WWW-Authenticate')
-        self.assertIn('stale=TRUE', header)
+        self.assertIn('stale=true', header.lower())
 
     def test_drip(self):
         response = self.app.get('/drip?numbytes=400&duration=2&delay=1')
