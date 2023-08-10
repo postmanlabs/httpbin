@@ -11,6 +11,13 @@ docker pull kennethreitz/httpbin
 docker run -p 80:80 kennethreitz/httpbin
 ```
 
+Some enviroments do not allow to bind to a privileged port. To run it on a
+different port instead of port 80, set the environment variables as follows:
+
+```sh
+docker run -e HTTPIN_PORT=8000 -p 8000:8000 kennethreitz/httpbin
+```
+
 See http://httpbin.org for more information.
 
 ## Officially Deployed at:
