@@ -21,9 +21,10 @@ docker run -e HTTPIN_PORT=8000 -p 8000:8000 kennethreitz/httpbin
 ```
 
 ## Changelog
-* 0.8.0:
+* 0.10.0:
   - Override docker image port with HTTPBIN_PORT
   - A number of fixes for code rot, thanks @mgorny and @tjni
+* 0.9.2: ??? (never published as a package; seems to be internal to postman)
 * 0.7.0: ???
 * 0.6.2: ???
 * 0.6.0: ???
