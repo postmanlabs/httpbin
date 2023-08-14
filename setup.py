@@ -32,10 +32,10 @@ setup(
          'Programming Language :: Python :: 3.6',
     ],
     test_suite="test_httpbin",
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests"]),
     include_package_data = True, # include files listed in MANIFEST.in
     install_requires=[
         'Flask', 'MarkupSafe', 'decorator', 'itsdangerous', 'brotlicffi',
-        'werkzeug', 'gevent', 'flasgger', 'jinja2'
+        'werkzeug', 'flasgger', 'jinja2'
     ],
 )
