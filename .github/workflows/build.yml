@@ -5,11 +5,27 @@ permissions:
 on:
   push:
 jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: System Dependencies for Testing
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-venv python3-pip
+      - name: Setup Test Environment
+        run: |
+           python3 -m venv env
+           ./env/bin/pip install -U pip
+           ./env/bin/pip install .[test]
+           ./env/bin/pytest
   build_and_push:
     runs-on: ubuntu-latest
-    needs: []
+    needs: [tests]
+    # TODO: if: startsWith(github.ref, 'refs/tags/release/')
     steps:
-      - name: System Dependencies
+      - name: System Dependencies for Packaging
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-pip
