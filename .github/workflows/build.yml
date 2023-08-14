@@ -1,0 +1,35 @@
+---
+name: Build and Publish Docker Image
+permissions:
+  packages: write
+on:
+  push:
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    needs: []
+    steps:
+      - name: System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          sudo pip install --upgrade pip
+          sudo pip install yq
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set Environment
+        run: |
+          echo "APP_VERSION=$(tomlq -r .project.version pyproject.toml)" >> $GITHUB_ENV
+          echo "APP_DESC=$(tomlq -r .project.description pyproject.toml)" >> $GITHUB_ENV
+      - name: Build Image
+        run: >
+          docker build
+          --build-arg "APP_VERSION=${APP_VERSION}"
+          --build-arg "APP_DESC=${APP_DESC}"
+          -t "ghcr.io/${GITHUB_REPOSITORY}:${APP_VERSION}"
+          .
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+      - name: Push Docker Image
+        run: |
+          docker push "ghcr.io/${GITHUB_REPOSITORY}:${APP_VERSION}"
