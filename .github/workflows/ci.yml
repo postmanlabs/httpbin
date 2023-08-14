@@ -21,6 +21,21 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    # from https://github.com/actions/cache/blob/main/examples.md#python---pip
+    - name: Get pip cache dir
+      id: pip-cache
+      shell: bash
+      run: |
+        echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
+    - name: pip cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        # the action does not permit updating an existing cache, so we need
+        # unique keys
+        key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.python-version }}-pip-
     - name: Install dependencies
       run: |
         python -m pip install .
