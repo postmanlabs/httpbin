@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM python:3.10-slim
 
 LABEL name="httpbin"
 LABEL version="0.9.2"
