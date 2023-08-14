@@ -49,3 +49,20 @@ jobs:
       - name: Push Docker Image
         run: |
           docker push "ghcr.io/${GITHUB_REPOSITORY}:${APP_VERSION}"
+
+  publish_pypi:
+    needs: [tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build distribution
+        if: startsWith(github.ref, 'refs/tags/release/')
+        run: |
+          python -m pip install --upgrade pip build
+          pyproject-build
+      - name: Publish package
+        if: startsWith(github.ref, 'refs/tags/release/')
+        uses: pypa/gh-action-pypi-publish@v1.5.0
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}
