@@ -34,11 +34,16 @@ dependencies = [
     'importlib-metadata; python_version<"3.8"',
     "itsdangerous",
     "jinja2",
-    "werkzeug",
+    "werkzeug >= 0.14.1",
+    "six",
 ]
 
 [project.optional-dependencies]
 test = ["tox"]
+mainapp = [
+    "gunicorn",
+    "gevent",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
