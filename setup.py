@@ -13,7 +13,7 @@ setup(
     long_description="A simple HTTP Request & Response Service, written in Python + Flask.",
 
     # The project URL.
-    url='https://github.com/requests/httpbin',
+    url='https://pypi.org/project/httpbin/',
 
     # Author details
     author='Kenneth Reitz',
