@@ -54,10 +54,12 @@ from .helpers import (
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
 
-with open(
-    os.path.join(os.path.realpath(os.path.dirname(__file__)), "VERSION")
-) as version_file:
-    version = version_file.read().strip()
+try:
+    from importlib.metadata import version as get_version
+except ImportError:
+    from importlib_metadata import version as get_version
+
+version = get_version("httpbin")
 
 ENV_COOKIES = (
     "_gauges_unique",

@@ -1,3 +1,45 @@
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[project.urls]
+pypi = "https://pypi.org/project/httpbin/"
+Repository = "https://github.com/requests/httpbin"
+
+[project]
+name = "httpbin"
+version = "0.10.0"
+requires-python = ">=3.7"
+description = "HTTP Request and Response Service"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Kenneth Reitz", email = "me@kennethreitz.org"},
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 2.7",
+    "Programming Language :: Python :: 3.6",
+]
+dependencies = [
+    "Flask",
+    "MarkupSafe",
+    "brotlicffi",
+    "decorator",
+    "flasgger",
+    'importlib-metadata; python_version<"3.8"',
+    "itsdangerous",
+    "jinja2",
+    "werkzeug",
+]
+
+[project.optional-dependencies]
+test = ["tox"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["httpbin*"]
