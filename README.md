@@ -7,7 +7,8 @@ Why fork?  we were unable to get ahold of the folks at postmanlabs to maintain t
 httpbin is a [Kenneth Reitz](http://kennethreitz.org/bitcoin) Project.
 ![ice cream](http://farm1.staticflickr.com/572/32514669683_4daf2ab7bc_k_d.jpg)
 
-Run locally:
+## Downloading and Running
+
 ```sh
 docker pull kennethreitz/httpbin
 docker run -p 80:80 kennethreitz/httpbin
@@ -19,6 +20,40 @@ different port instead of port 80, set the environment variables as follows:
 ```sh
 docker run -e HTTPIN_PORT=8000 -p 8000:8000 kennethreitz/httpbin
 ```
+
+## Using `httpbin` as a Library
+
+`httpbin` can be used as a dependency in your own projects by simply adding
+`httpbin` as a dependency.
+
+## Maintenance
+
+### "Extra" Dependencies
+
+The project provides two "extras" which contain dependencies that should only
+be installed for specific use-cases. They will not be included when using
+`httpbin` as a dependency, unless they are *explicitly* requested like
+`httpbin[mainapp]`.
+
+* `mainapp`: Includes everything needed to run `httbbin` as a standalone app.
+  This is used by the docker image.
+* `test`: Includes additional dependencies for unit-testing. This is only used
+  during development.
+
+### Publishing a new Release
+
+Releases (both docker and pypi) are automated via GitHub Actions (See #17). The
+actions require one or more secrets that can be added in the GitHub Project
+settings. Those secrets are:
+
+* `PYPI_TOKEN`: Used for pypi uploads. This token can be generated on
+  https://pypi.org.
+* `DOCKERHUB_USERNAME`: To push images to docker-hub
+* `DOCKERHUB_TOKEN`: - idem -
+
+Releases are triggered on commits tagged with `release-` (for example
+`release-0.10.0`).
+
 
 ## Changelog
 * 0.10.0:
