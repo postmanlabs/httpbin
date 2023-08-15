@@ -44,8 +44,21 @@ jobs:
           --build-arg "APP_DESC=${APP_DESC}"
           -t "ghcr.io/${GITHUB_REPOSITORY}:${APP_VERSION}"
           .
+
+
+      # - name: Login to Docker Hub
+      #   uses: docker/login-action@v2
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Login to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Push Docker Image
         run: |
           docker push "ghcr.io/${GITHUB_REPOSITORY}:${APP_VERSION}"
