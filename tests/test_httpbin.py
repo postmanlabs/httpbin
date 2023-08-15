@@ -178,8 +178,8 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_post_body_text(self):
-        with open('httpbin/core.py') as f:
-            response = self.app.post('/post', data={"file": f.read()})
+        fake_contents = "this is some fake payload"
+        response = self.app.post('/post', data={"file": fake_contents})
         self.assertEqual(response.status_code, 200)
 
     def test_post_body_binary(self):
