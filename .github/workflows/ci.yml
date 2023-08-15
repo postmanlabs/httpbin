@@ -65,6 +65,7 @@ jobs:
           --build-arg "APP_VERSION=${APP_VERSION}"
           --build-arg "APP_DESC=${APP_DESC}"
           -t "ghcr.io/${GITHUB_REPOSITORY}:${APP_VERSION}"
+          -t "ghcr.io/${GITHUB_REPOSITORY}:latest"
           .
 
       # - name: Login to Docker Hub
