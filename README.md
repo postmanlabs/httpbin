@@ -42,17 +42,22 @@ be installed for specific use-cases. They will not be included when using
 
 ### Publishing a new Release
 
-Releases (both docker and pypi) are automated via GitHub Actions (See #17). The
-actions require one or more secrets that can be added in the GitHub Project
-settings. Those secrets are:
+Releases (both docker and pypi) are automated via GitHub Actions (See #17).
 
-* `PYPI_TOKEN`: Used for pypi uploads. This token can be generated on
-  https://pypi.org.
-* `DOCKERHUB_USERNAME`: To push images to docker-hub
-* `DOCKERHUB_TOKEN`: - idem -
+For *pypi* releases, the project uses [trusted-publishing][tp] via [the official
+GitHub action][pypi-action].
+
+For releases on *docker-hub* (when enabled in the CI), the following two
+secrets are required:
+
+* `DOCKERHUB_USERNAME`
+* `DOCKERHUB_TOKEN`
 
 Releases are triggered on commits tagged with `release-` (for example
 `release-0.10.0`).
+
+[tp]: https://docs.pypi.org/trusted-publishers/
+[pypi-action]: https://github.com/pypa/gh-action-pypi-publish
 
 
 ## Changelog
