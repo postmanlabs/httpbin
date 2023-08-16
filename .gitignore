@@ -4,6 +4,7 @@ dist/
 .eggs/
 .workon
 .epio-app
+.tox
 *.pyc
 *.egg-info
 *.swp

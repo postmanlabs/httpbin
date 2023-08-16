@@ -44,7 +44,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest"]
+test = ["pytest", "tox"]
 mainapp = [
     "gunicorn",
     "gevent",

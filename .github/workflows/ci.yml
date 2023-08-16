@@ -40,8 +40,7 @@ jobs:
       run: |
         python -m pip install --editable .[test]
     - name: Run tests
-      run: |
-        python -m pytest tests
+      run: tox
 
   publish-docker-image:
     runs-on: ubuntu-latest
