@@ -32,13 +32,10 @@ classifiers = [
 ]
 dependencies = [
     "Flask",
-    "MarkupSafe",
     "brotlicffi",
     "decorator",
     "flasgger",
     'importlib-metadata; python_version<"3.8"',
-    "itsdangerous",
-    "jinja2",
     "werkzeug >= 0.14.1",
     "six",
 ]
