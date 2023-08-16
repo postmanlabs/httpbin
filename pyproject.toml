@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project.urls]
 pypi = "https://pypi.org/project/httpbin/"
-Repository = "https://github.com/requests/httpbin"
+Repository = "https://github.com/psf/httpbin"
 
 [project]
 name = "httpbin"
