@@ -12,7 +12,7 @@ version = "0.10.0"
 requires-python = ">=3.7"
 description = "HTTP Request and Response Service"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = {text = "MIT or ISC"}
 authors = [
     {name = "Kenneth Reitz", email = "me@kennethreitz.org"},
 ]
