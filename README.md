@@ -26,6 +26,27 @@ docker run -e HTTPIN_PORT=8000 -p 8000:8000 ghcr.io/psf/httpbin
 `httpbin` can be used as a dependency in your own projects by simply adding
 `httpbin` as a dependency.
 
+## Manually Building the Latest Docker Image
+
+To build the Docker image yourself, download the latest `Dockerfile` and
+`requirements.txt` files from the [release page][release-page]. Store both file
+in the same folder and run:
+
+```sh
+docker build --build-arg APP_VERSION=<your-version> [other docker args] .
+```
+
+Alternatively, you can re-generate a new `requirements.txt` file using
+[pip-compile][pip-compile]. In that case, be aware that the code has not been
+tested against those dependencies and we cannot guarantee that such an image
+will run without errors.
+
+Where `APP_VERSION` will be stored in a docker-label. The default value is an
+empty-string.
+
+[release-page]: https://github.com/psf/httpbin/releases
+[pip-compile]: https://pip-tools.readthedocs.io/en/latest/
+
 ## Maintenance
 
 ### "Extra" Dependencies

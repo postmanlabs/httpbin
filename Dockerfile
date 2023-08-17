@@ -12,8 +12,11 @@ RUN apt-get install -y \
 RUN python3 -m venv /opt/httpbin
 RUN /opt/httpbin/bin/pip install -U pip
 
+ADD requirements.txt /requirements.txt
+RUN /opt/httpbin/bin/pip install --requirement /requirements.txt
+
 ADD . /httpbin
-RUN /opt/httpbin/bin/pip install /httpbin[mainapp]
+RUN /opt/httpbin/bin/pip install --no-deps /httpbin
 
 
 # ----------------------------------------------------------------------------
