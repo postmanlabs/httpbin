@@ -65,15 +65,16 @@ jobs:
       - name: System Dependencies for Packaging
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-pip
-          sudo pip install --upgrade pip
-          sudo pip install yq
+          sudo apt-get install -y python3-pip python3-venv
+          python3 -m venv /tmp/tomlq
+          /tmp/tomlq/bin/pip install --upgrade pip
+          /tmp/tomlq/bin/pip install yq
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set Environment
         run: |
-          echo "APP_VERSION=$(tomlq -r .project.version pyproject.toml)" >> $GITHUB_ENV
-          echo "APP_DESC=$(tomlq -r .project.description pyproject.toml)" >> $GITHUB_ENV
+          echo "APP_VERSION=$(/tmp/tomlq/bin/tomlq -r .project.version pyproject.toml)" >> $GITHUB_ENV
+          echo "APP_DESC=$(/tmp/tomlq/bin/tomlq -r .project.description pyproject.toml)" >> $GITHUB_ENV
       - name: Retrieve tested requirements file
         uses: actions/download-artifact@v3
         with:
