@@ -56,7 +56,7 @@ be installed for specific use-cases. They will not be included when using
 `httpbin` as a dependency, unless they are *explicitly* requested like
 `httpbin[mainapp]`.
 
-* `mainapp`: Includes everything needed to run `httbbin` as a standalone app.
+* `mainapp`: Includes everything needed to run `httpbin` as a standalone app.
   This is used by the docker image.
 * `test`: Includes additional dependencies for unit-testing. This is only used
   during development.
