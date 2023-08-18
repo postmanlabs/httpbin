@@ -35,6 +35,7 @@ dependencies = [
     "brotlicffi",
     "decorator",
     "flasgger",
+    "greenlet",
     'importlib-metadata; python_version<"3.8"',
     "werkzeug >= 0.14.1",
     "six",
