@@ -11,14 +11,7 @@ httpbin is a [Kenneth Reitz](http://kennethreitz.org/bitcoin) Project.
 
 ```sh
 docker pull ghcr.io/psf/httpbin
-docker run -p 80:80 ghcr.io/psf/httpbin
-```
-
-Some enviroments do not allow to bind to a privileged port. To run it on a
-different port instead of port 80, set the environment variables as follows:
-
-```sh
-docker run -e HTTPIN_PORT=8000 -p 8000:8000 ghcr.io/psf/httpbin
+docker run -p 80:8080 ghcr.io/psf/httpbin
 ```
 
 ## Using `httpbin` as a Library

@@ -29,8 +29,20 @@ LABEL version=${APP_VERSION}
 LABEL description="A simple HTTP service."
 LABEL org.kennethreitz.vendor="Kenneth Reitz"
 
+RUN useradd \
+    --system \
+    --shell /bin/nologin \
+    --no-create-home \
+    --home /opt/httpbin \
+    httpbin
+
 COPY --from=build /opt/httpbin /opt/httpbin
+WORKDIR /opt/httpbin
+
 ADD httpbin.bash /opt/httpbin/bin
 RUN chmod +x /opt/httpbin/bin/httpbin.bash
-EXPOSE 80
+RUN chown --recursive httpbin /opt/httpbin
+EXPOSE 8080
 CMD ["/opt/httpbin/bin/httpbin.bash"]
+
+USER httpbin
