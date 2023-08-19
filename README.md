@@ -7,18 +7,72 @@ Why fork?  we were unable to get ahold of the folks at postmanlabs to maintain t
 httpbin is a [Kenneth Reitz](http://kennethreitz.org/bitcoin) Project.
 ![ice cream](http://farm1.staticflickr.com/572/32514669683_4daf2ab7bc_k_d.jpg)
 
-Run locally:
-```sh
-docker pull kennethreitz/httpbin
-docker run -p 80:80 kennethreitz/httpbin
-```
-
-Some enviroments do not allow to bind to a privileged port. To run it on a
-different port instead of port 80, set the environment variables as follows:
+## Downloading and Running
 
 ```sh
-docker run -e HTTPIN_PORT=8000 -p 8000:8000 kennethreitz/httpbin
+docker pull ghcr.io/psf/httpbin
+docker run -p 80:8080 ghcr.io/psf/httpbin
 ```
+
+## Using `httpbin` as a Library
+
+`httpbin` can be used as a dependency in your own projects by simply adding
+`httpbin` as a dependency.
+
+## Manually Building the Latest Docker Image
+
+To build the Docker image yourself, download the latest `Dockerfile` and
+`requirements.txt` files from the [release page][release-page]. Store both file
+in the same folder and run:
+
+```sh
+docker build --build-arg APP_VERSION=<your-version> [other docker args] .
+```
+
+Alternatively, you can re-generate a new `requirements.txt` file using
+[pip-compile][pip-compile]. In that case, be aware that the code has not been
+tested against those dependencies and we cannot guarantee that such an image
+will run without errors.
+
+Where `APP_VERSION` will be stored in a docker-label. The default value is an
+empty-string.
+
+[release-page]: https://github.com/psf/httpbin/releases
+[pip-compile]: https://pip-tools.readthedocs.io/en/latest/
+
+## Maintenance
+
+### "Extra" Dependencies
+
+The project provides two "extras" which contain dependencies that should only
+be installed for specific use-cases. They will not be included when using
+`httpbin` as a dependency, unless they are *explicitly* requested like
+`httpbin[mainapp]`.
+
+* `mainapp`: Includes everything needed to run `httpbin` as a standalone app.
+  This is used by the docker image.
+* `test`: Includes additional dependencies for unit-testing. This is only used
+  during development.
+
+### Publishing a new Release
+
+Releases (both docker and pypi) are automated via GitHub Actions (See #17).
+
+For *pypi* releases, the project uses [trusted-publishing][tp] via [the official
+GitHub action][pypi-action].
+
+For releases on *docker-hub* (when enabled in the CI), the following two
+secrets are required:
+
+* `DOCKERHUB_USERNAME`
+* `DOCKERHUB_TOKEN`
+
+Releases are triggered on commits tagged with `release-` (for example
+`release-0.10.0`).
+
+[tp]: https://docs.pypi.org/trusted-publishers/
+[pypi-action]: https://github.com/pypa/gh-action-pypi-publish
+
 
 ## Changelog
 * 0.10.0:

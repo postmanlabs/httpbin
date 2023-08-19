@@ -1,3 +1,54 @@
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[project.urls]
+pypi = "https://pypi.org/project/httpbin/"
+Repository = "https://github.com/psf/httpbin"
+
+[project]
+name = "httpbin"
+version = "0.10.0"
+requires-python = ">=3.7"
+description = "HTTP Request and Response Service"
+readme = "README.md"
+license = {text = "MIT or ISC"}
+authors = [
+    {name = "Kenneth Reitz", email = "me@kennethreitz.org"},
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "License :: OSI Approved :: ISC License (ISCL)",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "Flask",
+    "brotlicffi",
+    "decorator",
+    "flasgger",
+    'greenlet < 3.0; python_version<"3.12"',
+    'greenlet >= 3.0.0a1; python_version>="3.12.0rc0"',
+    'importlib-metadata; python_version<"3.8"',
+    "werkzeug >= 0.14.1",
+    "six",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "tox"]
+mainapp = [
+    "gunicorn",
+    "gevent",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["httpbin*"]
