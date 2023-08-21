@@ -106,4 +106,6 @@ Releases are triggered on commits tagged with `release-` (for example
 - http://requestb.in
 - http://python-requests.org
 - https://grpcb.in/
+- [go-httpbin](https://github.com/ahmetb/go-httpbin)
+- [java-httpbin](https://github.com/gaul/java-httpbin)
 
