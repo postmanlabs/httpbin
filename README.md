@@ -4,7 +4,7 @@ This is a fork of the original httpbin project, which is located at https://gith
 
 Why fork?  we were unable to get ahold of the folks at postmanlabs to maintain the original project, and httpbin is used for other packages within the python ecosystem, such as [pytest-httpbin](https://pypi.org/project/pytest-httpbin/) which is in turn used by packages such as [requests](https://github.com/psf/requests/blob/main/requirements-dev.txt#L4) so we have forked this package.  That means that httpbin.org is not actually backed by this repo, but the [httpbin package](https://pypi.org/project/httpbin/) is.  Confusing right?  Know anyone at postmanlabs?  [get in touch](mailto:me@kevinmccarthy.org).
 
-httpbin is a [Kenneth Reitz](http://kennethreitz.org/bitcoin) Project.
+httpbin is a [Kenneth Reitz](http://kennethreitz.org/) Project.
 ![ice cream](http://farm1.staticflickr.com/572/32514669683_4daf2ab7bc_k_d.jpg)
 
 ## Downloading and Running
