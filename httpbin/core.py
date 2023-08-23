@@ -100,6 +100,7 @@ template = {
         "title": "httpbin.org",
         "description": (
             "A simple HTTP Request & Response Service."
+            "<br/> A <a href='http://kennethreitz.com/'>Kenneth Reitz</a> project."
             "<br/> <br/> <b>Run locally: </b> <br/> "
             "<code>$ docker pull ghcr.io/psf/httpbin</code> <br/>"
             "<code>$ docker run -p 80:8080 ghcr.io/psf/httpbin</code>"
