@@ -107,7 +107,6 @@ template = {
         "contact": {
             "responsibleOrganization": "Kenneth Reitz",
             "responsibleDeveloper": "Kenneth Reitz",
-            "email": "me@kennethreitz.org",
             "url": "https://kennethreitz.org",
         },
         # "termsOfService": "http://me.com/terms",
