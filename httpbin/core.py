@@ -105,9 +105,9 @@ template = {
             "<code>$ docker run -p 80:8080 ghcr.io/psf/httpbin</code>"
         ),
         "contact": {
-            "responsibleOrganization": "Kenneth Reitz",
+            "responsibleOrganization": "Python Software Foundation",
             "responsibleDeveloper": "Kenneth Reitz",
-            "url": "https://kennethreitz.org",
+            "url": "https://github.com/psf/httpbin/",
         },
         # "termsOfService": "http://me.com/terms",
         "version": version,
