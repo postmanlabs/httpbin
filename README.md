@@ -75,6 +75,8 @@ Releases are triggered on commits tagged with `release-` (for example
 
 
 ## Changelog
+* 0.10.1:
+  - Substantial housekeeping, dependency cleanup, image building, and packaging revamp, thanks to @exhuma and @mgorny
 * 0.10.0:
   - Override docker image port with HTTPBIN_PORT
   - A number of fixes for code rot, thanks @mgorny and @tjni
