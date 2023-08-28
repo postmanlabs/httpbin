@@ -2,10 +2,6 @@ name: Run CI
 
 on: [push, pull_request]
 
-permissions:
-  contents: write
-  packages: write
-
 jobs:
   unit-tests:
     runs-on: ${{ matrix.os }}
@@ -44,13 +40,6 @@ jobs:
         python -m pip install .[test]
     - name: Run tests
       run: tox
-    - name: Create GitHub Release
-      if: startsWith(github.ref, 'refs/tags/release-') && github.event_name == 'push'
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          requirements.txt
-          Dockerfile
     - name: Store tested requirements.txt file as artifact
       uses: actions/upload-artifact@v3
       with:
@@ -79,50 +68,9 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: requirements.txt
-      - name: Build Image
+      - name: Ensure docker build is working
         run: >
           docker build
           --build-arg "APP_VERSION=${APP_VERSION}"
           --build-arg "APP_DESC=${APP_DESC}"
-          -t "ghcr.io/${GITHUB_REPOSITORY}:${APP_VERSION}"
-          -t "ghcr.io/${GITHUB_REPOSITORY}:latest"
           .
-
-      # - name: Login to Docker Hub
-      #   if: github.event_name == 'push'
-      #   uses: docker/login-action@v2
-      #   with:
-      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
-      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Login to GHCR
-        if: startsWith(github.ref, 'refs/tags/release-') && github.event_name == 'push'
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push Docker Image
-        if: startsWith(github.ref, 'refs/tags/release-') && github.event_name == 'push'
-        run: |
-          docker push "ghcr.io/${GITHUB_REPOSITORY}:${APP_VERSION}"
-
-  pypi-publish:
-    needs: [unit-tests]
-    if: startsWith(github.ref, 'refs/tags/release-') && github.event_name == 'push'
-    name: Upload release to PyPI
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/httpbin
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build distribution
-        run: |
-          python -m pip install --upgrade pip build
-          pyproject-build
-      - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
