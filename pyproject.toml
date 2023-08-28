@@ -8,7 +8,7 @@ Repository = "https://github.com/psf/httpbin"
 
 [project]
 name = "httpbin"
-version = "0.10.0"
+version = "0.10.1"
 requires-python = ">=3.7"
 description = "HTTP Request and Response Service"
 readme = "README.md"
