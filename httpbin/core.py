@@ -540,7 +540,8 @@ def redirect_n_times(n):
     parameters:
       - in: path
         name: n
-        type: int
+        type: number
+        required: true
     produces:
       - text/html
     responses:
@@ -582,7 +583,7 @@ def redirect_to():
           required: true
         - in: query
           name: status_code
-          type: int
+          type: number
     post:
       consumes:
         - application/x-www-form-urlencoded
@@ -593,7 +594,7 @@ def redirect_to():
           required: true
         - in: formData
           name: status_code
-          type: int
+          type: number
           required: false
     patch:
       consumes:
@@ -605,7 +606,7 @@ def redirect_to():
           required: true
         - in: formData
           name: status_code
-          type: int
+          type: number
           required: false
     put:
       consumes:
@@ -617,7 +618,7 @@ def redirect_to():
           required: true
         - in: formData
           name: status_code
-          type: int
+          type: number
           required: false
     responses:
       302:
@@ -650,7 +651,8 @@ def relative_redirect_n_times(n):
     parameters:
       - in: path
         name: n
-        type: int
+        type: number
+        required: true
     produces:
       - text/html
     responses:
@@ -680,7 +682,8 @@ def absolute_redirect_n_times(n):
     parameters:
       - in: path
         name: n
-        type: int
+        type: number
+        required: true
     produces:
       - text/html
     responses:
@@ -705,7 +708,8 @@ def stream_n_messages(n):
     parameters:
       - in: path
         name: n
-        type: int
+        type: number
+        required: true
     produces:
       - application/json
     responses:
@@ -734,6 +738,8 @@ def view_status_code(codes):
     parameters:
       - in: path
         name: codes
+        type: string
+        required: true
     produces:
       - text/plain
     responses:
@@ -860,9 +866,11 @@ def set_cookie(name, value):
       - in: path
         name: name
         type: string
+        required: true
       - in: path
         name: value
         type: string
+        required: true
     produces:
       - text/plain
     responses:
@@ -948,9 +956,11 @@ def basic_auth(user="user", passwd="passwd"):
       - in: path
         name: user
         type: string
+        required: true
       - in: path
         name: passwd
         type: string
+        required: true
     produces:
       - application/json
     responses:
@@ -976,9 +986,11 @@ def hidden_basic_auth(user="user", passwd="passwd"):
       - in: path
         name: user
         type: string
+        required: true
       - in: path
         name: passwd
         type: string
+        required: true
     produces:
       - application/json
     responses:
@@ -1002,8 +1014,7 @@ def bearer_auth():
     parameters:
       - in: header
         name: Authorization
-        schema:
-          type: string
+        type: string
     produces:
       - application/json
     responses:
@@ -1035,12 +1046,15 @@ def digest_auth_md5(qop=None, user="user", passwd="passwd"):
         name: qop
         type: string
         description: auth or auth-int
+        required: true
       - in: path
         name: user
         type: string
+        required: true
       - in: path
         name: passwd
         type: string
+        required: true
     produces:
       - application/json
     responses:
@@ -1063,17 +1077,21 @@ def digest_auth_nostale(qop=None, user="user", passwd="passwd", algorithm="MD5")
         name: qop
         type: string
         description: auth or auth-int
+        required: true
       - in: path
         name: user
         type: string
+        required: true
       - in: path
         name: passwd
         type: string
+        required: true
       - in: path
         name: algorithm
         type: string
         description: MD5, SHA-256, SHA-512
         default: MD5
+        required: true
     produces:
       - application/json
     responses:
@@ -1099,21 +1117,26 @@ def digest_auth(
         name: qop
         type: string
         description: auth or auth-int
+        required: true
       - in: path
         name: user
         type: string
+        required: true
       - in: path
         name: passwd
         type: string
+        required: true
       - in: path
         name: algorithm
         type: string
         description: MD5, SHA-256, SHA-512
         default: MD5
+        required: true
       - in: path
         name: stale_after
         type: string
         default: never
+        required: true
     produces:
       - application/json
     responses:
@@ -1198,7 +1221,8 @@ def delay_response(delay):
     parameters:
       - in: path
         name: delay
-        type: int
+        type: number
+        required: true
     produces:
       - application/json
     responses:
@@ -1295,6 +1319,7 @@ def decode_base64(value):
         name: value
         type: string
         default: SFRUUEJJTiBpcyBhd2Vzb21l
+        required: true
     produces:
       - text/html
     responses:
@@ -1317,8 +1342,10 @@ def cache():
     parameters:
       - in: header
         name: If-Modified-Since
+        type: string
       - in: header
         name: If-None-Match
+        type: string
     produces:
       - application/json
     responses:
@@ -1348,10 +1375,16 @@ def etag(etag):
     tags:
       - Response inspection
     parameters:
+      - in: path
+        name: etag
+        type: string
+        required: true
       - in: header
         name: If-None-Match
+        type: string
       - in: header
         name: If-Match
+        type: string
     produces:
       - application/json
     responses:
@@ -1388,7 +1421,8 @@ def cache_control(value):
     parameters:
       - in: path
         name: value
-        type: integer
+        type: number
+        required: true
     produces:
       - application/json
     responses:
@@ -1425,7 +1459,8 @@ def random_bytes(n):
     parameters:
       - in: path
         name: n
-        type: int
+        type: number
+        required: true
     produces:
       - application/octet-stream
     responses:
@@ -1456,7 +1491,8 @@ def stream_random_bytes(n):
     parameters:
       - in: path
         name: n
-        type: int
+        type: number
+        required: true
     produces:
       - application/octet-stream
     responses:
@@ -1500,7 +1536,8 @@ def range_request(numbytes):
     parameters:
       - in: path
         name: numbytes
-        type: int
+        type: number
+        required: true
     produces:
       - application/octet-stream
     responses:
@@ -1590,10 +1627,12 @@ def link_page(n, offset):
     parameters:
       - in: path
         name: n
-        type: int
+        type: number
+        required: true
       - in: path
         name: offset
-        type: int
+        type: number
+        required: true
     produces:
       - text/html
     responses:
