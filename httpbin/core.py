@@ -99,8 +99,6 @@ template = {
             "<br/> <br/> <b>Run locally: </b> <code>$ docker run -p 80:80 kennethreitz/httpbin</code>"
         ),
         "contact": {
-            "responsibleOrganization": "Kenneth Reitz",
-            "responsibleDeveloper": "Kenneth Reitz",
             "email": "me@kennethreitz.org",
             "url": "https://kennethreitz.org",
         },
