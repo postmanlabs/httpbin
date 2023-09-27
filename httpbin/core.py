@@ -98,8 +98,6 @@ template = {
             '<a href="https://github.com/postmanlabs/httpbin">the repository</a>.'
         ),
         "contact": {
-            "responsibleOrganization": "Kenneth Reitz",
-            "responsibleDeveloper": "Kenneth Reitz",
             "email": "me@kennethreitz.org",
             "url": "https://kennethreitz.org",
         },
