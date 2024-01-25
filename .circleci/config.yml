@@ -11,8 +11,8 @@ job-defaults: &job-defaults
 
 machine-setup: &machine-setup
   machine:
-    image: ubuntu-2204:2023.07.2
-    docker_layer_caching: true
+    image: ubuntu-2204:2023.10.1
+    docker_layer_caching: false
 
 persist-workspace: &persist-workspace
   persist_to_workspace:
