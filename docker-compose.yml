@@ -3,7 +3,7 @@ version: '3'
 services:
 
   httpbin:
-    image: 190066226418.dkr.ecr.us-east-1.amazonaws.com/vault/httpbin:${APP_VERSION:-latest}
+    image: 190066226418.dkr.ecr.us-east-1.amazonaws.com/vault/httpbin:${VERSION:-latest}
     build:
       context: .
       dockerfile: vgs.dockerfile
