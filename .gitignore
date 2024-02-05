@@ -10,3 +10,4 @@ dist/
 *.swp
 .vscode/
 .idea
+*.iml
