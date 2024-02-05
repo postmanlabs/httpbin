@@ -53,7 +53,7 @@ jobs:
       - run: |
           ./ops/docker-login.sh
           ./ops/docker-load.sh
-          docker-compose push
+          docker-compose push httpbin
 
 workflows:
   build-test-and-deploy:
