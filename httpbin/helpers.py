@@ -129,7 +129,7 @@ def get_headers(hide_env=True):
 
     headers = dict(request.headers.items())
 
-    if hide_env and ('show_env' not in request.args):
+    if hide_env:
         for key in ENV_HEADERS:
             try:
                 del headers[key]
