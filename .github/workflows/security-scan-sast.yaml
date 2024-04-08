@@ -1,0 +1,17 @@
+name: security-scan-sast
+
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 6 * * 4'
+
+jobs:
+  scan:
+    uses: verygood-ops/cicd-shared/.github/workflows/security-scan-sast.yaml@security-scan-sast-v2
+    with:
+      uses_maven: false
+    secrets:
+      SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+      SAST_SLACK_WORKFLOW_WEBHOOK: ${{ secrets.SAST_SLACK_WORKFLOW_WEBHOOK }}
+      VERYGOODBOT_CIAPPBUILDER_PAT: ${{ secrets.VERYGOODBOT_CIAPPBUILDER_PAT }}

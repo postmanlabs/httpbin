@@ -1,0 +1,24 @@
+---
+name: release-please
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.VGS_GITHUB_CI_BOT_APP_ID }}
+          private-key: ${{ secrets.VGS_GITHUB_CI_BOT_APP_PEM_FILE }}
+
+      - uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38 # v4
+        with:
+          config-file: .github/release-please-config.json
+          manifest-file: .github/.release-please-manifest.json
+          include-component-in-tag: false
+          token: ${{ steps.app-token.outputs.token }}
