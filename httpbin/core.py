@@ -14,6 +14,9 @@ import random
 import time
 import uuid
 import argparse
+import logging
+import datetime
+import pytz
 
 from flask import (
     Flask,
@@ -29,9 +32,13 @@ from flask import (
 from six.moves import range as xrange
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
-from werkzeug.wrappers import BaseResponse
-from werkzeug.http import parse_authorization_header
+from werkzeug.datastructures import Authorization
 from flasgger import Swagger, NO_SANITIZER
+
+try:
+    from werkzeug.wrappers import Response
+except ImportError:
+    from werkzeug.wrappers import BaseResponse as Response
 
 from . import filters
 from .helpers import (
@@ -77,12 +84,18 @@ def jsonify(*args, **kwargs):
 
 
 # Prevent WSGI from correcting the casing of the Location header
-BaseResponse.autocorrect_location_header = False
+Response.autocorrect_location_header = False
 
 # Find the correct template folder when running from a different location
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
 
 app = Flask(__name__, template_folder=tmpl_dir)
+
+logging.basicConfig(level=logging.INFO,
+                    format='[%(asctime)s] [%(process)d] [%(levelname)s] %(message)s',
+                    datefmt="%Y-%m-%d %H:%M:%S %z")
+logger = app.logger
+
 app.debug = bool(os.environ.get("DEBUG"))
 app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
 
@@ -199,6 +212,16 @@ empties the input request stream.
 
 @app.before_request
 def before_request():
+    log_data = {
+        'timestamp': datetime.datetime.now(tz=pytz.utc).isoformat(),
+        # 'timestamp': datetime.datetime.now().isoformat(),
+        'method': request.method,
+        'url': request.url,
+        'headers': dict(request.headers),
+        'body': request.get_data(as_text=True),
+        'client_ip': request.remote_addr
+    }
+    logger.info(f"REQUEST: ({request.method}:{request.path}) {json.dumps(log_data, ensure_ascii=False)}")
     if request.environ.get("HTTP_TRANSFER_ENCODING", "").lower() == "chunked":
         server = request.environ.get("SERVER_SOFTWARE", "")
         if server.lower().startswith("gunicorn/"):
@@ -1139,7 +1162,7 @@ def digest_auth(
     authorization = request.headers.get("Authorization")
     credentials = None
     if authorization:
-        credentials = parse_authorization_header(authorization)
+        credentials = Authorization.from_header(authorization)
 
     if (
         not authorization
