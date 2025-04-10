@@ -1,6 +1,8 @@
-version: '2'
 services:
     httpbin:
       build: '.'
+      volumes:
+        - ./httpbin:/httpbin
+
       ports:
-        - '80:80'
+        - '8080:8080'

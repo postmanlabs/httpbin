@@ -7,8 +7,8 @@ A [Kenneth Reitz](http://kennethreitz.org/bitcoin) Project.
 
 Run locally:
 ```sh
-docker pull kennethreitz/httpbin
-docker run -p 80:80 kennethreitz/httpbin
+docker pull jsinner/httpbin
+docker run -p 8080:8080 jsinner/httpbin
 ```
 
 See http://httpbin.org for more information.
@@ -29,3 +29,16 @@ See http://httpbin.org for more information.
 ## Build Status
 
 [![Build Status](https://travis-ci.org/requests/httpbin.svg?branch=master)](https://travis-ci.org/requests/httpbin)
+
+## Run Locally with pipenv
+
+```sh
+pip3 install pipenv
+```
+
+```sh
+pipenv install .
+pipenv run pip3 install --no-cache-dir gunicorn gevent pytz
+
+pipenv run gunicorn -b 0.0.0.0:8081 httpbin:app -k gevent
+```
