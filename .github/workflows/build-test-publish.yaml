@@ -1,12 +1,3 @@
----
-## This workflow implements the following jobs
-## - detect on PR which libs are updated
-## - build libs
-## - for libs: it uses the shared ci lib workflow
-##    - package the jar with unit tests
-##    - run integrations tests
-##    - publish the jar with github tag if event is push.tag
-
 name: build test and publish
 
 on:
@@ -18,25 +9,20 @@ on:
 permissions:
   contents: read
   pull-requests: read
-  id-token: write
+  packages: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  HOST_M2_REPO: ./root-m2
+  VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
 
 jobs:
-  #   <maven.deploy.skip>true</maven.deploy.skip>
   build-images:
-    name: Build images
     runs-on: ubuntu-latest
-    needs: build-libs
     outputs:
-      vault-api: ${{ steps.push_images.outputs.vault-api }}
-      vault-api-smoke-tests: ${{ steps.push_images.outputs.vault-api-smoke-tests }}
-      vault-api-healthcheck: ${{ steps.push_images.outputs.vault-api-healthcheck }}
+      httpbin: ${{ steps.push_images.outputs.httpbin }}
     steps:
       - name: Checkout
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
@@ -69,166 +55,27 @@ jobs:
           REGISTRY: ${{ (github.ref_type == 'tag') && steps.ecr-login.outputs.release_registry || steps.ecr-login.outputs.ephemeral_registry }}
           TAG: ${{ (github.ref_type == 'tag' && github.ref_name) || github.sha }}
 
-      - name: Download target directory
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
-        with:
-          name: maven-target
-
-      - name: Build images
+      - name: Build image
         run: |
           make images_build
 
-      - name: Running acceptance tests
+      - name: Test image
         run: |
           make images_test
 
-      - name: Read docker logs
-        if: always()
-        run: |
-          ./ops/read-docker-logs.sh
-
-      - name: Upload target directory
-        if: always()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6
-        with:
-          name: docker-logs
-          path: "**/docker-logs/"
-          retention-days: 1
-          overwrite: "true"
-
-      - name: Push images
+      - name: Push image
         id: push_images
         run: |
-          for ARTIFACT in ratelimit
-          do
-            ./ops/retag-push-image.sh ${ARTIFACT}
-            echo "${ARTIFACT}=${REGISTRY}/vault/${ARTIFACT}:${VERSION}" >> $GITHUB_OUTPUT
-          done
-
-  build-test-op-service:
-    name: Build test-op-service
-    uses: verygood-ops/cicd-shared/.github/workflows/maven-lib-ci.yaml@maven-lib-ci-v1.1.5
-    with:
-      path: "./test-op-service"
-    secrets: inherit
-
-  build-fco-devtool:
-    name: Build fco-devtool
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
-
-      - name: AWS ECR Login
-        id: ecr-login
-        uses: verygood-ops/cicd-shared/.github/actions/aws-ecr-login@bac4eacd02fa06a45355a857f573029fc2198092  # aws-ecr-login-action-v1.0.1
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708  # v5.1.1
-        with:
-          aws-region: us-west-2
-          role-to-assume: arn:aws:iam::190066226418:role/CiAppBuilderRole
-
-      - name: Run tests
-        run: |
-          docker compose run tests
-        env:
-          GEMFURY_PYPI_DEPLOY_TOKEN: ${{ secrets.GEMFURY_PYPI_DEPLOY_TOKEN }}
-
-  checkstyle:
-    name: Checkstyle
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
-
-      - name: Cache
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7  # v5
-        with:
-          path: |
-            ${{ env.HOST_M2_REPO }}
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - name: Checkstyle
-        run: |
-          make checkstyle
-        env:
-          GITHUB_TOKEN: ${{ secrets.VERYGOODBOT_CIAPPBUILDER_PAT }}
-
-  publish-fco-devtool:
-    name: Publish Image - fco-devtool
-    needs: build-fco-devtool
-    uses: verygood-ops/cicd-shared/.github/workflows/docker-build.yaml@docker-build-workflow-v1.2.0
-    with:
-      name: vault/fco-devtool
-      team: 'team-secure-data'
-      title: fco-devtool
-
-  publish-test-op-service:
-    name: Publish Image - test-op-service
-    needs: build-test-op-service
-    uses: verygood-ops/cicd-shared/.github/workflows/docker-build.yaml@docker-build-workflow-v1.2.0
-    with:
-      name: vault/test-op-service
-      team: 'team-secure-data'
-      title: test-op-service
-      artifact-name: maven-target
-      context: ./test-op-service
-      file: ./test-op-service/Dockerfile
-
-  publish-fco-tester:
-    name: Publish Image - fco-tester
-    needs: build-fco-devtool
-    uses: verygood-ops/cicd-shared/.github/workflows/docker-build.yaml@docker-build-workflow-v1.2.0
-    with:
-      name: vault/fco-tester
-      team: 'team-secure-data'
-      title: fco-tester
-      context: .
-      file: ./Dockerfile.fco.tester
-    secrets:
-      values: |
-        gemfury=${{ secrets.GEMFURY_PYPI_DEPLOY_TOKEN }}
-
-  publish-fco-validator:
-    name: Publish Image - fco-validator
-    needs: build-fco-devtool
-    uses: verygood-ops/cicd-shared/.github/workflows/docker-build.yaml@docker-build-workflow-v1.2.0
-    with:
-      name: vault/fco-validator
-      team: 'team-secure-data'
-      title: fco-validator
-      context: .
-      file: ./Dockerfile.fco.validator
-    secrets:
-      values: |
-        gemfury=${{ secrets.GEMFURY_PYPI_DEPLOY_TOKEN }}
+          make images_push
+          echo "httpbin=${REGISTRY}/vault/httpbin:${VERSION}" >> $GITHUB_OUTPUT
 
   orca:
-    needs: [publish-fco-devtool, publish-test-op-service, publish-fco-tester, publish-fco-validator]
+    needs: ["build-images"]
     uses: verygood-ops/cicd-shared/.github/workflows/security-scan-container.yaml@security-scan-container-v2.1.0
     with:
       images: |
         [
-          "${{ fromJSON(needs.publish-fco-devtool.outputs.metadata)['image.name'] }}",
-          "${{ fromJSON(needs.publish-test-op-service.outputs.metadata)['image.name'] }}",
-          "${{ fromJSON(needs.publish-fco-tester.outputs.metadata)['image.name'] }}",
-          "${{ fromJSON(needs.publish-fco-validator.outputs.metadata)['image.name'] }}"
+          "${{ needs.build-images.outputs.httpbin }}"
         ]
     secrets:
       ORCA_SECURITY_API_TOKEN: ${{ secrets.ORCA_SECURITY_API_TOKEN }}
-
-#  orca:
-#    needs: ["build-images"]
-#    uses: verygood-ops/cicd-shared/.github/workflows/security-scan-container.yaml@security-scan-container-v2.1.0
-#    with:
-#      images: |
-#        [
-#          "${{ needs.build-images.outputs.vault-api }}",
-#          "${{ needs.build-images.outputs.vault-api-smoke-tests }}",
-#          "${{ needs.build-images.outputs.vault-api-healthcheck }}"
-#        ]
-#    secrets:
-#      ORCA_SECURITY_API_TOKEN: ${{ secrets.ORCA_SECURITY_API_TOKEN }}
