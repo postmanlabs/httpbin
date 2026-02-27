@@ -402,12 +402,12 @@ def __parse_request_range(range_header_text):
 
     try:
         right = int(components[1])
-    except:
+    except Exception:
         pass
 
     try:
         left = int(components[0])
-    except:
+    except Exception:
         pass
 
     return left, right
