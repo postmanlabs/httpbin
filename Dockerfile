@@ -31,6 +31,10 @@ ENV PATH="/venv/bin:$PATH"
 
 WORKDIR /httpbin
 
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN useradd -u 1000 -m appuser
 
 COPY --from=builder /venv /venv
