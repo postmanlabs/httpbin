@@ -8,6 +8,7 @@ This module provides the core HttpBin experience.
 """
 
 import base64
+import html
 import json
 import os
 import random
@@ -1306,7 +1307,8 @@ def decode_base64(value):
     """
     encoded = value.encode("utf-8")  # base64 expects binary string as input
     try:
-        return base64.urlsafe_b64decode(encoded).decode("utf-8")
+        decoded = base64.urlsafe_b64decode(encoded).decode("utf-8")
+        return html.escape(decoded)
     except:
         return "Incorrect Base64 data try: SFRUUEJJTiBpcyBhd2Vzb21l"
 
