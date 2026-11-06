@@ -271,7 +271,9 @@ def H(data, algorithm):
     elif algorithm == 'SHA-512':
         return sha512(data).hexdigest()
     else:
-        return md5(data).hexdigest()
+        # MD5 is what RFC 7616 names as Digest auth's default algorithm, not
+        # a security choice; this also keeps it working on FIPS builds.
+        return md5(data, usedforsecurity=False).hexdigest()
 
 
 def HA1(realm, username, password, algorithm):
