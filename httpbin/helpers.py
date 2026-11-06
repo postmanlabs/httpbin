@@ -29,9 +29,9 @@ ASCII_ART = """
        _...._
      .'  _ _ `.
     | ."` ^ `". _,
-    \_;`"---"`|//
+    \\_;`"---"`|//
       |       ;/
-      \_     _/
+      \\_     _/
         `\"\"\"`
 """
 
@@ -75,7 +75,7 @@ ANGRY_ASCII ="""
       :                :
       |                |
       :       __       :
-       \  .-"`  `"-.  /
+       \\  .-"`  `"-.  /
         '.          .'
           '-......-'
      YOU SHOULDN'T BE HERE
@@ -435,7 +435,7 @@ def parse_multi_value_header(header_str):
     if header_str:
         parts = header_str.split(',')
         for part in parts:
-            match = re.search('\s*(W/)?\"?([^"]*)\"?\s*', part)
+            match = re.search(r'\s*(W/)?\"?([^"]*)\"?\s*', part)
             if match is not None:
                 parsed_parts.append(match.group(2))
     return parsed_parts
