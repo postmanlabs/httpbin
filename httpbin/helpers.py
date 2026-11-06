@@ -16,7 +16,7 @@ from hashlib import md5, sha256, sha512
 from werkzeug.datastructures import Authorization, WWWAuthenticate
 
 from flask import request, make_response
-from six.moves.urllib.parse import urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse
 
 
 from .structures import CaseInsensitiveDict

@@ -39,7 +39,7 @@ setup(
     python_requires='>=3.10',
     install_requires=[
         'Flask==3.1.3', 'MarkupSafe==3.0.4', 'decorator==5.3.1',
-        'itsdangerous==2.2.0', 'six==1.17.0', 'Brotli==1.2.1',
-        'Werkzeug==3.1.9', 'gevent==25.9.1', 'flasgger==0.9.7.1'
+        'itsdangerous==2.2.0', 'Brotli==1.2.1',
+        'Werkzeug==3.1.9', 'gevent==26.9.0', 'flasgger==0.9.7.1'
     ],
 )
