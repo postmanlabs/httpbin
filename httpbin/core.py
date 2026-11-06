@@ -1448,7 +1448,7 @@ def random_bytes(n):
     response = make_response()
 
     # Note: can't just use os.urandom here because it ignores the seed
-    response.data = bytearray(random.randint(0, 255) for i in range(n))
+    response.data = bytes(random.randint(0, 255) for i in range(n))
     response.content_type = "application/octet-stream"
     return response
 

@@ -4,8 +4,10 @@ import os
 import base64
 import unittest
 import contextlib
+import wsgiref.validate
 import json
 from werkzeug.http import parse_dict_header
+from werkzeug.test import Client
 from hashlib import md5, sha256, sha512
 from io import BytesIO
 
@@ -520,6 +522,13 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.get('/bytes/1024')
         self.assertEqual(len(self.get_data(response)), 1024)
         self.assertEqual(response.status_code, 200)
+
+    def test_get_bytes_gives_the_server_bytes(self):
+        # WSGI servers such as gunicorn refuse a bytearray body chunk.
+        client = Client(wsgiref.validate.validator(httpbin.app))
+        response = client.get('/bytes/10?seed=0')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 10)
 
     def test_bytes_with_seed(self):
         response = self.app.get('/bytes/10?seed=0')
