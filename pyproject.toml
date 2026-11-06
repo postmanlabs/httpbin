@@ -34,6 +34,9 @@ server = [
     "gevent==26.9.0",
     "gunicorn==26.2.0",
 ]
+test = [
+    "requests==2.34.2",
+]
 
 [project.urls]
 Repository = "https://github.com/postmanlabs/httpbin"
