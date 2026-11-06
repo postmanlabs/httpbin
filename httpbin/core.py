@@ -29,8 +29,6 @@ from flask import (
 from six.moves import range as xrange
 from werkzeug.datastructures import WWWAuthenticate, MultiDict
 from werkzeug.http import http_date
-from werkzeug.wrappers import BaseResponse
-from werkzeug.http import parse_authorization_header
 from flasgger import Swagger, NO_SANITIZER
 
 from . import filters
@@ -48,6 +46,7 @@ from .helpers import (
     parse_multi_value_header,
     next_stale_after_value,
     digest_challenge_response,
+    parse_authorization_header,
 )
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
@@ -77,14 +76,14 @@ def jsonify(*args, **kwargs):
 
 
 # Prevent WSGI from correcting the casing of the Location header
-BaseResponse.autocorrect_location_header = False
+Response.autocorrect_location_header = False
 
 # Find the correct template folder when running from a different location
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
 
 app = Flask(__name__, template_folder=tmpl_dir)
 app.debug = bool(os.environ.get("DEBUG"))
-app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
+app.json.compact = False
 
 app.add_template_global("HTTPBIN_TRACKING" in os.environ, name="tracking_enabled")
 
@@ -630,16 +629,16 @@ def redirect_to():
     args_dict = request.args.items()
     args = CaseInsensitiveDict(args_dict)
 
-    # We need to build the response manually and convert to UTF-8 to prevent
-    # werkzeug from "fixing" the URL. This endpoint should set the Location
-    # header to the exact string supplied.
+    # We need to build the response manually and send the URL's UTF-8 bytes
+    # unchanged to prevent werkzeug from "fixing" the URL. This endpoint
+    # should set the Location header to the exact string supplied.
     response = app.make_response("")
     response.status_code = 302
     if "status_code" in args:
         status_code = int(args["status_code"])
         if status_code >= 300 and status_code < 400:
             response.status_code = status_code
-    response.headers["Location"] = args["url"].encode("utf-8")
+    response.headers["Location"] = args["url"].encode("utf-8").decode("latin-1")
 
     return response
 

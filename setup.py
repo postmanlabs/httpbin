@@ -28,14 +28,18 @@ setup(
          'Natural Language :: English',
          'License :: OSI Approved :: MIT License',
          'Programming Language :: Python',
-         'Programming Language :: Python :: 2.7',
-         'Programming Language :: Python :: 3.6',
+         'Programming Language :: Python :: 3.10',
+         'Programming Language :: Python :: 3.11',
+         'Programming Language :: Python :: 3.12',
+         'Programming Language :: Python :: 3.13',
     ],
     test_suite="test_httpbin",
     packages=find_packages(),
     include_package_data = True, # include files listed in MANIFEST.in
+    python_requires='>=3.10',
     install_requires=[
-        'Flask', 'MarkupSafe', 'decorator', 'itsdangerous', 'six', 'brotlipy',
-        'werkzeug>=0.14.1', 'gevent', 'flasgger'
+        'Flask==3.1.3', 'MarkupSafe==3.0.4', 'decorator==5.3.1',
+        'itsdangerous==2.2.0', 'six==1.17.0', 'Brotli==1.2.1',
+        'Werkzeug==3.1.9', 'gevent==25.9.1', 'flasgger==0.9.7.1'
     ],
 )

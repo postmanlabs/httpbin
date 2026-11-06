@@ -13,8 +13,7 @@ import re
 import time
 import os
 from hashlib import md5, sha256, sha512
-from werkzeug.http import parse_authorization_header
-from werkzeug.datastructures import WWWAuthenticate
+from werkzeug.datastructures import Authorization, WWWAuthenticate
 
 from flask import request, make_response
 from six.moves.urllib.parse import urlparse, urlunparse
@@ -250,7 +249,7 @@ def status_code(code):
         if 'data' in m:
             r.data = m['data']
         if 'headers' in m:
-            r.headers = m['headers']
+            r.headers.update(m['headers'])
 
     return r
 
@@ -350,6 +349,20 @@ def response(credentials, password, request):
         raise ValueError("qop value are wrong")
 
     return response
+
+
+def parse_authorization_header(value):
+    """Parse an Authorization header, treating Digest credentials that miss
+    a required parameter as absent, as Werkzeug 0.14 did."""
+    auth = Authorization.from_header(value)
+    if auth is None or auth.type != 'digest':
+        return auth
+    for key in 'username', 'realm', 'nonce', 'uri', 'response':
+        if key not in auth:
+            return None
+    if 'qop' in auth and (not auth.get('nc') or not auth.get('cnonce')):
+        return None
+    return auth
 
 
 def check_digest_auth(user, passwd):
@@ -466,9 +479,13 @@ def digest_challenge_response(app, qop, algorithm, stale = False):
     ]), algorithm)
     opaque = H(os.urandom(10), algorithm)
 
-    auth = WWWAuthenticate("digest")
-    auth.set_digest('me@kennethreitz.com', nonce, opaque=opaque,
-                    qop=('auth', 'auth-int') if qop is None else (qop,), algorithm=algorithm)
-    auth.stale = stale
+    auth = WWWAuthenticate("digest", {
+        'realm': 'me@kennethreitz.com',
+        'nonce': nonce,
+        'qop': 'auth, auth-int' if qop is None else qop,
+        'opaque': opaque,
+        'algorithm': algorithm,
+        'stale': 'TRUE' if stale else 'FALSE',
+    })
     response.headers['WWW-Authenticate'] = auth.to_header()
     return response
