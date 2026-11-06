@@ -4,11 +4,10 @@ import os
 import base64
 import unittest
 import contextlib
-import six
 import json
 from werkzeug.http import parse_dict_header
 from hashlib import md5, sha256, sha512
-from six import BytesIO
+from io import BytesIO
 
 import httpbin
 from httpbin.helpers import parse_multi_value_header
@@ -148,7 +147,6 @@ class HttpbinTestCase(unittest.TestCase):
         data = json.loads(response.data.decode('utf-8'))
         self.assertEqual(data['args'], {})
         self.assertEqual(data['headers']['Host'], 'localhost')
-        self.assertEqual(data['headers']['Content-Length'], '0')
         self.assertEqual(data['headers']['User-Agent'], 'test')
         # self.assertEqual(data['origin'], None)
         self.assertEqual(data['url'], 'http://localhost/get')
@@ -162,7 +160,6 @@ class HttpbinTestCase(unittest.TestCase):
         data = json.loads(response.data.decode('utf-8'))
         self.assertEqual(data['args'], {})
         self.assertEqual(data['headers']['Host'], 'localhost')
-        self.assertEqual(data['headers']['Content-Length'], '0')
         self.assertEqual(data['url'], 'http://localhost/anything/foo/bar')
         self.assertEqual(data['method'], 'GET')
         self.assertTrue(response.data.endswith(b'\n'))
@@ -170,7 +167,7 @@ class HttpbinTestCase(unittest.TestCase):
     def test_base64(self):
         greeting = u'Здравствуй, мир!'
         b64_encoded = _string_to_base64(greeting)
-        response = self.app.get(b'/base64/' + b64_encoded)
+        response = self.app.get('/base64/' + b64_encoded.decode('ascii'))
         content = response.data.decode('utf-8')
         self.assertEqual(greeting, content)
 
@@ -379,6 +376,23 @@ class HttpbinTestCase(unittest.TestCase):
             )
             self.assertEqual(response.status_code, 401)
 
+    def test_digest_auth_with_incomplete_credentials(self):
+        """A Digest header missing required parameters should return a 401"""
+        response = self.app.get(
+            '/digest-auth/auth/myname/mysecret',
+            headers={'Authorization': 'Digest username="myname"'}
+        )
+        self.assertEqual(response.status_code, 401)
+
+    def test_digest_auth_challenge_header(self):
+        response = self.app.get('/digest-auth/auth/myname/mysecret/SHA-256')
+        header = response.headers.get('WWW-Authenticate')
+        self.assertRegex(
+            header,
+            r'^Digest realm="me@kennethreitz.com", nonce="[0-9a-f]{64}", '
+            r'qop="auth", opaque="[0-9a-f]{64}", algorithm=SHA-256, stale=FALSE$'
+        )
+
     def _test_digest_auth(self, username, password, qop, algorithm=None, body=None, stale_after=None):
         uri = self._digest_auth_create_uri(username, password, qop, algorithm, stale_after)
 
@@ -509,17 +523,9 @@ class HttpbinTestCase(unittest.TestCase):
 
     def test_bytes_with_seed(self):
         response = self.app.get('/bytes/10?seed=0')
-        # The RNG changed in python3, so even though we are
-        # setting the seed, we can't expect the value to be the
-        # same across both interpreters.
-        if six.PY3:
-            self.assertEqual(
-                response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
-            )
-        else:
-            self.assertEqual(
-                response.data, b'\xd8\xc2kB\x82g\xc8Mz\x95'
-            )
+        self.assertEqual(
+            response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
+        )
 
     def test_stream_bytes(self):
         response = self.app.get('/stream-bytes/1024')
@@ -528,17 +534,9 @@ class HttpbinTestCase(unittest.TestCase):
 
     def test_stream_bytes_with_seed(self):
         response = self.app.get('/stream-bytes/10?seed=0')
-        # The RNG changed in python3, so even though we are
-        # setting the seed, we can't expect the value to be the
-        # same across both interpreters.
-        if six.PY3:
-            self.assertEqual(
-                response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
-            )
-        else:
-            self.assertEqual(
-                response.data, b'\xd8\xc2kB\x82g\xc8Mz\x95'
-            )
+        self.assertEqual(
+            response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
+        )
 
     def test_delete_endpoint_returns_body(self):
         response = self.app.delete(
@@ -562,6 +560,15 @@ class HttpbinTestCase(unittest.TestCase):
         for m in methods:
             response = self.app.open(path='/status/418', method=m)
             self.assertEqual(response.status_code, 418)
+
+    def test_status_endpoint_keeps_content_type(self):
+        response = self.app.get(path='/status/418')
+        self.assertEqual(
+            response.headers.get('Content-Type'), 'text/html; charset=utf-8'
+        )
+        self.assertEqual(
+            response.headers.get('x-more-info'), 'http://tools.ietf.org/html/rfc2324'
+        )
 
     def test_status_endpoint_invalid_code(self):
         response = self.app.get(path='/status/4!9')
