@@ -152,7 +152,11 @@ swagger_config = {
         }
     ],
     "static_url_path": "/flasgger_static",
-    # "static_folder": "static",  # must be set by user
+    # Swagger UI 5.34.1 from the swagger-ui-dist npm package, in place of the
+    # older Swagger UI and jQuery that flasgger bundles.
+    "static_folder": os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "static", "swagger-ui"
+    ),
     "swagger_ui": True,
     "specs_route": "/",
 }

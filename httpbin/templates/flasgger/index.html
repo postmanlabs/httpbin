@@ -137,7 +137,6 @@
 
     <script src="{{url_for('flasgger.static', filename='swagger-ui-bundle.js')}}"> </script>
     <script src="{{url_for('flasgger.static', filename='swagger-ui-standalone-preset.js')}}"> </script>
-    <script src='{{url_for('flasgger.static', filename='')}}lib/jquery.min.js' type='text/javascript'></script>
     <script>
 
         window.onload = function () {
@@ -163,6 +162,7 @@
                             const ui = SwaggerUIBundle({
                                 spec: json,
                                 validatorUrl: null,
+                                queryConfigEnabled: false,
                                 dom_id: '#swagger-ui',
                                 deepLinking: true,
                                 jsonEditor: true,
@@ -201,8 +201,6 @@
 
         window.ui = ui
 
-        // uncomment to rename the top brand if layout is enabled
-        // $(".topbar-wrapper .link span").replaceWith("<span>httpbin</span>");
         })
     })
 }
