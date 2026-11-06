@@ -266,6 +266,15 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.get('/base64/' + b64_encoded.decode('ascii'))
         content = response.data.decode('utf-8')
         self.assertEqual(greeting, content)
+        self.assertEqual(response.headers.get('Content-Type'), 'text/plain')
+
+    def test_base64_markup_is_plain_text(self):
+        markup = _string_to_base64(u'<script>alert(document.domain)</script>')
+        response = self.app.get('/base64/' + markup.decode('ascii'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get('Content-Type'), 'text/plain')
+        self.assertEqual(
+            response.data, b'<script>alert(document.domain)</script>')
 
     def test_post_binary(self):
         response = self.app.post('/post',
