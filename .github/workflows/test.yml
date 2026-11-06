@@ -33,5 +33,5 @@ jobs:
         with:
           persist-credentials: false
       - run: docker build -t httpbin .
-      - run: docker run -d -p 8080:80 httpbin
+      - run: docker run -d -p 8080:8080 httpbin
       - run: curl --fail --silent --show-error --retry 10 --retry-all-errors --retry-delay 1 http://localhost:8080/get

@@ -10,8 +10,7 @@ copy, build it from this repository:
 ```sh
 git clone https://github.com/postmanlabs/httpbin.git
 cd httpbin
-docker build -t httpbin .
-docker run -p 80:80 httpbin
+docker build -t httpbin . && docker run -p 80:8080 httpbin
 ```
 
 See http://httpbin.org for more information.

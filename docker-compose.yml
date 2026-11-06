@@ -3,4 +3,4 @@ services:
     httpbin:
       build: '.'
       ports:
-        - '80:80'
+        - '80:8080'
