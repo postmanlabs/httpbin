@@ -578,6 +578,23 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.get(path='/status/200,402,foo')
         self.assertEqual(response.status_code, 400)
 
+    def test_swagger_ui_is_the_vendored_copy(self):
+        static_dir = os.path.join(
+            os.path.dirname(httpbin.__file__), 'static', 'swagger-ui'
+        )
+        with open(os.path.join(static_dir, 'swagger-ui-bundle.js'), 'rb') as f:
+            vendored = f.read()
+        response = self.app.get('/flasgger_static/swagger-ui-bundle.js')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, vendored)
+        response.close()
+        response = self.app.get('/flasgger_static/lib/jquery.min.js')
+        self.assertEqual(response.status_code, 404)
+
+    def test_swagger_ui_ignores_query_config(self):
+        response = self.app.get('/')
+        self.assertIn(b'queryConfigEnabled: false', response.data)
+
     def test_xml_endpoint(self):
         response = self.app.get(path='/xml')
         self.assertEqual(
