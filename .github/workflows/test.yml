@@ -25,3 +25,13 @@ jobs:
       - run: pip install --require-hashes -r requirements.txt
       - run: pip install --no-deps .
       - run: python -W error::SyntaxWarning test_httpbin.py
+
+  docker:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: docker build -t httpbin .
+      - run: docker run -d -p 8080:80 httpbin
+      - run: curl --fail --silent --show-error --retry 10 --retry-all-errors --retry-delay 1 http://localhost:8080/get
