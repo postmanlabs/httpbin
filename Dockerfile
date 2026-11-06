@@ -1,13 +1,13 @@
-# python:3.14-slim
-FROM python@sha256:af8a5aa14780025dbfbcfbc81bd8a91ebd87711dd5b0f48ed71090949dd7cb1d AS build
+# python:3.15-slim
+FROM python@sha256:e97b88e416c3c01eb427b21fd8cd3ebf006e6ee38afcfcc3cae1c54ee2ab0a75 AS build
 
 COPY requirements.txt /tmp/requirements.txt
 RUN python -m venv /venv \
     && /venv/bin/pip install --no-cache-dir --disable-pip-version-check --require-hashes -r /tmp/requirements.txt \
     && /venv/bin/pip uninstall --yes --disable-pip-version-check pip
 
-# python:3.14-slim
-FROM python@sha256:af8a5aa14780025dbfbcfbc81bd8a91ebd87711dd5b0f48ed71090949dd7cb1d
+# python:3.15-slim
+FROM python@sha256:e97b88e416c3c01eb427b21fd8cd3ebf006e6ee38afcfcc3cae1c54ee2ab0a75
 
 LABEL name="httpbin"
 LABEL version="0.9.2"
