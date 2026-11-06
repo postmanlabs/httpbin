@@ -18,7 +18,8 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 ENV PATH=/venv/bin:$PATH
 
-RUN useradd --system --uid 10001 --user-group --no-create-home httpbin
+RUN pip uninstall --yes --disable-pip-version-check pip \
+    && useradd --system --uid 10001 --user-group --no-create-home httpbin
 
 COPY --from=build /venv /venv
 COPY httpbin /app/httpbin
