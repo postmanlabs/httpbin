@@ -35,3 +35,20 @@ jobs:
       - run: docker build -t httpbin .
       - run: docker run -d -p 8080:8080 httpbin
       - run: curl --fail --silent --show-error --retry 10 --retry-all-errors --retry-delay 1 http://localhost:8080/get
+
+  target-url:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.15"
+      - run: pip install --require-hashes -r requirements-test.txt
+      - run: docker build -t httpbin .
+      - run: docker run -d -p 8080:8080 httpbin
+      - run: curl --fail --silent --show-error --retry 10 --retry-all-errors --retry-delay 1 --output /dev/null http://localhost:8080/get
+      - run: python -W error::SyntaxWarning test_httpbin.py
+        env:
+          HTTPBIN_TEST_TARGET_URL: http://localhost:8080
