@@ -28,4 +28,4 @@ See http://httpbin.org for more information.
 
 ## Build Status
 
-[![Build Status](https://travis-ci.org/requests/httpbin.svg?branch=master)](https://travis-ci.org/requests/httpbin)
+[![test](https://github.com/postmanlabs/httpbin/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/postmanlabs/httpbin/actions/workflows/test.yml)
