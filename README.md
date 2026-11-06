@@ -5,10 +5,13 @@ A [Kenneth Reitz](http://kennethreitz.org/bitcoin) Project.
 
 ![ice cream](http://farm1.staticflickr.com/572/32514669683_4daf2ab7bc_k_d.jpg)
 
-Run locally:
+This project does not publish releases or Docker images. To run your own
+copy, build it from this repository:
 ```sh
-docker pull kennethreitz/httpbin
-docker run -p 80:80 kennethreitz/httpbin
+git clone https://github.com/postmanlabs/httpbin.git
+cd httpbin
+docker build -t httpbin .
+docker run -p 80:80 httpbin
 ```
 
 See http://httpbin.org for more information.
@@ -17,7 +20,6 @@ See http://httpbin.org for more information.
 
 - http://httpbin.org
 - https://httpbin.org
-- https://hub.docker.com/r/kennethreitz/httpbin/
 
 
 ## SEE ALSO

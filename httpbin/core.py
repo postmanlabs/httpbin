@@ -94,7 +94,8 @@ template = {
         "title": "httpbin.org",
         "description": (
             "A simple HTTP Request & Response Service."
-            "<br/> <br/> <b>Run locally: </b> <code>$ docker run -p 80:80 kennethreitz/httpbin</code>"
+            "<br/> <br/> <b>Run locally: </b> build it from "
+            '<a href="https://github.com/postmanlabs/httpbin">the repository</a>.'
         ),
         "contact": {
             "responsibleOrganization": "Kenneth Reitz",
