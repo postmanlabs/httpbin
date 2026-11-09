@@ -47,6 +47,7 @@ from .helpers import (
     digest_challenge_response,
     parse_authorization_header,
     is_renderable_media_type,
+    caller_may_not_set,
 )
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
@@ -812,7 +813,11 @@ def response_headers():
                 status=400,
                 content_type="text/plain; charset=utf-8",
             )
-    headers = MultiDict(request.args.items(multi=True))
+    headers = MultiDict(
+        (key, value)
+        for key, value in request.args.items(multi=True)
+        if not caller_may_not_set(key)
+    )
     response = jsonify(list(headers.lists()))
 
     while True:

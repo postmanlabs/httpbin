@@ -216,6 +216,23 @@ def get_dict(*keys, **extras):
     return out_d
 
 
+# Headers /response-headers will not set. Framing and hop-by-hop headers would
+# put a conflicting Content-Length or Transfer-Encoding on the wire (response
+# desync behind a proxy), and Refresh is a browser redirect that skips
+# /redirect-to. Proxy-* headers are refused too.
+RESERVED_RESPONSE_HEADERS = frozenset([
+    'content-length', 'transfer-encoding', 'connection', 'keep-alive',
+    'proxy-connection', 'te', 'trailer', 'upgrade', 'refresh',
+    'x-content-type-options',
+])
+
+
+def caller_may_not_set(header):
+    """Return true if /response-headers must drop this header name."""
+    header = header.lower()
+    return header in RESERVED_RESPONSE_HEADERS or header.startswith('proxy-')
+
+
 def is_renderable_media_type(content_type):
     """Return true if a browser would render or run this Content-Type."""
     media_type = content_type.split(';', 1)[0].strip().lower()
