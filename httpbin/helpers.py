@@ -36,6 +36,19 @@ ASCII_ART = """
 
 REDIRECT_LOCATION = '/redirect/1'
 
+# Media types a browser renders as a document or runs as script. A caller of
+# /response-headers may not pick one, or a crafted link would show their text
+# as a page on this host. Any +xml subtype is refused too.
+RENDERABLE_MEDIA_TYPES = frozenset([
+    'text/html', 'application/xhtml+xml', 'image/svg+xml', 'text/xml',
+    'application/xml', 'application/javascript', 'application/x-javascript',
+    'application/ecmascript', 'application/x-ecmascript', 'text/javascript',
+    'text/ecmascript', 'text/x-ecmascript', 'text/x-javascript', 'text/jscript',
+    'text/livescript', 'text/javascript1.0', 'text/javascript1.1',
+    'text/javascript1.2', 'text/javascript1.3', 'text/javascript1.4',
+    'text/javascript1.5',
+])
+
 ENV_HEADERS = (
     'X-Varnish',
     'X-Request-Start',
@@ -201,6 +214,12 @@ def get_dict(*keys, **extras):
     out_d.update(extras)
 
     return out_d
+
+
+def is_renderable_media_type(content_type):
+    """Return true if a browser would render or run this Content-Type."""
+    media_type = content_type.split(';', 1)[0].strip().lower()
+    return media_type in RENDERABLE_MEDIA_TYPES or media_type.endswith('+xml')
 
 
 def status_code(code):

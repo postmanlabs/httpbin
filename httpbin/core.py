@@ -46,6 +46,7 @@ from .helpers import (
     next_stale_after_value,
     digest_challenge_response,
     parse_authorization_header,
+    is_renderable_media_type,
 )
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
@@ -804,6 +805,13 @@ def response_headers():
     """
     # Pending swaggerUI update
     # https://github.com/swagger-api/swagger-ui/issues/3850
+    for key, value in request.args.items(multi=True):
+        if key.lower() == "content-type" and is_renderable_media_type(value):
+            return Response(
+                "this Content-Type is not allowed\n",
+                status=400,
+                content_type="text/plain; charset=utf-8",
+            )
     headers = MultiDict(request.args.items(multi=True))
     response = jsonify(list(headers.lists()))
 

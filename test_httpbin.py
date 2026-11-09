@@ -228,6 +228,25 @@ class HttpbinTestCase(unittest.TestCase):
             self.assertEqual(response.headers.get_all('animal'), ['dog'])
             assert json.loads(response.data.decode('utf-8'))['animal'] == 'dog'
 
+    def test_response_headers_refuses_renderable_content_types(self):
+        for query in (
+            'Content-Type=text/html',
+            'content-type=Text/HTML;%20charset=utf-8',
+            'Content-Type=image/svg%2Bxml',
+            'Content-Type=application/atom%2Bxml',
+            'Content-Type=text/javascript',
+        ):
+            response = self.app.get('/response-headers?' + query)
+            self.assertEqual(response.status_code, 400, query)
+            self.assertEqual(
+                response.headers.get('Content-Type'), 'text/plain; charset=utf-8')
+            self.assertEqual(response.data, b'this Content-Type is not allowed\n')
+
+    def test_response_headers_allows_inert_content_types(self):
+        response = self.app.get('/response-headers?Content-Type=text/plain')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('text/plain', response.headers.get_all('Content-Type'))
+
     def test_response_headers_multi(self):
         supported_verbs = ['get', 'post']
         for verb in supported_verbs:
