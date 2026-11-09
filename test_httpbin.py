@@ -580,6 +580,26 @@ class HttpbinTestCase(unittest.TestCase):
                 response.headers.get_all('X-Content-Type-Options'), ['nosniff'],
                 path)
 
+    def test_cookies_are_secure_behind_a_tls_proxy(self):
+        https_requests = (
+            {'X-Forwarded-Proto': 'https'},
+            {'X-Forwarded-Protocol': 'https'},
+            {'X-Forwarded-Ssl': 'on'},
+        )
+        for headers in https_requests:
+            for path in ('/cookies/set?k=v', '/cookies/set/k/v',
+                         '/cookies/delete?k', '/digest-auth/auth/user/passwd'):
+                response = self.app.get(path, headers=headers)
+                cookies = response.headers.get_all('Set-Cookie')
+                self.assertTrue(cookies, path)
+                for cookie in cookies:
+                    self.assertIn('; Secure', cookie, (path, headers))
+        for path in ('/cookies/set?k=v', '/cookies/delete?k',
+                     '/digest-auth/auth/user/passwd'):
+            response = self.app.get(path, headers={'X-Forwarded-Proto': 'http'})
+            for cookie in response.headers.get_all('Set-Cookie'):
+                self.assertNotIn('Secure', cookie, path)
+
     def test_set_cors_headers_after_request(self):
         response = self.app.get('/get')
         self.assertEqual(

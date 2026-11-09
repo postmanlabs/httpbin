@@ -1382,13 +1382,13 @@ def digest_auth(
         or (require_cookie_handling and "Cookie" not in request.headers)
     ):
         response = digest_challenge_response(app, qop, algorithm)
-        response.set_cookie("stale_after", value=stale_after)
-        response.set_cookie("fake", value="fake_value")
+        response.set_cookie("stale_after", value=stale_after, secure=secure_cookie())
+        response.set_cookie("fake", value="fake_value", secure=secure_cookie())
         return response
 
     if require_cookie_handling and request.cookies.get("fake") != "fake_value":
         response = jsonify({"errors": ["missing cookie set on challenge"]})
-        response.set_cookie("fake", value="fake_value")
+        response.set_cookie("fake", value="fake_value", secure=secure_cookie())
         response.status_code = 403
         return response
 
@@ -1404,23 +1404,25 @@ def digest_auth(
         or stale_after_value == "0"
     ):
         response = digest_challenge_response(app, qop, algorithm, True)
-        response.set_cookie("stale_after", value=stale_after)
-        response.set_cookie("last_nonce", value=current_nonce)
-        response.set_cookie("fake", value="fake_value")
+        response.set_cookie("stale_after", value=stale_after, secure=secure_cookie())
+        response.set_cookie("last_nonce", value=current_nonce, secure=secure_cookie())
+        response.set_cookie("fake", value="fake_value", secure=secure_cookie())
         return response
 
     if not check_digest_auth(user, passwd):
         response = digest_challenge_response(app, qop, algorithm, False)
-        response.set_cookie("stale_after", value=stale_after)
-        response.set_cookie("last_nonce", value=current_nonce)
-        response.set_cookie("fake", value="fake_value")
+        response.set_cookie("stale_after", value=stale_after, secure=secure_cookie())
+        response.set_cookie("last_nonce", value=current_nonce, secure=secure_cookie())
+        response.set_cookie("fake", value="fake_value", secure=secure_cookie())
         return response
 
     response = jsonify(authenticated=True, user=user)
-    response.set_cookie("fake", value="fake_value")
+    response.set_cookie("fake", value="fake_value", secure=secure_cookie())
     if stale_after_value:
         response.set_cookie(
-            "stale_after", value=next_stale_after_value(stale_after_value)
+            "stale_after",
+            value=next_stale_after_value(stale_after_value),
+            secure=secure_cookie(),
         )
 
     return response
