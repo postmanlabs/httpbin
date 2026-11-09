@@ -247,6 +247,27 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('text/plain', response.headers.get_all('Content-Type'))
 
+    def test_response_headers_drops_reserved_headers(self):
+        reserved = (
+            'Content-Length', 'Transfer-Encoding', 'Connection', 'Keep-Alive',
+            'Proxy-Connection', 'TE', 'Trailer', 'Upgrade', 'Refresh',
+            'X-Content-Type-Options', 'Proxy-Authenticate',
+        )
+        query = '&'.join(name + '=1' for name in reserved)
+        response = self.app.get('/response-headers?animal=dog&' + query)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get_all('Content-Length'),
+                         [str(len(response.data))])
+        for name in ('Refresh', 'Upgrade', 'Trailer', 'TE', 'Keep-Alive',
+                     'Proxy-Connection', 'Proxy-Authenticate'):
+            self.assertNotIn(name, response.headers, name)
+        self.assertNotIn('1', response.headers.get_all('X-Content-Type-Options'))
+        echoed = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(echoed['animal'], 'dog')
+        for name in reserved:
+            if name != 'Content-Length':
+                self.assertNotIn(name, echoed, name)
+
     def test_response_headers_multi(self):
         supported_verbs = ['get', 'post']
         for verb in supported_verbs:
