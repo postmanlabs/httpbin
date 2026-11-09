@@ -6,6 +6,7 @@ import unittest
 import contextlib
 import wsgiref.validate
 import json
+from werkzeug.datastructures import Headers
 from werkzeug.http import parse_dict_header
 from werkzeug.test import Client
 from hashlib import md5, sha256, sha512
@@ -13,6 +14,96 @@ from io import BytesIO
 
 import httpbin
 from httpbin.helpers import parse_multi_value_header
+
+
+# Set HTTPBIN_TEST_TARGET_URL to run the tests against any running httpbin,
+# for example http://localhost:8080, instead of the in-process Flask app.
+TARGET_URL = os.environ.get('HTTPBIN_TEST_TARGET_URL')
+
+
+def local_only(reason):
+    """Skip a test that needs the in-process app when TARGET_URL is set."""
+    return unittest.skipIf(TARGET_URL, reason)
+
+
+class TargetResponse(object):
+    """The parts of Werkzeug's test response that these tests read."""
+
+    def __init__(self, response):
+        self.status_code = response.status_code
+        # urllib3 keeps repeated headers apart; requests would join them.
+        self.headers = Headers(list(response.raw.headers.items()))
+        # The raw bytes, as the test client returns them: no gzip decoding.
+        self.data = response.raw.read(decode_content=False)
+        response.close()
+
+    def get_data(self):
+        return self.data
+
+    @property
+    def json(self):
+        return json.loads(self.data.decode('utf-8'))
+
+    @property
+    def content_length(self):
+        value = self.headers.get('Content-Length')
+        return None if value is None else int(value)
+
+    def close(self):
+        pass
+
+
+class TargetClient(object):
+    """Stands in for Flask's test client, sending each request over HTTP to
+    TARGET_URL. Like the test client, it keeps cookies, never follows
+    redirects and sends Host: localhost unless a test sets its own."""
+
+    def __init__(self, base_url):
+        import requests
+        self.base_url = base_url.rstrip('/')
+        self.session = requests.Session()
+        self.session.headers.clear()
+
+    def open(self, path='/', method='GET', headers=None, data=None,
+             content_type=None, environ_base=None):
+        # A real connection supplies REMOTE_ADDR; nothing else can be faked.
+        unsupported = set(environ_base or {}) - {'REMOTE_ADDR'}
+        if unsupported:
+            raise unittest.SkipTest(
+                'needs WSGI environ keys %s' % ', '.join(sorted(unsupported)))
+        request_headers = {'Host': 'localhost'}
+        request_headers.update(headers or {})
+        # The test client ignores a header with no name; requests refuses it.
+        request_headers.pop('', None)
+        if content_type:
+            request_headers['Content-Type'] = content_type
+        if isinstance(data, str):
+            data = data.encode('utf-8')
+        response = self.session.request(
+            method, self.base_url + path, headers=request_headers, data=data,
+            allow_redirects=False, stream=True)
+        return TargetResponse(response)
+
+    def get(self, path='/', **kwargs):
+        return self.open(path, method='GET', **kwargs)
+
+    def post(self, path='/', **kwargs):
+        return self.open(path, method='POST', **kwargs)
+
+    def put(self, path='/', **kwargs):
+        return self.open(path, method='PUT', **kwargs)
+
+    def patch(self, path='/', **kwargs):
+        return self.open(path, method='PATCH', **kwargs)
+
+    def delete(self, path='/', **kwargs):
+        return self.open(path, method='DELETE', **kwargs)
+
+    def head(self, path='/', **kwargs):
+        return self.open(path, method='HEAD', **kwargs)
+
+    def options(self, path='/', **kwargs):
+        return self.open(path, method='OPTIONS', **kwargs)
 
 
 @contextlib.contextmanager
@@ -112,8 +203,11 @@ class HttpbinTestCase(unittest.TestCase):
     """Httpbin tests"""
 
     def setUp(self):
-        httpbin.app.debug = True
-        self.app = httpbin.app.test_client()
+        if TARGET_URL:
+            self.app = TargetClient(TARGET_URL)
+        else:
+            httpbin.app.debug = True
+            self.app = httpbin.app.test_client()
 
     def test_index(self):   
         response = self.app.get('/', headers={'User-Agent': 'test'})
@@ -213,6 +307,7 @@ class HttpbinTestCase(unittest.TestCase):
     Transfer-Encoding: chunked requests are unsupported and
     we return 501 Not Implemented
     """
+    @local_only('checks that the Flask development server refuses chunked bodies')
     def test_post_chunked(self):
         data = '{"animal":"dog"}'
         response = self.app.post(
@@ -523,6 +618,7 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(len(self.get_data(response)), 1024)
         self.assertEqual(response.status_code, 200)
 
+    @local_only("runs the in-process app under wsgiref's validator")
     def test_get_bytes_gives_the_server_bytes(self):
         # WSGI servers such as gunicorn refuse a bytearray body chunk.
         client = Client(wsgiref.validate.validator(httpbin.app))
@@ -587,6 +683,7 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.get(path='/status/200,402,foo')
         self.assertEqual(response.status_code, 400)
 
+    @local_only("compares the served Swagger UI with this checkout's copy")
     def test_swagger_ui_is_the_vendored_copy(self):
         static_dir = os.path.join(
             os.path.dirname(httpbin.__file__), 'static', 'swagger-ui'

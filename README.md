@@ -15,6 +15,19 @@ docker build -t httpbin . && docker run -p 80:8080 httpbin
 
 See http://httpbin.org for more information.
 
+## Running the tests
+
+```sh
+pip install --require-hashes -r requirements-test.txt
+python test_httpbin.py
+```
+
+To run the tests against any running httpbin instead of the in-process app,
+set its base URL. Tests that need the in-process app are skipped.
+```sh
+HTTPBIN_TEST_TARGET_URL=http://localhost:8080 python test_httpbin.py
+```
+
 ## Officially Deployed at:
 
 - http://httpbin.org
