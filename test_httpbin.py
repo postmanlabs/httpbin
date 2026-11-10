@@ -6,6 +6,7 @@ import unittest
 import contextlib
 import wsgiref.validate
 import json
+from urllib.parse import urlencode
 from werkzeug.datastructures import Headers
 from werkzeug.http import parse_dict_header
 from werkzeug.test import Client
@@ -767,6 +768,20 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(
             response.headers.get('Location'), '/relative-redirect/4'
         )
+
+    def test_redirect_to_location_is_a_utf8_percent_encoded_uri(self):
+        for target, location in (
+            (u'/\u5c71', '/%E5%B1%B1'),
+            ('/%E5%B1%B1', '/%E5%B1%B1'),
+            ('/a b', '/a%20b'),
+            (u'/x?q=\u5c71', '/x?q=%E5%B1%B1'),
+            (u'http://b\xfccher.example/\u5c71',
+             'http://xn--bcher-kva.example/%E5%B1%B1'),
+        ):
+            response = self.app.get(
+                '/redirect-to?' + urlencode({'url': target.encode('utf-8')}))
+            self.assertEqual(response.status_code, 302, target)
+            self.assertEqual(response.headers.get('Location'), location)
 
     def test_redirect_to_post(self):
         response = self.app.post('/redirect-to?url=/post&status_code=307',
