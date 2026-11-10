@@ -1244,6 +1244,16 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.get('/flasgger_static/lib/jquery.min.js')
         self.assertEqual(response.status_code, 404)
 
+    @local_only("checks this checkout's vendored files")
+    def test_swagger_ui_licence_notices_are_vendored(self):
+        static_dir = os.path.join('httpbin', 'static', 'swagger-ui')
+        for bundle in ('swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js'):
+            with open(os.path.join(static_dir, bundle)) as f:
+                first_line = f.readline()
+            notice = first_line.rsplit(' ', 2)[-2]
+            self.assertEqual(notice, bundle + '.LICENSE.txt')
+            self.assertTrue(os.path.exists(os.path.join(static_dir, notice)), notice)
+
     def test_swagger_ui_ignores_query_config(self):
         response = self.app.get('/')
         self.assertIn(b'queryConfigEnabled: false', response.data)
