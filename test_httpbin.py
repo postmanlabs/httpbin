@@ -338,6 +338,69 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.post('/post', data=u'оживлённым'.encode('utf-8'))
         self.assertEqual(json.loads(response.data.decode('utf-8'))['data'], u'оживлённым')
 
+    def test_dump_request(self):
+        response = self.app.get('/dump/request?a=1&b=%20x',
+                                headers={'x-custom-thing': 'v1'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get('Content-Type'),
+                         'text/plain; charset=utf-8')
+        self.assertTrue(response.data.startswith(
+            b'GET /dump/request?a=1&b=%20x HTTP/1.1\r\nHost: localhost\r\n'),
+            response.data)
+        self.assertIn(b'\r\nX-Custom-Thing: v1\r\n', response.data)
+        self.assertTrue(response.data.endswith(b'\r\n\r\n'))
+
+    def test_dump_request_takes_any_method(self):
+        for method in ('ARBITRARY-METHOD', 'PROPFIND', 'QUERY'):
+            response = self.app.open('/dump/request', method=method)
+            self.assertEqual(response.status_code, 200, method)
+            self.assertTrue(response.data.startswith(
+                method.encode() + b' /dump/request HTTP/1.1\r\n'), method)
+
+    def test_dump_request_shows_each_part_type(self):
+        data = (
+            '--bound\r\n'
+            'Content-Disposition: form-data; name="f"; filename="a.txt"\r\n'
+            'Content-Type: text/x-foo\r\n\r\nhello\r\n'
+            '--bound--\r\n'
+        )
+        response = self.app.post(
+            '/dump/request', data=data,
+            content_type='multipart/form-data; boundary=bound')
+        self.assertIn(b'\r\nContent-Type: multipart/form-data; boundary=bound\r\n',
+                      response.data)
+        self.assertTrue(response.data.endswith(data.encode()))
+        self.assertIn(b'Content-Type: text/x-foo\r\n\r\nhello', response.data)
+
+    def test_query_method_echoes_like_post(self):
+        for path in ('/anything', '/anything/x', '/delay/0'):
+            response = self.app.open(
+                path + '?a=1', method='QUERY', data='{"k": "v"}',
+                content_type='application/json')
+            self.assertEqual(response.status_code, 200, path)
+            echoed = json.loads(response.data.decode('utf-8'))
+            self.assertEqual(echoed['data'], '{"k": "v"}', path)
+            self.assertEqual(echoed['args'], {'a': '1'}, path)
+        echoed = json.loads(self.app.open('/anything', method='QUERY').data.decode('utf-8'))
+        self.assertEqual(echoed['method'], 'QUERY')
+        response = self.app.open('/get', method='QUERY')
+        self.assertEqual(response.status_code, 405)
+
+    def test_post_repeated_file_field_echoes_every_file(self):
+        data = (
+            '--bound\r\n'
+            'Content-Disposition: form-data; name="f"; filename="a.txt"\r\n'
+            'Content-Type: text/plain\r\n\r\nfirst\r\n'
+            '--bound\r\n'
+            'Content-Disposition: form-data; name="f"; filename="b.bin"\r\n'
+            'Content-Type: application/x-thing\r\n\r\n\xff\xfe\r\n'
+            '--bound--\r\n'
+        ).encode('latin-1')
+        response = self.app.post(
+            '/post', data=data, content_type='multipart/form-data; boundary=bound')
+        files = json.loads(response.data.decode('utf-8'))['files']
+        self.assertEqual(files['f'], ['first', 'data:application/x-thing;base64,//4='])
+
     def test_post_file_with_missing_content_type_header(self):
         # I built up the form data manually here because I couldn't find a way
         # to convince the werkzeug test client to send files without the

@@ -46,6 +46,7 @@ from .helpers import (
     next_stale_after_value,
     digest_challenge_response,
     parse_authorization_header,
+    request_dump,
     is_renderable_media_type,
     caller_may_not_set,
     STATUS_PHRASES,
@@ -389,11 +390,35 @@ def view_get():
     return jsonify(get_dict("url", "args", "headers", "origin"))
 
 
-@app.route("/anything", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
-@app.route(
-    "/anything/<path:anything>",
-    methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"],
-)
+# QUERY is a safe method that carries a body, so it is accepted where a body
+# is echoed.
+BODY_ECHO_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE", "QUERY"]
+
+
+@app.before_request
+def dump_request_for_any_method():
+    # /dump/request answers every method, even ones no route lists
+    if request.path == "/dump/request":
+        return view_dump_request()
+
+
+@app.route("/dump/request", methods=BODY_ECHO_METHODS)
+def view_dump_request():
+    """Returns the request in its HTTP/1.x form, for any method.
+    ---
+    tags:
+      - Request inspection
+    produces:
+      - text/plain
+    responses:
+      200:
+        description: The request line, headers and body (approximate, as repeated headers are merged).
+    """
+    return Response(request_dump(), content_type="text/plain; charset=utf-8")
+
+
+@app.route("/anything", methods=BODY_ECHO_METHODS)
+@app.route("/anything/<path:anything>", methods=BODY_ECHO_METHODS)
 def view_anything(anything=None):
     """Returns anything passed in request data.
     ---
@@ -1244,7 +1269,7 @@ def digest_auth(
     return response
 
 
-@app.route("/delay/<delay>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
+@app.route("/delay/<delay>", methods=BODY_ECHO_METHODS)
 def delay_response(delay):
     """Returns a delayed response (max of 10 seconds).
     ---
