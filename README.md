@@ -36,7 +36,6 @@ HTTPBIN_TEST_TARGET_URL=http://localhost:8080 python test_httpbin.py
 
 ## SEE ALSO
 
-- http://requestb.in
 - http://python-requests.org
 - https://grpcb.in/
 
