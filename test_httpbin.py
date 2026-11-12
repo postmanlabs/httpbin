@@ -337,6 +337,20 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.post('/post', data=u'оживлённым'.encode('utf-8'))
         self.assertEqual(json.loads(response.data.decode('utf-8'))['data'], u'оживлённым')
 
+    def test_query_method_echoes_like_post(self):
+        for path in ('/anything', '/anything/x', '/delay/0'):
+            response = self.app.open(
+                path + '?a=1', method='QUERY', data='{"k": "v"}',
+                content_type='application/json')
+            self.assertEqual(response.status_code, 200, path)
+            echoed = json.loads(response.data.decode('utf-8'))
+            self.assertEqual(echoed['data'], '{"k": "v"}', path)
+            self.assertEqual(echoed['args'], {'a': '1'}, path)
+        echoed = json.loads(self.app.open('/anything', method='QUERY').data.decode('utf-8'))
+        self.assertEqual(echoed['method'], 'QUERY')
+        response = self.app.open('/get', method='QUERY')
+        self.assertEqual(response.status_code, 405)
+
     def test_post_repeated_file_field_echoes_every_file(self):
         data = (
             '--bound\r\n'

@@ -384,11 +384,13 @@ def view_get():
     return jsonify(get_dict("url", "args", "headers", "origin"))
 
 
-@app.route("/anything", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
-@app.route(
-    "/anything/<path:anything>",
-    methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"],
-)
+# QUERY is a safe method that carries a body, so it is accepted where a body
+# is echoed.
+BODY_ECHO_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE", "QUERY"]
+
+
+@app.route("/anything", methods=BODY_ECHO_METHODS)
+@app.route("/anything/<path:anything>", methods=BODY_ECHO_METHODS)
 def view_anything(anything=None):
     """Returns anything passed in request data.
     ---
@@ -1208,7 +1210,7 @@ def digest_auth(
     return response
 
 
-@app.route("/delay/<delay>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
+@app.route("/delay/<delay>", methods=BODY_ECHO_METHODS)
 def delay_response(delay):
     """Returns a delayed response (max of 10 seconds).
     ---
