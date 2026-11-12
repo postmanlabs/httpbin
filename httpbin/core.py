@@ -53,6 +53,22 @@ from .helpers import (
     error_response,
     request_cookie_host,
     set_cookie_error,
+    request_dump,
+    STATUS_PHRASES,
+    is_true_param,
+    response_headers_status,
+    fixed_content_status,
+    cookie_attribute_name,
+    cookie_attributes,
+    cookie_domain_error,
+    prefers_json,
+    accepts_any_type,
+    parse_integer,
+    redirect_to_arg,
+    parse_seconds,
+    is_true_param,
+    whole_milliseconds,
+    server_timing,
 )
 from .redirect_targets import (
     unsafe_redirect_target,
@@ -92,6 +108,10 @@ Response.autocorrect_location_header = False
 
 # Find the correct template folder when running from a different location
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+
+# The methods the authentication routes take: httpbin.org answers a challenge
+# or a success whatever the method, so clients can test auth on any request.
+AUTH_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
 
 app = Flask(__name__, template_folder=tmpl_dir)
 app.debug = bool(os.environ.get("DEBUG"))
@@ -275,11 +295,17 @@ def view_landing_page():
 
 
 @app.route("/html")
+@fixed_content_status
 def view_html_page():
     """Returns a simple HTML document.
     ---
     tags:
       - Response formats
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - text/html
     responses:
@@ -291,11 +317,17 @@ def view_html_page():
 
 
 @app.route("/robots.txt")
+@fixed_content_status
 def view_robots_page():
     """Returns some robots.txt rules.
     ---
     tags:
       - Response formats
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - text/plain
     responses:
@@ -310,11 +342,17 @@ def view_robots_page():
 
 
 @app.route("/deny")
+@fixed_content_status
 def view_deny_page():
     """Returns page denied by robots.txt rules.
     ---
     tags:
       - Response formats
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - text/plain
     responses:
@@ -366,6 +404,12 @@ def view_headers():
     ---
     tags:
       - Request inspection
+    parameters:
+      - in: query
+        name: show_env
+        type: string
+        allowEmptyValue: true
+        description: Any value, even empty, also shows the proxy headers hidden by default, such as X-Forwarded-For and X-Real-Ip.
     produces:
       - application/json
     responses:
@@ -400,6 +444,12 @@ def view_get():
     ---
     tags:
       - HTTP Methods
+    parameters:
+      - in: query
+        name: show_env
+        type: string
+        allowEmptyValue: true
+        description: Any value, even empty, also shows the proxy headers hidden by default, such as X-Forwarded-For and X-Real-Ip.
     produces:
       - application/json
     responses:
@@ -410,11 +460,35 @@ def view_get():
     return jsonify(get_dict("url", "args", "headers", "origin"))
 
 
-@app.route("/anything", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
-@app.route(
-    "/anything/<path:anything>",
-    methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"],
-)
+# QUERY is a safe method that carries a body, so it is accepted where a body
+# is echoed.
+BODY_ECHO_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE", "QUERY"]
+
+
+@app.before_request
+def dump_request_for_any_method():
+    # /dump/request answers every method, even ones no route lists
+    if request.path == "/dump/request":
+        return view_dump_request()
+
+
+@app.route("/dump/request", methods=BODY_ECHO_METHODS)
+def view_dump_request():
+    """Returns the request in its HTTP/1.x form, for any method.
+    ---
+    tags:
+      - Request inspection
+    produces:
+      - text/plain
+    responses:
+      200:
+        description: The request line, headers and body (approximate, as repeated headers are merged).
+    """
+    return Response(request_dump(), content_type="text/plain; charset=utf-8")
+
+
+@app.route("/anything", methods=BODY_ECHO_METHODS)
+@app.route("/anything/<path:anything>", methods=BODY_ECHO_METHODS)
 def view_anything(anything=None):
     """Returns anything passed in request data.
     ---
@@ -565,6 +639,25 @@ def view_brotli_encoded_content():
     return jsonify(get_dict("origin", "headers", method=request.method, brotli=True))
 
 
+@app.route("/zstd")
+@filters.zstd
+def view_zstd_encoded_content():
+    """Returns Zstandard-encoded data.
+    ---
+    tags:
+      - Response formats
+    produces:
+      - application/json
+    responses:
+      200:
+        description: Zstandard-encoded data.
+      501:
+        description: This Python has no zstd support (3.14 or backports.zstd needed).
+    """
+
+    return jsonify(get_dict("origin", "headers", method=request.method, zstd=True))
+
+
 @app.route("/redirect/<int:n>")
 def redirect_n_times(n):
     """302 Redirects n times.
@@ -658,10 +751,11 @@ def redirect_to():
         description: A redirection.
     """
 
-    args_dict = request.args.items()
-    args = CaseInsensitiveDict(args_dict)
+    target = redirect_to_arg("url")
+    if not target:
+        return error_response(400, "missing required query parameter: url")
 
-    reason = unsafe_redirect_target(args["url"])
+    reason = unsafe_redirect_target(target)
     if reason:
         return Response(
             "Forbidden redirect target: %s\n" % reason,
@@ -669,7 +763,7 @@ def redirect_to():
             content_type="text/plain; charset=utf-8",
         )
     allowed_domains = app.config["ALLOWED_REDIRECT_DOMAINS"]
-    if not redirect_allowed(args["url"], allowed_domains):
+    if not redirect_allowed(target, allowed_domains):
         return Response(
             forbidden_redirect_message(allowed_domains),
             status=403,
@@ -682,11 +776,15 @@ def redirect_to():
     # target stays relative (autocorrect_location_header is off).
     response = app.make_response("")
     response.status_code = 302
-    if "status_code" in args:
-        status_code = int(args["status_code"])
+    status = redirect_to_arg("status_code")
+    if status:
+        try:
+            status_code = parse_integer(status)
+        except ValueError as error:
+            return error_response(400, "invalid status code: %s" % error)
         if status_code >= 300 and status_code < 400:
             response.status_code = status_code
-    response.headers["Location"] = args["url"]
+    response.headers["Location"] = target
 
     return response
 
@@ -776,7 +874,12 @@ def stream_n_messages(n):
 @app.route(
     "/status/<codes>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
 )
-def view_status_code(codes):
+@app.route(
+    # a client that appends a path to the URL still gets the status
+    "/status/<codes>/<path:rest>",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"],
+)
+def view_status_code(codes, rest=None):
     """Return status code or random status code if more than one are given
     ---
     tags:
@@ -804,7 +907,7 @@ def view_status_code(codes):
             code = int(codes)
         except ValueError:
             return Response("Invalid status code", status=400)
-        return status_code(code)
+        return status_with_optional_body(code)
 
     choices = []
     for choice in codes.split(","):
@@ -821,7 +924,32 @@ def view_status_code(codes):
 
     code = weighted_choice(choices)
 
-    return status_code(code)
+    return status_with_optional_body(code)
+
+
+def status_with_optional_body(code):
+    """status_code(code), plus, with ?body=1 or true, the code's reason phrase:
+    JSON when Accept prefers application/json, plain text otherwise. The body
+    is only ever the standard phrase, never anything the caller sends. Codes
+    without a body (1xx, 204, 205, 304) and those with their own (402, 406,
+    418) are unchanged."""
+    response = status_code(code)
+    if (
+        not is_true_param(request.args.get("body", ""))
+        or code < 200
+        or code in (204, 205, 304, 402, 406, 418)
+    ):
+        return response
+    description = STATUS_PHRASES.get(code, "Unknown Status")
+    response.headers.add("Vary", "Accept")
+    if prefers_json(request.headers.getlist("Accept")):
+        body = json.dumps({"code": code, "description": description}, indent=2)
+        response.headers["Content-Type"] = "application/json"
+    else:
+        body = "%d %s" % (code, description)
+        response.headers["Content-Type"] = "text/plain"
+    response.set_data(body + "\n")
+    return response
 
 
 @app.route("/response-headers", methods=["GET", "POST"])
@@ -831,6 +959,10 @@ def response_headers():
     tags:
       - Response inspection
     parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Respond with this status (200 to 599; not 204, 205 or 3xx), and never send it as a header. Location and Refresh are refused with it.
       - in: query
         name: freeform
         explode: true
@@ -848,16 +980,24 @@ def response_headers():
     """
     # Pending swaggerUI update
     # https://github.com/swagger-api/swagger-ui/issues/3850
-    refusal = content_type_refusal([
-        value
+    status, status_error = response_headers_status()
+    if status_error:
+        return Response(
+            status_error + "\n", status=400, content_type="text/plain; charset=utf-8"
+        )
+    pairs = [
+        (key, value)
         for key, value in request.args.items(multi=True)
-        if key.lower() == "content-type"
+        if not (status is not None and key == "status")
+    ]
+    refusal = content_type_refusal([
+        value for key, value in pairs if key.lower() == "content-type"
     ])
     if refusal:
         return Response(
             refusal + "\n", status=400, content_type="text/plain; charset=utf-8"
         )
-    for key, value in request.args.items(multi=True):
+    for key, value in pairs:
         if key.lower() == "set-cookie":
             error = set_cookie_error(value, request_cookie_host())
             if error:
@@ -866,7 +1006,7 @@ def response_headers():
     # Content-Type is a singleton field.
     headers = MultiDict(
         ("Content-Type" if key.lower() == "content-type" else key, value)
-        for key, value in request.args.items(multi=True)
+        for key, value in pairs
         if not caller_may_not_set(key)
     )
     response = jsonify(list(headers.lists()))
@@ -898,6 +1038,8 @@ def response_headers():
         response_has_changed = response.data != original_data
         if not response_has_changed:
             break
+    if status is not None:
+        response.status_code = status
     return response
 
 
@@ -982,10 +1124,15 @@ def set_cookies():
         description: Redirect to cookie list
     """
 
+    error = cookie_domain_error()
+    if error:
+        return error_response(400, error)
+    attributes = cookie_attributes()
     cookies = dict(request.args.items())
     r = app.make_response(redirect(url_for("view_cookies")))
     for key, value in cookies.items():
-        r.set_cookie(key=key, value=value, secure=secure_cookie())
+        if cookie_attribute_name(key) is None:
+            r.set_cookie(key=key, value=value, **attributes)
 
     return r
 
@@ -1013,15 +1160,20 @@ def delete_cookies():
         description: Redirect to cookie list
     """
 
+    error = cookie_domain_error()
+    if error:
+        return error_response(400, error)
+    attributes = cookie_attributes()
     cookies = dict(request.args.items())
     r = app.make_response(redirect(url_for("view_cookies")))
     for key, value in cookies.items():
-        r.delete_cookie(key=key)
+        if cookie_attribute_name(key) is None:
+            r.delete_cookie(key=key, **attributes)
 
     return r
 
 
-@app.route("/basic-auth/<user>/<passwd>")
+@app.route("/basic-auth/<user>/<passwd>", methods=AUTH_METHODS)
 def basic_auth(user="user", passwd="passwd"):
     """Prompts the user for authorization using HTTP Basic Auth.
     ---
@@ -1049,7 +1201,7 @@ def basic_auth(user="user", passwd="passwd"):
     return jsonify(authenticated=True, user=user)
 
 
-@app.route("/hidden-basic-auth/<user>/<passwd>")
+@app.route("/hidden-basic-auth/<user>/<passwd>", methods=AUTH_METHODS)
 def hidden_basic_auth(user="user", passwd="passwd"):
     """Prompts the user for authorization using HTTP Basic Auth.
     ---
@@ -1076,7 +1228,7 @@ def hidden_basic_auth(user="user", passwd="passwd"):
     return jsonify(authenticated=True, user=user)
 
 
-@app.route("/bearer")
+@app.route("/bearer", methods=AUTH_METHODS)
 def bearer_auth():
     """Prompts the user for authorization using bearer authentication.
     ---
@@ -1107,7 +1259,7 @@ def bearer_auth():
     return jsonify(authenticated=True, token=token)
 
 
-@app.route("/digest-auth/<qop>/<user>/<passwd>")
+@app.route("/digest-auth/<qop>/<user>/<passwd>", methods=AUTH_METHODS)
 def digest_auth_md5(qop=None, user="user", passwd="passwd"):
     """Prompts the user for authorization using Digest Auth.
     ---
@@ -1117,7 +1269,7 @@ def digest_auth_md5(qop=None, user="user", passwd="passwd"):
       - in: path
         name: qop
         type: string
-        description: auth or auth-int
+        description: auth, auth-int, or none for an RFC 2069 challenge
       - in: path
         name: user
         type: string
@@ -1135,7 +1287,7 @@ def digest_auth_md5(qop=None, user="user", passwd="passwd"):
     return digest_auth(qop, user, passwd, "MD5", "never")
 
 
-@app.route("/digest-auth/<qop>/<user>/<passwd>/<algorithm>")
+@app.route("/digest-auth/<qop>/<user>/<passwd>/<algorithm>", methods=AUTH_METHODS)
 def digest_auth_nostale(qop=None, user="user", passwd="passwd", algorithm="MD5"):
     """Prompts the user for authorization using Digest Auth + Algorithm.
     ---
@@ -1145,7 +1297,7 @@ def digest_auth_nostale(qop=None, user="user", passwd="passwd", algorithm="MD5")
       - in: path
         name: qop
         type: string
-        description: auth or auth-int
+        description: auth, auth-int, or none for an RFC 2069 challenge
       - in: path
         name: user
         type: string
@@ -1168,7 +1320,7 @@ def digest_auth_nostale(qop=None, user="user", passwd="passwd", algorithm="MD5")
     return digest_auth(qop, user, passwd, algorithm, "never")
 
 
-@app.route("/digest-auth/<qop>/<user>/<passwd>/<algorithm>/<stale_after>")
+@app.route("/digest-auth/<qop>/<user>/<passwd>/<algorithm>/<stale_after>", methods=AUTH_METHODS)
 def digest_auth(
     qop=None, user="user", passwd="passwd", algorithm="MD5", stale_after="never"
 ):
@@ -1181,7 +1333,7 @@ def digest_auth(
       - in: path
         name: qop
         type: string
-        description: auth or auth-int
+        description: auth, auth-int, or none for an RFC 2069 challenge
       - in: path
         name: user
         type: string
@@ -1213,7 +1365,9 @@ def digest_auth(
     if algorithm not in ("MD5", "SHA-256", "SHA-512"):
         algorithm = "MD5"
 
-    if qop not in ("auth", "auth-int"):
+    if qop == "none":
+        qop = ""
+    elif qop not in ("auth", "auth-int"):
         qop = None
 
     authorization = request.headers.get("Authorization")
@@ -1272,7 +1426,7 @@ def digest_auth(
     return response
 
 
-@app.route("/delay/<delay>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
+@app.route("/delay/<delay>", methods=BODY_ECHO_METHODS)
 def delay_response(delay):
     """Returns a delayed response (max of 10 seconds).
     ---
@@ -1288,13 +1442,25 @@ def delay_response(delay):
       200:
         description: A delayed response.
     """
-    delay = min(float(delay), 10)
+    try:
+        delay = parse_seconds(delay)
+    except ValueError as error:
+        return error_response(400, "invalid duration: %s" % error)
+    if delay < 0:
+        return error_response(
+            400, "invalid duration: duration %gs shorter than 0s" % delay
+        )
+    delay = whole_milliseconds(min(delay, 10))
 
     time.sleep(delay)
 
-    return jsonify(
+    response = jsonify(
         get_dict("url", "args", "form", "data", "origin", "headers", "files")
     )
+    response.headers["Server-Timing"] = server_timing(
+        [("initial_delay", delay, "initial delay")]
+    )
+    return response
 
 
 @app.route("/drip")
@@ -1328,6 +1494,12 @@ def drip():
         description: The amount of time (in seconds) to delay before responding
         default: 2
         required: false
+      - in: query
+        name: chunked
+        type: boolean
+        description: Send the body chunked, without a Content-Length
+        default: false
+        required: false
     produces:
       - application/octet-stream
     responses:
@@ -1343,24 +1515,38 @@ def drip():
         response = Response("number of bytes must be positive", status=400)
         return response
 
-    delay = float(args.get("delay", 0))
+    delay = whole_milliseconds(float(args.get("delay", 0)))
+    duration = whole_milliseconds(duration)
+    # The pause comes between writes, so n bytes take n - 1 pauses; round up
+    # to the nanosecond so the writes fill the duration.
+    if numbytes > 1:
+        pause = -(-round(duration * 1e9) // (numbytes - 1)) / 1e9
+    else:
+        pause = duration
     if delay > 0:
         time.sleep(delay)
 
-    pause = duration / numbytes
-
     def generate_bytes():
+        if pause == 0:
+            yield b"*" * numbytes
+            return
         for i in range(numbytes):
             yield b"*"
-            time.sleep(pause)
+            if i < numbytes - 1:
+                time.sleep(pause)
 
-    response = Response(
-        generate_bytes(),
-        headers={
-            "Content-Type": "application/octet-stream",
-            "Content-Length": str(numbytes),
-        },
-    )
+    headers = {
+        "Content-Type": "application/octet-stream",
+        "Server-Timing": server_timing([
+            ("total_duration", delay + duration, "total request duration"),
+            ("initial_delay", delay, "initial delay"),
+            ("write_duration", duration, "duration of writes after initial delay"),
+            ("pause_per_write", pause, "computed pause between writes"),
+        ]),
+    }
+    if not is_true_param(args.get("chunked", "")):
+        headers["Content-Length"] = str(numbytes)
+    response = Response(generate_bytes(), headers=headers)
 
     response.status_code = code
 
@@ -1487,11 +1673,17 @@ def cache_control(value):
 
 
 @app.route("/encoding/utf8")
+@fixed_content_status
 def encoding():
     """Returns a UTF-8 encoded body.
     ---
     tags:
       - Response formats
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - text/html
     responses:
@@ -1708,11 +1900,17 @@ def links(n):
 
 
 @app.route("/image")
+@fixed_content_status
 def image():
     """Returns a simple image of the type suggest by the Accept header.
     ---
     tags:
       - Images
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - image/webp
       - image/svg+xml
@@ -1736,18 +1934,24 @@ def image():
         return image_svg()
     elif "image/jpeg" in accept:
         return image_jpeg()
-    elif "image/png" in accept or "image/*" in accept:
+    elif "image/png" in accept or "image/*" in accept or accepts_any_type(accept):
         return image_png()
     else:
         return status_code(406)  # Unsupported media type
 
 
 @app.route("/image/png")
+@fixed_content_status
 def image_png():
     """Returns a simple PNG image.
     ---
     tags:
       - Images
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - image/png
     responses:
@@ -1759,11 +1963,17 @@ def image_png():
 
 
 @app.route("/image/jpeg")
+@fixed_content_status
 def image_jpeg():
     """Returns a simple JPEG image.
     ---
     tags:
       - Images
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - image/jpeg
     responses:
@@ -1775,11 +1985,17 @@ def image_jpeg():
 
 
 @app.route("/image/webp")
+@fixed_content_status
 def image_webp():
     """Returns a simple WEBP image.
     ---
     tags:
       - Images
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - image/webp
     responses:
@@ -1791,11 +2007,17 @@ def image_webp():
 
 
 @app.route("/image/svg")
+@fixed_content_status
 def image_svg():
     """Returns a simple SVG image.
     ---
     tags:
       - Images
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - image/svg+xml
     responses:
@@ -1813,11 +2035,17 @@ def resource(filename):
 
 
 @app.route("/xml")
+@fixed_content_status
 def xml():
     """Returns a simple XML document.
     ---
     tags:
       - Response formats
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - application/xml
     responses:
@@ -1830,11 +2058,17 @@ def xml():
 
 
 @app.route("/json")
+@fixed_content_status
 def a_json_endpoint():
     """Returns a simple JSON document.
     ---
     tags:
       - Response formats
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - application/json
     responses:

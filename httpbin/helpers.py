@@ -7,6 +7,7 @@ httpbin.helpers
 This module provides helper functions for httpbin.
 """
 
+import functools
 import json
 import base64
 import re
@@ -17,7 +18,7 @@ from werkzeug.datastructures import Authorization, WWWAuthenticate
 from werkzeug.http import HTTP_STATUS_CODES
 
 from flask import request, make_response, Response
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import parse_qsl, quote, urlparse, urlunparse
 
 
 from .structures import CaseInsensitiveDict
@@ -124,8 +125,8 @@ def get_files():
 
     files = dict()
 
-    for k, v in request.files.items():
-        content_type = request.files[k].content_type or 'application/octet-stream'
+    for k, v in request.files.items(multi=True):
+        content_type = v.content_type or 'application/octet-stream'
         val = json_safe(v.read(), content_type)
         if files.get(k):
             if not isinstance(files[k], list):
@@ -348,12 +349,271 @@ def set_cookie_error(value, host):
             return 'Set-Cookie Domain must be the request host "%s", got "%s"' % (
                 host, domain)
     return None
+def parse_integer(text):
+    """Parse a signed 64-bit decimal integer strictly, or raise ValueError."""
+    if not re.fullmatch(r'[+-]?[0-9]+', text):
+        raise ValueError('parsing %s: invalid syntax' % json.dumps(text))
+    value = int(text)
+    if not -2 ** 63 <= value < 2 ** 63:
+        raise ValueError('parsing %s: value out of range' % json.dumps(text))
+    return value
+
+
+# A number of seconds as httpbin.org reads one: decimal, or hexadecimal with a
+# p exponent, with underscores allowed between digits.
+DECIMAL_SECONDS = re.compile(
+    r'[+-]?(?:\d(?:_?\d)*(?:\.(?:\d(?:_?\d)*)?)?|\.\d(?:_?\d)*)'
+    r'(?:[eE][+-]?\d(?:_?\d)*)?')
+HEX_SECONDS = re.compile(
+    r'[+-]?0[xX](?:_?[0-9a-fA-F])*(?:\.(?:[0-9a-fA-F](?:_?[0-9a-fA-F])*)?)?'
+    r'[pP][+-]?\d(?:_?\d)*')
+INFINITE_SECONDS = re.compile(r'[+-]?inf(?:inity)?', re.IGNORECASE)
+
+
+def parse_seconds(text):
+    """Parse a number of seconds, or raise ValueError. NaN is refused."""
+    if INFINITE_SECONDS.fullmatch(text):
+        return float(text)
+    mantissa = text.lstrip('+-')[2:].partition('p')[0].partition('P')[0]
+    try:
+        if DECIMAL_SECONDS.fullmatch(text):
+            value = float(text.replace('_', ''))
+        elif HEX_SECONDS.fullmatch(text) and any(
+                c in '0123456789abcdefABCDEF' for c in mantissa):
+            value = float.fromhex(text.replace('_', ''))
+        else:
+            raise ValueError('parsing %s: invalid syntax' % json.dumps(text))
+    except OverflowError:
+        value = float('inf')
+    if value in (float('inf'), float('-inf')):
+        raise ValueError('parsing %s: value out of range' % json.dumps(text))
+    return value
+
+
+def servable_status(value):
+    """The status a caller may ask for with ?status=N, or None: one plain
+    number from 200 to 599 where a body is allowed, so not 204, 205 or 3xx."""
+    if not re.fullmatch(r'[0-9]{1,3}', value) or str(int(value)) != value:
+        return None
+    status = int(value)
+    if not 200 <= status <= 599 or status in (204, 205) or 300 <= status < 400:
+        return None
+    return status
+
+
+STATUS_REFUSAL = (
+    'invalid status: use a code from 200 to 599 that allows a body '
+    '(not 204, 205 or 3xx)\n')
+
+
+def response_headers_status():
+    """The ?status=N of /response-headers as (status, None), (None, None) when
+    there is none, or (None, why) when the request must be refused. The status
+    is never sent as a header; with one, Location and Refresh are refused so
+    the answer can never be a redirect."""
+    if 'status' not in request.args:
+        return None, None
+    values = request.args.getlist('status')
+    if len(values) != 1 or not re.fullmatch(r'[0-9]+', values[0]):
+        return None, 'status must be one number from 200 to 599'
+    status = servable_status(values[0])
+    if status is None:
+        return None, 'this status is not allowed'
+    if any(key.lower() in ('location', 'refresh') for key in request.args):
+        return None, 'a header that redirects is not allowed with a status'
+    return status, None
+
+
+def fixed_content_status(view):
+    """Let a fixed-content view answer with ?status=N: the same body and
+    Content-Type under that status. Anything else gets one fixed 400 that
+    does not repeat the value."""
+    @functools.wraps(view)
+    def wrapper(*args, **kwargs):
+        status = None
+        if 'status' in request.args:
+            status = servable_status(request.args['status'])
+            if status is None:
+                return Response(STATUS_REFUSAL, status=400,
+                                content_type='text/plain; charset=utf-8')
+        response = make_response(view(*args, **kwargs))
+        if status is not None and response.status_code == 200:
+            response.status_code = status
+        return response
+    return wrapper
+
+
+def is_true_param(value):
+    """An opt-in query flag: "1" or "true" in any case."""
+    return value == '1' or value.lower() == 'true'
+
+
+def whole_milliseconds(seconds):
+    """Seconds truncated to whole milliseconds, as httpbin.org reads them."""
+    return int(seconds * 1000) / 1000
+
+
+def server_timing(entries):
+    """A Server-Timing header value from (name, seconds, description)."""
+    return ', '.join(
+        '%s;dur=%0.2f;desc="%s"' % (name, seconds * 1000, description)
+        for name, seconds, description in entries
+    )
+
+
+FORM_MEDIA_TYPES = frozenset([
+    'application/x-www-form-urlencoded', 'application/x-url-encoded',
+    'multipart/form-data',
+])
+
+
+def redirect_to_arg(name):
+    """A /redirect-to parameter. A name the query has, in any case and even
+    empty, is the query's (its first value, and the first of names that differ
+    only in case). Otherwise it comes from a urlencoded or multipart form
+    body, files skipped."""
+    name = name.lower()
+    for key, value in request.args.items():
+        if key.lower() == name:
+            return value
+    if request.method in ('GET', 'HEAD') or request.mimetype not in FORM_MEDIA_TYPES:
+        return ''
+    if request.mimetype == 'application/x-url-encoded':
+        fields = parse_qsl(request.get_data(as_text=True), keep_blank_values=True)
+    else:
+        fields = request.form.items(multi=True)
+    for key, value in fields:
+        if key.lower() == name:
+            return value
+    return ''
 
 
 def is_renderable_media_type(content_type):
     """Return true if a browser would render or run this Content-Type."""
     media_type = content_type.split(';', 1)[0].strip().lower()
     return media_type in RENDERABLE_MEDIA_TYPES or media_type.endswith('+xml')
+
+
+# Reason phrases as httpbin.org sends them: Werkzeug's, with the five that differ
+STATUS_PHRASES = dict(HTTP_STATUS_CODES)
+STATUS_PHRASES.update({
+    203: 'Non-Authoritative Information',
+    207: 'Multi-Status',
+    511: 'Network Authentication Required',
+})
+for unlisted in (306, 449):
+    del STATUS_PHRASES[unlisted]
+
+
+def cookie_attribute_name(key):
+    """The lower-cased Name of an attr[Name] query parameter, or None."""
+    if key.startswith('attr[') and key.endswith(']'):
+        # U+0130 lower-cases to "i" in a simple case mapping, as httpbin.org
+        # reads it.
+        return key[5:-1].replace(u'\u0130', 'i').lower()
+    return None
+
+
+def cookie_attributes():
+    """set_cookie() keyword arguments from the attr[Name] query parameters:
+    Domain, HttpOnly, Path, SameSite and Secure, names in any case."""
+    attributes = {'path': '/', 'secure': secure_cookie()}
+    for key in request.args:
+        name, value = cookie_attribute_name(key), request.args[key]
+        if name in ('domain', 'path'):
+            attributes[name] = value or None
+        elif name in ('httponly', 'secure'):
+            attributes[name] = is_true_param(value)
+        elif name == 'samesite' and value.lower() in ('strict', 'lax', 'none'):
+            attributes[name] = value.title()
+    return attributes
+
+
+def cookie_domain_error():
+    """Why /cookies/set or /cookies/delete must refuse the request, or None:
+    an attr[Domain] must be the request host, less one leading dot."""
+    host = request_cookie_host()
+    for key in request.args:
+        if cookie_attribute_name(key) != 'domain':
+            continue
+        for domain in request.args.getlist(key):
+            bare = domain.lower()
+            if bare.startswith('.'):
+                bare = bare[1:]
+            if not host or bare != host:
+                return 'attr[Domain] must be the request host "%s", got "%s"' % (
+                    host, domain)
+    return None
+
+
+def split_outside_quotes(text, separator):
+    """Split a header value on separator, except inside quoted strings."""
+    parts, start, quoted, i = [], 0, False, 0
+    while i < len(text):
+        if quoted and text[i] == '\\':
+            i += 1
+        elif text[i] == '"':
+            quoted = not quoted
+        elif text[i] == separator and not quoted:
+            parts.append(text[start:i])
+            start = i + 1
+        i += 1
+    parts.append(text[start:])
+    return parts
+
+
+def _quality(value, has_value=True):
+    try:
+        q = float(value.strip())
+    except ValueError:
+        return None
+    return q if has_value and q == q else None
+
+
+def accept_quality(params):
+    """The q of an Accept entry: 1 without one, 0 if it can't be read."""
+    for param in params:
+        name, _, value = param.partition('=')
+        if name.strip().lower() != 'q':
+            continue
+        q = _quality(value)
+        return q if q is not None and 0 <= q <= 1 else 0
+    return 1
+
+
+def prefers_json(accept_values):
+    """Return true if Accept ranks application/json above text/plain."""
+    json_q = text_q = 0.0
+    json_pos = text_pos = -1
+    position = 0
+    for field in accept_values:
+        for entry in split_outside_quotes(field, ','):
+            position += 1
+            parts = split_outside_quotes(entry, ';')
+            q = accept_quality(parts[1:])
+            media_type = parts[0].strip().lower()
+            if media_type == 'application/json' and (q > json_q or json_pos < 0):
+                json_q, json_pos = q, position
+            elif media_type == 'text/plain' and (q > text_q or text_pos < 0):
+                text_q, text_pos = q, position
+    return json_q > 0 and (json_q > text_q or (json_q == text_q and json_pos < text_pos))
+
+
+def accepts_any_type(accept):
+    """Return true if Accept has a */* range that is not refused (q above 0)."""
+    for media_range in split_outside_quotes(accept, ','):
+        parts = split_outside_quotes(media_range, ';')
+        if parts[0].strip() != '*/*':
+            continue
+        quality = 1.0
+        for param in parts[1:]:
+            name, has_value, value = param.partition('=')
+            if name.strip().lower() == 'q':
+                q = _quality(value, bool(has_value))
+                quality = 0 if q is None or q > 1 else q
+        if quality > 0:
+            return True
+    return False
 
 
 def status_code(code):
@@ -405,6 +665,58 @@ def status_code(code):
             r.headers.update(m['headers'])
 
     return r
+
+
+def request_uri():
+    """The request-target as the client sent it: the raw path, still
+    percent-encoded, and the raw query."""
+    raw = request.environ.get('RAW_URI') or request.environ.get('REQUEST_URI')
+    if raw and '?' in raw:
+        return raw
+    uri = raw or quote(request.script_root + request.path)
+    query = request.environ.get('QUERY_STRING', '')
+    return uri + '?' + query if query else uri
+
+
+def canonical_header_name(name):
+    """x-custom-thing -> X-Custom-Thing"""
+    return '-'.join(part[:1].upper() + part[1:].lower() for part in name.split('-'))
+
+
+# Written on their own lines before the sorted headers, or left out
+DUMP_SEPARATE_HEADERS = frozenset(['Host', 'Transfer-Encoding', 'Trailer'])
+
+
+def request_dump():
+    """The request in its HTTP/1.x form, as /dump/request returns it: the
+    request line, Host, then the other headers sorted by name, and the body.
+    It is approximate: the WSGI server has already merged repeated headers
+    and lost the original case and order of the header names."""
+    environ = request.environ
+    lines = [
+        '%s %s %s' % (request.method, request_uri(),
+                      environ.get('SERVER_PROTOCOL', 'HTTP/1.1')),
+        'Host: ' + request.host,
+    ]
+    chunked = environ.get('HTTP_TRANSFER_ENCODING', '').lower() == 'chunked'
+    if chunked:
+        lines.append('Transfer-Encoding: chunked')
+    headers = []
+    for key, value in environ.items():
+        if key.startswith('HTTP_'):
+            name = key[5:]
+        elif key in ('CONTENT_TYPE', 'CONTENT_LENGTH') and value:
+            name = key
+        else:
+            continue
+        name = canonical_header_name(name.replace('_', '-'))
+        if name not in DUMP_SEPARATE_HEADERS:
+            headers.append((name, value))
+    lines += ['%s: %s' % header for header in sorted(headers, key=lambda h: h[0])]
+    body = request.get_data()
+    if chunked:
+        body = (b'%x\r\n%s\r\n' % (len(body), body) if body else b'') + b'0\r\n\r\n'
+    return ('\r\n'.join(lines) + '\r\n\r\n').encode('latin-1') + body
 
 
 def check_basic_auth(user, passwd):
@@ -634,13 +946,17 @@ def digest_challenge_response(app, qop, algorithm, stale = False):
     ]), algorithm)
     opaque = H(os.urandom(10), algorithm)
 
-    auth = WWWAuthenticate("digest", {
+    parameters = {
         'realm': 'me@kennethreitz.com',
         'nonce': nonce,
         'qop': 'auth, auth-int' if qop is None else qop,
         'opaque': opaque,
         'algorithm': algorithm,
         'stale': 'TRUE' if stale else 'FALSE',
-    })
+    }
+    if qop == '':
+        # An RFC 2069 challenge, for testing a client's fallback
+        del parameters['qop']
+    auth = WWWAuthenticate("digest", parameters)
     response.headers['WWW-Authenticate'] = auth.to_header()
     return response

@@ -40,6 +40,10 @@ server = [
 test = [
     "requests>=2.32.2",
 ]
+# /zstd needs zstd support: built into Python 3.14, a package before that
+zstd = [
+    "backports.zstd>=1.0; python_version < '3.14'",
+]
 
 [project.urls]
 Repository = "https://github.com/postmanlabs/httpbin"

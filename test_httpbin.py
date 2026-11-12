@@ -6,7 +6,7 @@ import unittest
 import contextlib
 import wsgiref.validate
 import json
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 from werkzeug.datastructures import Headers
 from werkzeug.http import parse_dict_header
 from werkzeug.test import Client
@@ -476,6 +476,69 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.post('/post', data=u'оживлённым'.encode('utf-8'))
         self.assertEqual(json.loads(response.data.decode('utf-8'))['data'], u'оживлённым')
 
+    def test_dump_request(self):
+        response = self.app.get('/dump/request?a=1&b=%20x',
+                                headers={'x-custom-thing': 'v1'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get('Content-Type'),
+                         'text/plain; charset=utf-8')
+        self.assertTrue(response.data.startswith(
+            b'GET /dump/request?a=1&b=%20x HTTP/1.1\r\nHost: localhost\r\n'),
+            response.data)
+        self.assertIn(b'\r\nX-Custom-Thing: v1\r\n', response.data)
+        self.assertTrue(response.data.endswith(b'\r\n\r\n'))
+
+    def test_dump_request_takes_any_method(self):
+        for method in ('ARBITRARY-METHOD', 'PROPFIND', 'QUERY'):
+            response = self.app.open('/dump/request', method=method)
+            self.assertEqual(response.status_code, 200, method)
+            self.assertTrue(response.data.startswith(
+                method.encode() + b' /dump/request HTTP/1.1\r\n'), method)
+
+    def test_dump_request_shows_each_part_type(self):
+        data = (
+            '--bound\r\n'
+            'Content-Disposition: form-data; name="f"; filename="a.txt"\r\n'
+            'Content-Type: text/x-foo\r\n\r\nhello\r\n'
+            '--bound--\r\n'
+        )
+        response = self.app.post(
+            '/dump/request', data=data,
+            content_type='multipart/form-data; boundary=bound')
+        self.assertIn(b'\r\nContent-Type: multipart/form-data; boundary=bound\r\n',
+                      response.data)
+        self.assertTrue(response.data.endswith(data.encode()))
+        self.assertIn(b'Content-Type: text/x-foo\r\n\r\nhello', response.data)
+
+    def test_query_method_echoes_like_post(self):
+        for path in ('/anything', '/anything/x', '/delay/0'):
+            response = self.app.open(
+                path + '?a=1', method='QUERY', data='{"k": "v"}',
+                content_type='application/json')
+            self.assertEqual(response.status_code, 200, path)
+            echoed = json.loads(response.data.decode('utf-8'))
+            self.assertEqual(echoed['data'], '{"k": "v"}', path)
+            self.assertEqual(echoed['args'], {'a': '1'}, path)
+        echoed = json.loads(self.app.open('/anything', method='QUERY').data.decode('utf-8'))
+        self.assertEqual(echoed['method'], 'QUERY')
+        response = self.app.open('/get', method='QUERY')
+        self.assertEqual(response.status_code, 405)
+
+    def test_post_repeated_file_field_echoes_every_file(self):
+        data = (
+            '--bound\r\n'
+            'Content-Disposition: form-data; name="f"; filename="a.txt"\r\n'
+            'Content-Type: text/plain\r\n\r\nfirst\r\n'
+            '--bound\r\n'
+            'Content-Disposition: form-data; name="f"; filename="b.bin"\r\n'
+            'Content-Type: application/x-thing\r\n\r\n\xff\xfe\r\n'
+            '--bound--\r\n'
+        ).encode('latin-1')
+        response = self.app.post(
+            '/post', data=data, content_type='multipart/form-data; boundary=bound')
+        files = json.loads(response.data.decode('utf-8'))['files']
+        self.assertEqual(files['f'], ['first', 'data:application/x-thing;base64,//4='])
+
     def test_post_file_with_missing_content_type_header(self):
         # I built up the form data manually here because I couldn't find a way
         # to convince the werkzeug test client to send files without the
@@ -572,6 +635,97 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertTrue({'Accept', 'Host', 'User-Agent'}.issubset(set(response.json['headers'].keys())))
         self.assertNotIn('Via', response.json)
 
+    def test_show_env_is_documented(self):
+        home = self.app.get('/').data.decode('utf-8')
+        self.assertIn('<h2>Proxy headers</h2>', home)
+        self.assertIn('/headers?show_env=1', home)
+        spec = json.loads(self.app.get('/spec.json').data.decode('utf-8'))
+        for path in ('/get', '/headers'):
+            names = [p['name'] for p in spec['paths'][path]['get'].get('parameters', [])]
+            self.assertIn('show_env', names, path)
+
+    FIXED_CONTENT_PATHS = (
+        '/json', '/xml', '/html', '/robots.txt', '/deny', '/encoding/utf8',
+        '/image', '/image/png', '/image/jpeg', '/image/webp', '/image/svg',
+    )
+
+    def test_fixed_content_takes_a_status(self):
+        for path in self.FIXED_CONTENT_PATHS:
+            normal = self.app.get(path)
+            self.assertEqual(normal.status_code, 200, path)
+            for status in (200, 201, 404, 500, 503, 599):
+                response = self.app.get('%s?status=%d' % (path, status))
+                self.assertEqual(response.status_code, status, path)
+                self.assertEqual(response.data, normal.data, path)
+                self.assertEqual(response.headers['Content-Type'],
+                                 normal.headers['Content-Type'], path)
+            head = self.app.head(path + '?status=500')
+            self.assertEqual(head.status_code, 500, path)
+            self.assertEqual(head.data, b'', path)
+
+    def test_fixed_content_refuses_other_statuses(self):
+        for path in self.FIXED_CONTENT_PATHS:
+            normal = self.app.get(path).data
+            refusal = None
+            for value in ('100', '101', '199', '204', '205', '300', '301',
+                          '302', '304', '307', '399', '0', '600', '-200',
+                          '+500', '0500', '500%20', '5e2', 'abc', '',
+                          '%ZZ', '500%', '99999999999999999999'):
+                response = self.app.get('%s?status=%s' % (path, value))
+                self.assertEqual(response.status_code, 400, (path, value))
+                self.assertEqual(response.headers['Content-Type'],
+                                 'text/plain; charset=utf-8')
+                # one fixed answer for every refusal: the value is not repeated
+                refusal = refusal or response.data
+                self.assertEqual(response.data, refusal, (path, value))
+                self.assertNotEqual(response.data, normal)
+
+    def test_fixed_content_status_leaves_a_406_alone(self):
+        response = self.app.get('/image?status=500',
+                                headers={'Accept': 'text/plain'})
+        self.assertEqual(response.status_code, 406)
+
+    def test_response_headers_takes_a_status(self):
+        response = self.app.get('/response-headers?status=503&Retry-After=5')
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.headers['Retry-After'], '5')
+        self.assertNotIn('Status', response.headers)
+        self.assertNotIn('status', json.loads(response.data.decode('utf-8')))
+        self.assertEqual(
+            self.app.get('/response-headers?status=401&WWW-Authenticate=x'
+                         ).status_code, 401)
+        # another spelling is an ordinary header
+        other = self.app.get('/response-headers?Status=503')
+        self.assertEqual(other.status_code, 200)
+        self.assertEqual(other.headers['Status'], '503')
+        # no status: nothing changes
+        self.assertEqual(self.app.get('/response-headers?a=b').status_code, 200)
+
+    def test_response_headers_refuses_a_bad_status(self):
+        for query in ('status=204', 'status=205', 'status=301', 'status=100',
+                      'status=abc', 'status=', 'status=%ZZ', 'status=0500',
+                      'status=500&status=503', 'status=600'):
+            response = self.app.get('/response-headers?' + query)
+            self.assertEqual(response.status_code, 400, query)
+            self.assertEqual(response.headers['Content-Type'],
+                             'text/plain; charset=utf-8')
+            self.assertNotIn(b'500', response.data, query)
+            self.assertNotIn(b'abc', response.data, query)
+        # never a redirect: Location and Refresh are refused with a status
+        for query in ('status=302&Location=/x', 'status=200&location=/x',
+                      'status=200&Refresh=0;url=/x', 'status=200&REFRESH=1'):
+            response = self.app.get('/response-headers?' + query)
+            self.assertEqual(response.status_code, 400, query)
+            self.assertNotIn('Location', response.headers)
+        # without a status Location is still allowed
+        self.assertEqual(
+            self.app.get('/response-headers?Location=/x').headers['Location'],
+            '/x')
+        # the Content-Type rules still apply
+        self.assertEqual(
+            self.app.get('/response-headers?status=503&Content-Type=text/html'
+                         ).status_code, 400)
+
     def test_headers_show_env(self):
         headers = {
             "Accept": "*/*",
@@ -597,6 +751,28 @@ class HttpbinTestCase(unittest.TestCase):
     def test_brotli(self):
         response = self.app.get('/brotli')
         self.assertEqual(response.status_code, 200)
+
+    def test_zstd(self):
+        from httpbin import filters
+        if filters._zstd is None:
+            self.skipTest('no zstd support in this Python')
+        response = self.app.get('/zstd', headers={'User-Agent': 'test'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers['Content-Encoding'], 'zstd')
+        self.assertEqual(response.headers['Content-Length'], str(len(response.data)))
+        body = json.loads(filters._zstd.decompress(response.data))
+        self.assertTrue(body['zstd'])
+        self.assertEqual(body['headers']['User-Agent'], 'test')
+        self.assertEqual(body['method'], 'GET')
+
+    def test_zstd_without_support_says_so(self):
+        from httpbin import filters
+        saved, filters._zstd = filters._zstd, None
+        try:
+            response = self.app.get('/zstd')
+        finally:
+            filters._zstd = saved
+        self.assertEqual(response.status_code, 501)
 
     def test_bearer_auth(self):
         token = 'abcd1234'
@@ -775,6 +951,49 @@ class HttpbinTestCase(unittest.TestCase):
                 header, 'someone-else', 'passwd', qop, uri, None)
             self.assertEqual(response.status_code, 401, qop)
 
+    def test_auth_routes_take_every_method(self):
+        """Basic, hidden basic, bearer and digest auth answer GET, POST, PUT,
+        DELETE, PATCH and TRACE alike; other methods are refused."""
+        basic = 'Basic ' + base64.b64encode(b'user:passwd').decode()
+        wrong = 'Basic ' + base64.b64encode(b'user:wrong').decode()
+        for method in ('GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'):
+            def call(path, auth=None, body=None):
+                headers = {'Authorization': auth} if auth else {}
+                return self.app.open(
+                    path, method=method, headers=headers, data=body,
+                    environ_base={'REMOTE_ADDR': '127.0.0.1'})
+
+            self.assertEqual(call('/basic-auth/user/passwd', basic).status_code, 200, method)
+            self.assertEqual(call('/basic-auth/user/passwd', wrong).status_code, 401, method)
+            self.assertEqual(call('/hidden-basic-auth/user/passwd', basic).status_code, 200, method)
+            self.assertEqual(call('/hidden-basic-auth/user/passwd', wrong).status_code, 404, method)
+            self.assertEqual(call('/bearer', 'Bearer token').status_code, 200, method)
+            self.assertEqual(call('/bearer').status_code, 401, method)
+
+            for qop, body in (('auth', None), ('auth-int', b'payload'), ('none', None)):
+                uri = '/digest-auth/%s/user/passwd' % qop
+                challenge = call(uri)
+                self.assertEqual(challenge.status_code, 401, (method, qop))
+                header = challenge.headers['WWW-Authenticate']
+                d = parse_dict_header(header.split(None, 1)[1])
+                real_qop = None if qop == 'none' else qop
+                cnonce, nc = (('abcdef', '00000001') if real_qop else (None, None))
+                auth = _make_digest_auth_header(
+                    'user', 'passwd', method, uri, d['nonce'], d['realm'],
+                    d['opaque'], d['algorithm'], real_qop, cnonce, nc, body)
+                self.assertEqual(call(uri, auth, body).status_code, 200, (method, qop))
+
+        for path in ('/basic-auth/user/passwd', '/bearer', '/digest-auth/auth/user/passwd'):
+            self.assertEqual(self.app.open(path, method='PROPFIND').status_code, 405)
+
+    def test_digest_auth_none_sends_an_rfc_2069_challenge(self):
+        uri = '/digest-auth/none/user/passwd'
+        header = self._test_digest_auth_first_challenge(uri).headers['WWW-Authenticate']
+        self.assertNotIn('qop', header)
+        response, _ = self._test_digest_response_for_auth_request(
+            header, 'user', 'passwd', None, uri, None)
+        self.assertEqual(response.status_code, 200)
+
     def test_digest_auth_wrong_pass(self):
         """Test different combinations of digest auth parameters"""
         username = 'user'
@@ -801,11 +1020,82 @@ class HttpbinTestCase(unittest.TestCase):
         header = reused_nonce_response.headers.get('WWW-Authenticate')
         self.assertIn('stale=TRUE', header)
 
+    def test_set_cookies_with_attributes(self):
+        response = self.app.get(
+            '/cookies/set?a=1&attr[HttpOnly]=true&attr[path]=/x&attr[SameSite]=lax'
+            '&attr[Secure]=1&b=2')
+        self.assertEqual(response.headers.getlist('Set-Cookie'), [
+            'a=1; Secure; HttpOnly; Path=/x; SameSite=Lax',
+            'b=2; Secure; HttpOnly; Path=/x; SameSite=Lax',
+        ])
+
+    def test_delete_cookies_with_attributes(self):
+        response = self.app.get('/cookies/delete?a&attr[Path]=/x')
+        cookie = response.headers['Set-Cookie']
+        self.assertTrue(cookie.startswith('a=; '))
+        self.assertIn('Max-Age=0', cookie)
+        self.assertTrue(cookie.endswith('; Path=/x'))
+
+    def test_cookie_domain_must_be_the_request_host(self):
+        host = urlparse(self.app.get('/get').json['url']).hostname
+        response = self.app.get('/cookies/set?a=1&attr[Domain]=.' + host.upper())
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('Domain=', response.headers['Set-Cookie'])
+        for path in '/cookies/set', '/cookies/delete':
+            response = self.app.get(path + '?a=1&attr[Domain]=example.com')
+            self.assertEqual(response.status_code, 400)
+            self.assertNotIn('Set-Cookie', response.headers)
+            self.assertTrue(response.json['detail'].startswith(
+                'attr[Domain] must be the request host'))
+
+    def test_delay_with_an_invalid_duration_is_a_400(self):
+        for value in ('abc', '_1', '1_', '1..2', '0x1', '1e', '0b1', '1e400', '%201',
+                      '-1', '-0.5'):
+            response = self.app.get('/delay/' + value)
+            self.assertEqual(response.status_code, 400, value)
+            error = json.loads(response.data.decode('utf-8'))
+            self.assertTrue(error['detail'].startswith('invalid duration: '))
+
+    def test_delay_accepts_the_number_forms_httpbin_org_accepts(self):
+        for value in ('0', '0.1', '.1', '1e-1', '+0.1', '-0', '1.', '0_0',
+                      '0.0_1', '0x1p-3'):
+            response = self.app.get('/delay/' + value)
+            self.assertEqual(response.status_code, 200, value)
+
     def test_drip(self):
         response = self.app.get('/drip?numbytes=400&duration=2&delay=1')
         self.assertEqual(response.content_length, 400)
         self.assertEqual(len(self.get_data(response)), 400)
         self.assertEqual(response.status_code, 200)
+
+    def test_delay_reports_server_timing(self):
+        response = self.app.get('/delay/0.0019')
+        self.assertEqual(response.headers['Server-Timing'],
+                         'initial_delay;dur=1.00;desc="initial delay"')
+
+    def test_drip_reports_server_timing(self):
+        response = self.app.get('/drip?numbytes=7&duration=0.2&delay=0.1')
+        self.assertEqual(len(self.get_data(response)), 7)
+        self.assertEqual(response.headers['Server-Timing'], ', '.join([
+            'total_duration;dur=300.00;desc="total request duration"',
+            'initial_delay;dur=100.00;desc="initial delay"',
+            'write_duration;dur=200.00;desc="duration of writes after initial delay"',
+            'pause_per_write;dur=33.33;desc="computed pause between writes"',
+        ]))
+
+    def test_drip_with_no_duration_writes_every_byte(self):
+        response = self.app.get('/drip?numbytes=5&duration=0')
+        self.assertEqual(self.get_data(response), b'*****')
+        self.assertIn('pause_per_write;dur=0.00;',
+                      response.headers['Server-Timing'])
+
+    def test_drip_chunked_has_no_content_length(self):
+        for flag in ('1', 'true', 'TRUE'):
+            response = self.app.get('/drip?numbytes=5&duration=0&chunked=' + flag)
+            self.assertNotIn('Content-Length', response.headers, flag)
+            self.assertEqual(self.get_data(response), b'*****')
+        response = self.app.get('/drip?numbytes=5&duration=0&chunked=yes')
+        self.assertEqual(response.headers['Content-Length'], '5')
 
     def test_drip_with_invalid_numbytes(self):
         for bad_num in -1, 0:
@@ -891,6 +1181,46 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(
             response.headers.get('x-more-info'), 'http://tools.ietf.org/html/rfc2324'
         )
+
+    def test_status_body_is_opt_in(self):
+        response = self.app.get('/status/500?body=1')
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.headers.get('Content-Type'), 'text/plain')
+        self.assertEqual(response.data, b'500 Internal Server Error\n')
+        self.assertIn('Accept', response.headers.get_all('Vary'))
+        response = self.app.get('/status/404?body=true',
+                                headers={'Accept': 'application/json'})
+        self.assertEqual(response.headers.get('Content-Type'), 'application/json')
+        self.assertEqual(json.loads(response.data.decode('utf-8')),
+                         {'code': 404, 'description': 'Not Found'})
+        response = self.app.get('/status/401?body=1')
+        self.assertEqual(response.headers.get('WWW-Authenticate'),
+                         'Basic realm="Fake Realm"')
+        self.assertEqual(response.data, b'401 Unauthorized\n')
+        for value in ('0', 'false', 'yes', ''):
+            response = self.app.get('/status/500?body=' + value)
+            self.assertEqual(response.data, b'', value)
+        for code in (204, 304):
+            response = self.app.get('/status/%d?body=1' % code)
+            self.assertEqual(response.data, b'', code)
+        response = self.app.get('/status/418?body=1')
+        self.assertIn(b'teapot', response.data)
+
+    def test_status_ignores_a_trailing_path(self):
+        for method in ('GET', 'POST'):
+            response = self.app.open('/status/201/foo/bar', method=method)
+            self.assertEqual(response.status_code, 201, method)
+        response = self.app.get('/status/abc/foo')
+        self.assertEqual(response.status_code, 400)
+
+    def test_image_accepts_any_type(self):
+        for accept in ('*/*', 'text/html,image/avif,*/*;q=0.8'):
+            response = self.app.get('/image', headers={'Accept': accept})
+            self.assertEqual(response.status_code, 200, accept)
+            self.assertEqual(response.headers.get('Content-Type'), 'image/png')
+        for accept in ('*/*;q=0', 'image/avif', 'text/html'):
+            response = self.app.get('/image', headers={'Accept': accept})
+            self.assertEqual(response.status_code, 406, accept)
 
     def test_status_endpoint_invalid_code(self):
         response = self.app.get(path='/status/4!9')
@@ -1045,6 +1375,50 @@ class HttpbinTestCase(unittest.TestCase):
                 b'Allowed redirect destinations:\n- example.com\n- example.org')
         finally:
             httpbin.app.config['ALLOWED_REDIRECT_DOMAINS'] = frozenset()
+
+    def test_redirect_to_reads_a_posted_form(self):
+        for method in ('POST', 'PUT', 'PATCH', 'DELETE'):
+            response = self.app.open(
+                '/redirect-to', method=method,
+                data={'url': '/get', 'status_code': '307'})
+            self.assertEqual(response.status_code, 307, method)
+            self.assertEqual(response.headers.get('Location'), '/get', method)
+        data = (
+            '--bound\r\n'
+            'Content-Disposition: form-data; name="f"; filename="url.txt"\r\n\r\n/x\r\n'
+            '--bound\r\n'
+            'Content-Disposition: form-data; name="URL"\r\n\r\n/anything\r\n'
+            '--bound--\r\n'
+        )
+        response = self.app.post(
+            '/redirect-to', data=data,
+            content_type='multipart/form-data; boundary=bound')
+        self.assertEqual(response.headers.get('Location'), '/anything')
+        response = self.app.post('/redirect-to?url=/get', data={'url': '/anything'})
+        self.assertEqual(response.headers.get('Location'), '/get')
+        response = self.app.post('/redirect-to', data='{"url": "/get"}',
+                                 content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_redirect_to_without_a_url_is_a_400(self):
+        for path in ('/redirect-to', '/redirect-to?url=', '/redirect-to?status_code=307'):
+            response = self.app.get(path)
+            self.assertEqual(response.status_code, 400, path)
+            error = json.loads(response.data.decode('utf-8'))
+            self.assertEqual(error['detail'], 'missing required query parameter: url')
+        response = self.app.post('/redirect-to', data={'other': '1'})
+        self.assertEqual(response.status_code, 400)
+
+    def test_redirect_to_with_an_invalid_status_code_is_a_400(self):
+        for value in ('abc', '3.0', '1_0', '99999999999999999999'):
+            response = self.app.get(
+                '/redirect-to?' + urlencode({'url': '/get', 'status_code': value}))
+            self.assertEqual(response.status_code, 400, value)
+            self.assertIsNone(response.headers.get('Location'))
+        for value, status in (('', 302), ('200', 302), ('+307', 307)):
+            response = self.app.get(
+                '/redirect-to?' + urlencode({'url': '/get', 'status_code': value}))
+            self.assertEqual(response.status_code, status, value)
 
     def test_redirect_to_post(self):
         response = self.app.post('/redirect-to?url=/post&status_code=307',
