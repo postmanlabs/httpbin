@@ -724,6 +724,15 @@ class HttpbinTestCase(unittest.TestCase):
             response.headers.get('x-more-info'), 'http://tools.ietf.org/html/rfc2324'
         )
 
+    def test_image_accepts_any_type(self):
+        for accept in ('*/*', 'text/html,image/avif,*/*;q=0.8'):
+            response = self.app.get('/image', headers={'Accept': accept})
+            self.assertEqual(response.status_code, 200, accept)
+            self.assertEqual(response.headers.get('Content-Type'), 'image/png')
+        for accept in ('*/*;q=0', 'image/avif', 'text/html'):
+            response = self.app.get('/image', headers={'Accept': accept})
+            self.assertEqual(response.status_code, 406, accept)
+
     def test_status_endpoint_invalid_code(self):
         response = self.app.get(path='/status/4!9')
         self.assertEqual(response.status_code, 400)

@@ -48,6 +48,7 @@ from .helpers import (
     parse_authorization_header,
     is_renderable_media_type,
     caller_may_not_set,
+    accepts_any_type,
 )
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
@@ -1671,7 +1672,7 @@ def image():
         return image_svg()
     elif "image/jpeg" in accept:
         return image_jpeg()
-    elif "image/png" in accept or "image/*" in accept:
+    elif "image/png" in accept or "image/*" in accept or accepts_any_type(accept):
         return image_png()
     else:
         return status_code(406)  # Unsupported media type

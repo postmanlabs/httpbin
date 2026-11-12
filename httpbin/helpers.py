@@ -239,6 +239,47 @@ def is_renderable_media_type(content_type):
     return media_type in RENDERABLE_MEDIA_TYPES or media_type.endswith('+xml')
 
 
+def split_outside_quotes(text, separator):
+    """Split a header value on separator, except inside quoted strings."""
+    parts, start, quoted, i = [], 0, False, 0
+    while i < len(text):
+        if quoted and text[i] == '\\':
+            i += 1
+        elif text[i] == '"':
+            quoted = not quoted
+        elif text[i] == separator and not quoted:
+            parts.append(text[start:i])
+            start = i + 1
+        i += 1
+    parts.append(text[start:])
+    return parts
+
+
+def _quality(value, has_value=True):
+    try:
+        q = float(value.strip())
+    except ValueError:
+        return None
+    return q if has_value and q == q else None
+
+
+def accepts_any_type(accept):
+    """Return true if Accept has a */* range that is not refused (q above 0)."""
+    for media_range in split_outside_quotes(accept, ','):
+        parts = split_outside_quotes(media_range, ';')
+        if parts[0].strip() != '*/*':
+            continue
+        quality = 1.0
+        for param in parts[1:]:
+            name, has_value, value = param.partition('=')
+            if name.strip().lower() == 'q':
+                q = _quality(value, bool(has_value))
+                quality = 0 if q is None or q > 1 else q
+        if quality > 0:
+            return True
+    return False
+
+
 def status_code(code):
     """Returns response object of given status code."""
 
