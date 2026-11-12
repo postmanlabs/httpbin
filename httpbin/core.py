@@ -735,7 +735,12 @@ def stream_n_messages(n):
 @app.route(
     "/status/<codes>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
 )
-def view_status_code(codes):
+@app.route(
+    # a client that appends a path to the URL still gets the status
+    "/status/<codes>/<path:rest>",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"],
+)
+def view_status_code(codes, rest=None):
     """Return status code or random status code if more than one are given
     ---
     tags:

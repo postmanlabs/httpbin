@@ -724,6 +724,13 @@ class HttpbinTestCase(unittest.TestCase):
             response.headers.get('x-more-info'), 'http://tools.ietf.org/html/rfc2324'
         )
 
+    def test_status_ignores_a_trailing_path(self):
+        for method in ('GET', 'POST'):
+            response = self.app.open('/status/201/foo/bar', method=method)
+            self.assertEqual(response.status_code, 201, method)
+        response = self.app.get('/status/abc/foo')
+        self.assertEqual(response.status_code, 400)
+
     def test_image_accepts_any_type(self):
         for accept in ('*/*', 'text/html,image/avif,*/*;q=0.8'):
             response = self.app.get('/image', headers={'Accept': accept})
