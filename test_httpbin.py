@@ -702,6 +702,17 @@ class HttpbinTestCase(unittest.TestCase):
         form_data = json.loads(response.data.decode('utf-8'))['form']
         self.assertEqual(form_data, {'name': 'kevin'})
 
+    def test_ascii_art_is_unchanged(self):
+        # SHA-256 of the teapot and the /deny art as they were served before
+        # their source became raw strings
+        teapot = self.app.get('/status/418').data
+        self.assertEqual(sha256(teapot).hexdigest(),
+                         '30a535fafb69211b175e917fcbed68bb055368f1509535a7bb986f2dd961bb53')
+        self.assertIn(b'    \\_;`"---"`|//\n', teapot)
+        deny = self.app.get('/deny').data
+        self.assertEqual(sha256(deny).hexdigest(),
+                         '2c1ec08e80c781038b99dcdf0d8b1f568d949a599ed2dfd9fa44c7e5d7c77505')
+
     def test_methods__to_status_endpoint(self):
         methods = [
             'GET',

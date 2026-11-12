@@ -22,17 +22,17 @@ from urllib.parse import urlparse, urlunparse
 from .structures import CaseInsensitiveDict
 
 
-ASCII_ART = """
+ASCII_ART = r'''
     -=[ teapot ]=-
 
        _...._
      .'  _ _ `.
     | ."` ^ `". _,
-    \\_;`"---"`|//
+    \_;`"---"`|//
       |       ;/
-      \\_     _/
-        `\"\"\"`
-"""
+      \_     _/
+        `"""`
+'''
 
 REDIRECT_LOCATION = '/redirect/1'
 
@@ -80,14 +80,14 @@ ACCEPTED_MEDIA_TYPES = [
     'image/*'
 ]
 
-ANGRY_ASCII ="""
+ANGRY_ASCII = r"""
           .-''''''-.
         .' _      _ '.
-       /   O      O   \\
+       /   O      O   \
       :                :
       |                |
       :       __       :
-       \\  .-"`  `"-.  /
+       \  .-"`  `"-.  /
         '.          .'
           '-......-'
      YOU SHOULDN'T BE HERE
