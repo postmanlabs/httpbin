@@ -16,7 +16,7 @@ from hashlib import md5, sha256, sha512
 from werkzeug.datastructures import Authorization, WWWAuthenticate
 from werkzeug.http import HTTP_STATUS_CODES
 
-from flask import request, make_response
+from flask import request, make_response, Response
 from urllib.parse import quote, urlparse, urlunparse
 
 
@@ -251,9 +251,69 @@ for unlisted in (306, 449):
     del STATUS_PHRASES[unlisted]
 
 
+def error_response(status_code, detail):
+    """A JSON error in httpbin.org's format."""
+    body = json.dumps({
+        'status_code': status_code,
+        'error': HTTP_STATUS_CODES[status_code],
+        'detail': detail,
+    }, indent=2)
+    return Response(body + '\n', status=status_code,
+                    content_type='application/json')
+
+
 def is_true_param(value):
     """An opt-in query flag: "1" or "true" in any case."""
     return value == '1' or value.lower() == 'true'
+
+
+def request_cookie_host():
+    """The request's host name, lower-cased and without its port."""
+    host = request.host.lower()
+    if host.startswith('['):
+        return host[1:].split(']', 1)[0]
+    return host.split(':', 1)[0]
+
+
+def cookie_attribute_name(key):
+    """The lower-cased Name of an attr[Name] query parameter, or None."""
+    if key.startswith('attr[') and key.endswith(']'):
+        # U+0130 lower-cases to "i" in a simple case mapping, as httpbin.org
+        # reads it.
+        return key[5:-1].replace(u'\u0130', 'i').lower()
+    return None
+
+
+def cookie_attributes():
+    """set_cookie() keyword arguments from the attr[Name] query parameters:
+    Domain, HttpOnly, Path, SameSite and Secure, names in any case."""
+    attributes = {'path': '/', 'secure': secure_cookie()}
+    for key in request.args:
+        name, value = cookie_attribute_name(key), request.args[key]
+        if name in ('domain', 'path'):
+            attributes[name] = value or None
+        elif name in ('httponly', 'secure'):
+            attributes[name] = is_true_param(value)
+        elif name == 'samesite' and value.lower() in ('strict', 'lax', 'none'):
+            attributes[name] = value.title()
+    return attributes
+
+
+def cookie_domain_error():
+    """Why /cookies/set or /cookies/delete must refuse the request, or None:
+    an attr[Domain] must be the request host, less one leading dot."""
+    host = request_cookie_host()
+    for key in request.args:
+        if cookie_attribute_name(key) != 'domain':
+            continue
+        for domain in request.args.getlist(key):
+            bare = domain.lower()
+            if bare.startswith('.'):
+                bare = bare[1:]
+            if not host or bare != host:
+                return 'attr[Domain] must be the request host "%s", got "%s"' % (
+                    host, domain)
+    return None
 
 
 def split_outside_quotes(text, separator):

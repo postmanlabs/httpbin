@@ -51,6 +51,10 @@ from .helpers import (
     caller_may_not_set,
     STATUS_PHRASES,
     is_true_param,
+    error_response,
+    cookie_attribute_name,
+    cookie_attributes,
+    cookie_domain_error,
     prefers_json,
     accepts_any_type,
 )
@@ -979,10 +983,15 @@ def set_cookies():
         description: Redirect to cookie list
     """
 
+    error = cookie_domain_error()
+    if error:
+        return error_response(400, error)
+    attributes = cookie_attributes()
     cookies = dict(request.args.items())
     r = app.make_response(redirect(url_for("view_cookies")))
     for key, value in cookies.items():
-        r.set_cookie(key=key, value=value, secure=secure_cookie())
+        if cookie_attribute_name(key) is None:
+            r.set_cookie(key=key, value=value, **attributes)
 
     return r
 
@@ -1010,10 +1019,15 @@ def delete_cookies():
         description: Redirect to cookie list
     """
 
+    error = cookie_domain_error()
+    if error:
+        return error_response(400, error)
+    attributes = cookie_attributes()
     cookies = dict(request.args.items())
     r = app.make_response(redirect(url_for("view_cookies")))
     for key, value in cookies.items():
-        r.delete_cookie(key=key)
+        if cookie_attribute_name(key) is None:
+            r.delete_cookie(key=key, **attributes)
 
     return r
 

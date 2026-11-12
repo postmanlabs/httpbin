@@ -6,7 +6,7 @@ import unittest
 import contextlib
 import wsgiref.validate
 import json
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 from werkzeug.datastructures import Headers
 from werkzeug.http import parse_dict_header
 from werkzeug.test import Client
@@ -715,6 +715,34 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(reused_nonce_response.status_code, 401)
         header = reused_nonce_response.headers.get('WWW-Authenticate')
         self.assertIn('stale=TRUE', header)
+
+    def test_set_cookies_with_attributes(self):
+        response = self.app.get(
+            '/cookies/set?a=1&attr[HttpOnly]=true&attr[path]=/x&attr[SameSite]=lax'
+            '&attr[Secure]=1&b=2')
+        self.assertEqual(response.headers.getlist('Set-Cookie'), [
+            'a=1; Secure; HttpOnly; Path=/x; SameSite=Lax',
+            'b=2; Secure; HttpOnly; Path=/x; SameSite=Lax',
+        ])
+
+    def test_delete_cookies_with_attributes(self):
+        response = self.app.get('/cookies/delete?a&attr[Path]=/x')
+        cookie = response.headers['Set-Cookie']
+        self.assertTrue(cookie.startswith('a=; '))
+        self.assertIn('Max-Age=0', cookie)
+        self.assertTrue(cookie.endswith('; Path=/x'))
+
+    def test_cookie_domain_must_be_the_request_host(self):
+        host = urlparse(self.app.get('/get').json['url']).hostname
+        response = self.app.get('/cookies/set?a=1&attr[Domain]=.' + host.upper())
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('Domain=', response.headers['Set-Cookie'])
+        for path in '/cookies/set', '/cookies/delete':
+            response = self.app.get(path + '?a=1&attr[Domain]=example.com')
+            self.assertEqual(response.status_code, 400)
+            self.assertNotIn('Set-Cookie', response.headers)
+            self.assertTrue(response.json['detail'].startswith(
+                'attr[Domain] must be the request host'))
 
     def test_drip(self):
         response = self.app.get('/drip?numbytes=400&duration=2&delay=1')
