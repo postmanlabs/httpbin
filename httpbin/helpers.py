@@ -451,11 +451,6 @@ for unlisted in (306, 449):
     del STATUS_PHRASES[unlisted]
 
 
-def is_true_param(value):
-    """An opt-in query flag: "1" or "true" in any case."""
-    return value == '1' or value.lower() == 'true'
-
-
 def cookie_attribute_name(key):
     """The lower-cased Name of an attr[Name] query parameter, or None."""
     if key.startswith('attr[') and key.endswith(']'):
