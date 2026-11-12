@@ -358,6 +358,37 @@ def parse_integer(text):
     return value
 
 
+# A number of seconds as httpbin.org reads one: decimal, or hexadecimal with a
+# p exponent, with underscores allowed between digits.
+DECIMAL_SECONDS = re.compile(
+    r'[+-]?(?:\d(?:_?\d)*(?:\.(?:\d(?:_?\d)*)?)?|\.\d(?:_?\d)*)'
+    r'(?:[eE][+-]?\d(?:_?\d)*)?')
+HEX_SECONDS = re.compile(
+    r'[+-]?0[xX](?:_?[0-9a-fA-F])*(?:\.(?:[0-9a-fA-F](?:_?[0-9a-fA-F])*)?)?'
+    r'[pP][+-]?\d(?:_?\d)*')
+INFINITE_SECONDS = re.compile(r'[+-]?inf(?:inity)?', re.IGNORECASE)
+
+
+def parse_seconds(text):
+    """Parse a number of seconds, or raise ValueError. NaN is refused."""
+    if INFINITE_SECONDS.fullmatch(text):
+        return float(text)
+    mantissa = text.lstrip('+-')[2:].partition('p')[0].partition('P')[0]
+    try:
+        if DECIMAL_SECONDS.fullmatch(text):
+            value = float(text.replace('_', ''))
+        elif HEX_SECONDS.fullmatch(text) and any(
+                c in '0123456789abcdefABCDEF' for c in mantissa):
+            value = float.fromhex(text.replace('_', ''))
+        else:
+            raise ValueError('parsing %s: invalid syntax' % json.dumps(text))
+    except OverflowError:
+        value = float('inf')
+    if value in (float('inf'), float('-inf')):
+        raise ValueError('parsing %s: value out of range' % json.dumps(text))
+    return value
+
+
 FORM_MEDIA_TYPES = frozenset([
     'application/x-www-form-urlencoded', 'application/x-url-encoded',
     'multipart/form-data',

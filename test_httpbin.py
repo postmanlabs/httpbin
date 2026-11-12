@@ -966,6 +966,20 @@ class HttpbinTestCase(unittest.TestCase):
             self.assertTrue(response.json['detail'].startswith(
                 'attr[Domain] must be the request host'))
 
+    def test_delay_with_an_invalid_duration_is_a_400(self):
+        for value in ('abc', '_1', '1_', '1..2', '0x1', '1e', '0b1', '1e400', '%201',
+                      '-1', '-0.5'):
+            response = self.app.get('/delay/' + value)
+            self.assertEqual(response.status_code, 400, value)
+            error = json.loads(response.data.decode('utf-8'))
+            self.assertTrue(error['detail'].startswith('invalid duration: '))
+
+    def test_delay_accepts_the_number_forms_httpbin_org_accepts(self):
+        for value in ('0', '0.1', '.1', '1e-1', '+0.1', '-0', '1.', '0_0',
+                      '0.0_1', '0x1p-3'):
+            response = self.app.get('/delay/' + value)
+            self.assertEqual(response.status_code, 200, value)
+
     def test_drip(self):
         response = self.app.get('/drip?numbytes=400&duration=2&delay=1')
         self.assertEqual(response.content_length, 400)

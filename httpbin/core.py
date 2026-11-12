@@ -63,6 +63,7 @@ from .helpers import (
     accepts_any_type,
     parse_integer,
     redirect_to_arg,
+    parse_seconds,
 )
 from .redirect_targets import (
     unsafe_redirect_target,
@@ -1404,7 +1405,15 @@ def delay_response(delay):
       200:
         description: A delayed response.
     """
-    delay = min(float(delay), 10)
+    try:
+        delay = parse_seconds(delay)
+    except ValueError as error:
+        return error_response(400, "invalid duration: %s" % error)
+    if delay < 0:
+        return error_response(
+            400, "invalid duration: duration %gs shorter than 0s" % delay
+        )
+    delay = min(delay, 10)
 
     time.sleep(delay)
 
