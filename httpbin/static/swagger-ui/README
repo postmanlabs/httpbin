@@ -1,0 +1,19 @@
+Swagger UI 5.34.1, vendored from the swagger-ui-dist npm package.
+
+  Tarball:   https://registry.npmjs.org/swagger-ui-dist/-/swagger-ui-dist-5.34.1.tgz
+  Integrity: sha512-VSr8fXfI93obYaQicLJbLUKGRxDojj/SfRJDDLCioGTUBj4BK/Nj4eE9jCeCAnJxVLi7iS+08PbiZLyrQKBkJQ==
+
+The files here are copied unchanged from the tarball's package/ directory:
+swagger-ui-bundle.js, swagger-ui-standalone-preset.js, swagger-ui.css,
+their *.LICENSE.txt notices, LICENSE and NOTICE.
+
+Licences: Swagger UI is Apache-2.0 (LICENSE, NOTICE). The bundles also
+contain third-party code under MIT, BSD-3-Clause (ieee754) and
+Apache-2.0 OR MPL-2.0 (DOMPurify), listed in the *.LICENSE.txt files.
+These are minified builds; the sources are in the swagger-ui repository
+(https://github.com/swagger-api/swagger-ui) at tag v5.34.1.
+
+To update: download the new tarball, check its integrity against the
+registry (npm view swagger-ui-dist@<version> dist.integrity), copy the
+same files over these ones, and update this README and the version in
+httpbin/core.py.

@@ -7,8 +7,15 @@ name = "httpbin"
 dynamic = ["version"]
 description = "HTTP Request and Response Service"
 requires-python = ">=3.11"
-license = "MIT"
-license-files = ["LICENSE"]
+# httpbin is ISC (see LICENSE). The vendored Swagger UI is Apache-2.0, and its
+# bundles include code under MIT, BSD-3-Clause and Apache-2.0 OR MPL-2.0.
+license = "ISC AND Apache-2.0 AND MIT AND BSD-3-Clause AND (Apache-2.0 OR MPL-2.0)"
+license-files = [
+    "LICENSE",
+    "httpbin/static/swagger-ui/LICENSE",
+    "httpbin/static/swagger-ui/NOTICE",
+    "httpbin/static/swagger-ui/*.LICENSE.txt",
+]
 authors = [{ name = "Kenneth Reitz", email = "me@kennethreitz.org" }]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
