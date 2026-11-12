@@ -56,6 +56,8 @@ from .helpers import (
     request_dump,
     STATUS_PHRASES,
     is_true_param,
+    response_headers_status,
+    fixed_content_status,
     cookie_attribute_name,
     cookie_attributes,
     cookie_domain_error,
@@ -293,11 +295,17 @@ def view_landing_page():
 
 
 @app.route("/html")
+@fixed_content_status
 def view_html_page():
     """Returns a simple HTML document.
     ---
     tags:
       - Response formats
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - text/html
     responses:
@@ -309,11 +317,17 @@ def view_html_page():
 
 
 @app.route("/robots.txt")
+@fixed_content_status
 def view_robots_page():
     """Returns some robots.txt rules.
     ---
     tags:
       - Response formats
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - text/plain
     responses:
@@ -328,11 +342,17 @@ def view_robots_page():
 
 
 @app.route("/deny")
+@fixed_content_status
 def view_deny_page():
     """Returns page denied by robots.txt rules.
     ---
     tags:
       - Response formats
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - text/plain
     responses:
@@ -940,6 +960,10 @@ def response_headers():
       - Response inspection
     parameters:
       - in: query
+        name: status
+        type: integer
+        description: Respond with this status (200 to 599; not 204, 205 or 3xx), and never send it as a header. Location and Refresh are refused with it.
+      - in: query
         name: freeform
         explode: true
         allowEmptyValue: true
@@ -956,16 +980,24 @@ def response_headers():
     """
     # Pending swaggerUI update
     # https://github.com/swagger-api/swagger-ui/issues/3850
-    refusal = content_type_refusal([
-        value
+    status, status_error = response_headers_status()
+    if status_error:
+        return Response(
+            status_error + "\n", status=400, content_type="text/plain; charset=utf-8"
+        )
+    pairs = [
+        (key, value)
         for key, value in request.args.items(multi=True)
-        if key.lower() == "content-type"
+        if not (status is not None and key == "status")
+    ]
+    refusal = content_type_refusal([
+        value for key, value in pairs if key.lower() == "content-type"
     ])
     if refusal:
         return Response(
             refusal + "\n", status=400, content_type="text/plain; charset=utf-8"
         )
-    for key, value in request.args.items(multi=True):
+    for key, value in pairs:
         if key.lower() == "set-cookie":
             error = set_cookie_error(value, request_cookie_host())
             if error:
@@ -974,7 +1006,7 @@ def response_headers():
     # Content-Type is a singleton field.
     headers = MultiDict(
         ("Content-Type" if key.lower() == "content-type" else key, value)
-        for key, value in request.args.items(multi=True)
+        for key, value in pairs
         if not caller_may_not_set(key)
     )
     response = jsonify(list(headers.lists()))
@@ -1006,6 +1038,8 @@ def response_headers():
         response_has_changed = response.data != original_data
         if not response_has_changed:
             break
+    if status is not None:
+        response.status_code = status
     return response
 
 
@@ -1639,11 +1673,17 @@ def cache_control(value):
 
 
 @app.route("/encoding/utf8")
+@fixed_content_status
 def encoding():
     """Returns a UTF-8 encoded body.
     ---
     tags:
       - Response formats
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - text/html
     responses:
@@ -1860,11 +1900,17 @@ def links(n):
 
 
 @app.route("/image")
+@fixed_content_status
 def image():
     """Returns a simple image of the type suggest by the Accept header.
     ---
     tags:
       - Images
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - image/webp
       - image/svg+xml
@@ -1895,11 +1941,17 @@ def image():
 
 
 @app.route("/image/png")
+@fixed_content_status
 def image_png():
     """Returns a simple PNG image.
     ---
     tags:
       - Images
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - image/png
     responses:
@@ -1911,11 +1963,17 @@ def image_png():
 
 
 @app.route("/image/jpeg")
+@fixed_content_status
 def image_jpeg():
     """Returns a simple JPEG image.
     ---
     tags:
       - Images
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - image/jpeg
     responses:
@@ -1927,11 +1985,17 @@ def image_jpeg():
 
 
 @app.route("/image/webp")
+@fixed_content_status
 def image_webp():
     """Returns a simple WEBP image.
     ---
     tags:
       - Images
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - image/webp
     responses:
@@ -1943,11 +2007,17 @@ def image_webp():
 
 
 @app.route("/image/svg")
+@fixed_content_status
 def image_svg():
     """Returns a simple SVG image.
     ---
     tags:
       - Images
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - image/svg+xml
     responses:
@@ -1965,11 +2035,17 @@ def resource(filename):
 
 
 @app.route("/xml")
+@fixed_content_status
 def xml():
     """Returns a simple XML document.
     ---
     tags:
       - Response formats
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - application/xml
     responses:
@@ -1982,11 +2058,17 @@ def xml():
 
 
 @app.route("/json")
+@fixed_content_status
 def a_json_endpoint():
     """Returns a simple JSON document.
     ---
     tags:
       - Response formats
+    parameters:
+      - in: query
+        name: status
+        type: integer
+        description: Answer with this status instead of 200 (200 to 599; 204, 205 and 3xx are refused with a 400).
     produces:
       - application/json
     responses:

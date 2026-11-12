@@ -644,6 +644,88 @@ class HttpbinTestCase(unittest.TestCase):
             names = [p['name'] for p in spec['paths'][path]['get'].get('parameters', [])]
             self.assertIn('show_env', names, path)
 
+    FIXED_CONTENT_PATHS = (
+        '/json', '/xml', '/html', '/robots.txt', '/deny', '/encoding/utf8',
+        '/image', '/image/png', '/image/jpeg', '/image/webp', '/image/svg',
+    )
+
+    def test_fixed_content_takes_a_status(self):
+        for path in self.FIXED_CONTENT_PATHS:
+            normal = self.app.get(path)
+            self.assertEqual(normal.status_code, 200, path)
+            for status in (200, 201, 404, 500, 503, 599):
+                response = self.app.get('%s?status=%d' % (path, status))
+                self.assertEqual(response.status_code, status, path)
+                self.assertEqual(response.data, normal.data, path)
+                self.assertEqual(response.headers['Content-Type'],
+                                 normal.headers['Content-Type'], path)
+            head = self.app.head(path + '?status=500')
+            self.assertEqual(head.status_code, 500, path)
+            self.assertEqual(head.data, b'', path)
+
+    def test_fixed_content_refuses_other_statuses(self):
+        for path in self.FIXED_CONTENT_PATHS:
+            normal = self.app.get(path).data
+            refusal = None
+            for value in ('100', '101', '199', '204', '205', '300', '301',
+                          '302', '304', '307', '399', '0', '600', '-200',
+                          '+500', '0500', '500%20', '5e2', 'abc', '',
+                          '%ZZ', '500%', '99999999999999999999'):
+                response = self.app.get('%s?status=%s' % (path, value))
+                self.assertEqual(response.status_code, 400, (path, value))
+                self.assertEqual(response.headers['Content-Type'],
+                                 'text/plain; charset=utf-8')
+                # one fixed answer for every refusal: the value is not repeated
+                refusal = refusal or response.data
+                self.assertEqual(response.data, refusal, (path, value))
+                self.assertNotEqual(response.data, normal)
+
+    def test_fixed_content_status_leaves_a_406_alone(self):
+        response = self.app.get('/image?status=500',
+                                headers={'Accept': 'text/plain'})
+        self.assertEqual(response.status_code, 406)
+
+    def test_response_headers_takes_a_status(self):
+        response = self.app.get('/response-headers?status=503&Retry-After=5')
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.headers['Retry-After'], '5')
+        self.assertNotIn('Status', response.headers)
+        self.assertNotIn('status', json.loads(response.data.decode('utf-8')))
+        self.assertEqual(
+            self.app.get('/response-headers?status=401&WWW-Authenticate=x'
+                         ).status_code, 401)
+        # another spelling is an ordinary header
+        other = self.app.get('/response-headers?Status=503')
+        self.assertEqual(other.status_code, 200)
+        self.assertEqual(other.headers['Status'], '503')
+        # no status: nothing changes
+        self.assertEqual(self.app.get('/response-headers?a=b').status_code, 200)
+
+    def test_response_headers_refuses_a_bad_status(self):
+        for query in ('status=204', 'status=205', 'status=301', 'status=100',
+                      'status=abc', 'status=', 'status=%ZZ', 'status=0500',
+                      'status=500&status=503', 'status=600'):
+            response = self.app.get('/response-headers?' + query)
+            self.assertEqual(response.status_code, 400, query)
+            self.assertEqual(response.headers['Content-Type'],
+                             'text/plain; charset=utf-8')
+            self.assertNotIn(b'500', response.data, query)
+            self.assertNotIn(b'abc', response.data, query)
+        # never a redirect: Location and Refresh are refused with a status
+        for query in ('status=302&Location=/x', 'status=200&location=/x',
+                      'status=200&Refresh=0;url=/x', 'status=200&REFRESH=1'):
+            response = self.app.get('/response-headers?' + query)
+            self.assertEqual(response.status_code, 400, query)
+            self.assertNotIn('Location', response.headers)
+        # without a status Location is still allowed
+        self.assertEqual(
+            self.app.get('/response-headers?Location=/x').headers['Location'],
+            '/x')
+        # the Content-Type rules still apply
+        self.assertEqual(
+            self.app.get('/response-headers?status=503&Content-Type=text/html'
+                         ).status_code, 400)
+
     def test_headers_show_env(self):
         headers = {
             "Accept": "*/*",

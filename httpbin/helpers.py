@@ -7,6 +7,7 @@ httpbin.helpers
 This module provides helper functions for httpbin.
 """
 
+import functools
 import json
 import base64
 import re
@@ -387,6 +388,59 @@ def parse_seconds(text):
     if value in (float('inf'), float('-inf')):
         raise ValueError('parsing %s: value out of range' % json.dumps(text))
     return value
+
+
+def servable_status(value):
+    """The status a caller may ask for with ?status=N, or None: one plain
+    number from 200 to 599 where a body is allowed, so not 204, 205 or 3xx."""
+    if not re.fullmatch(r'[0-9]{1,3}', value) or str(int(value)) != value:
+        return None
+    status = int(value)
+    if not 200 <= status <= 599 or status in (204, 205) or 300 <= status < 400:
+        return None
+    return status
+
+
+STATUS_REFUSAL = (
+    'invalid status: use a code from 200 to 599 that allows a body '
+    '(not 204, 205 or 3xx)\n')
+
+
+def response_headers_status():
+    """The ?status=N of /response-headers as (status, None), (None, None) when
+    there is none, or (None, why) when the request must be refused. The status
+    is never sent as a header; with one, Location and Refresh are refused so
+    the answer can never be a redirect."""
+    if 'status' not in request.args:
+        return None, None
+    values = request.args.getlist('status')
+    if len(values) != 1 or not re.fullmatch(r'[0-9]+', values[0]):
+        return None, 'status must be one number from 200 to 599'
+    status = servable_status(values[0])
+    if status is None:
+        return None, 'this status is not allowed'
+    if any(key.lower() in ('location', 'refresh') for key in request.args):
+        return None, 'a header that redirects is not allowed with a status'
+    return status, None
+
+
+def fixed_content_status(view):
+    """Let a fixed-content view answer with ?status=N: the same body and
+    Content-Type under that status. Anything else gets one fixed 400 that
+    does not repeat the value."""
+    @functools.wraps(view)
+    def wrapper(*args, **kwargs):
+        status = None
+        if 'status' in request.args:
+            status = servable_status(request.args['status'])
+            if status is None:
+                return Response(STATUS_REFUSAL, status=400,
+                                content_type='text/plain; charset=utf-8')
+        response = make_response(view(*args, **kwargs))
+        if status is not None and response.status_code == 200:
+            response.status_code = status
+        return response
+    return wrapper
 
 
 def is_true_param(value):
