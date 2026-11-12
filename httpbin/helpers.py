@@ -389,6 +389,19 @@ def parse_seconds(text):
     return value
 
 
+def whole_milliseconds(seconds):
+    """Seconds truncated to whole milliseconds, as httpbin.org reads them."""
+    return int(seconds * 1000) / 1000
+
+
+def server_timing(entries):
+    """A Server-Timing header value from (name, seconds, description)."""
+    return ', '.join(
+        '%s;dur=%0.2f;desc="%s"' % (name, seconds * 1000, description)
+        for name, seconds, description in entries
+    )
+
+
 FORM_MEDIA_TYPES = frozenset([
     'application/x-www-form-urlencoded', 'application/x-url-encoded',
     'multipart/form-data',

@@ -986,6 +986,27 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(len(self.get_data(response)), 400)
         self.assertEqual(response.status_code, 200)
 
+    def test_delay_reports_server_timing(self):
+        response = self.app.get('/delay/0.0019')
+        self.assertEqual(response.headers['Server-Timing'],
+                         'initial_delay;dur=1.00;desc="initial delay"')
+
+    def test_drip_reports_server_timing(self):
+        response = self.app.get('/drip?numbytes=7&duration=0.2&delay=0.1')
+        self.assertEqual(len(self.get_data(response)), 7)
+        self.assertEqual(response.headers['Server-Timing'], ', '.join([
+            'total_duration;dur=300.00;desc="total request duration"',
+            'initial_delay;dur=100.00;desc="initial delay"',
+            'write_duration;dur=200.00;desc="duration of writes after initial delay"',
+            'pause_per_write;dur=33.33;desc="computed pause between writes"',
+        ]))
+
+    def test_drip_with_no_duration_writes_every_byte(self):
+        response = self.app.get('/drip?numbytes=5&duration=0')
+        self.assertEqual(self.get_data(response), b'*****')
+        self.assertIn('pause_per_write;dur=0.00;',
+                      response.headers['Server-Timing'])
+
     def test_drip_with_invalid_numbytes(self):
         for bad_num in -1, 0:
             uri = '/drip?numbytes={0}&duration=2&delay=1'.format(bad_num)

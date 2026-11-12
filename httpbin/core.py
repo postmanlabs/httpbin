@@ -64,6 +64,8 @@ from .helpers import (
     parse_integer,
     redirect_to_arg,
     parse_seconds,
+    whole_milliseconds,
+    server_timing,
 )
 from .redirect_targets import (
     unsafe_redirect_target,
@@ -1413,13 +1415,17 @@ def delay_response(delay):
         return error_response(
             400, "invalid duration: duration %gs shorter than 0s" % delay
         )
-    delay = min(delay, 10)
+    delay = whole_milliseconds(min(delay, 10))
 
     time.sleep(delay)
 
-    return jsonify(
+    response = jsonify(
         get_dict("url", "args", "form", "data", "origin", "headers", "files")
     )
+    response.headers["Server-Timing"] = server_timing(
+        [("initial_delay", delay, "initial delay")]
+    )
+    return response
 
 
 @app.route("/drip")
@@ -1468,24 +1474,37 @@ def drip():
         response = Response("number of bytes must be positive", status=400)
         return response
 
-    delay = float(args.get("delay", 0))
+    delay = whole_milliseconds(float(args.get("delay", 0)))
+    duration = whole_milliseconds(duration)
+    # The pause comes between writes, so n bytes take n - 1 pauses; round up
+    # to the nanosecond so the writes fill the duration.
+    if numbytes > 1:
+        pause = -(-round(duration * 1e9) // (numbytes - 1)) / 1e9
+    else:
+        pause = duration
     if delay > 0:
         time.sleep(delay)
 
-    pause = duration / numbytes
-
     def generate_bytes():
+        if pause == 0:
+            yield b"*" * numbytes
+            return
         for i in range(numbytes):
             yield b"*"
-            time.sleep(pause)
+            if i < numbytes - 1:
+                time.sleep(pause)
 
-    response = Response(
-        generate_bytes(),
-        headers={
-            "Content-Type": "application/octet-stream",
-            "Content-Length": str(numbytes),
-        },
-    )
+    headers = {
+        "Content-Type": "application/octet-stream",
+        "Server-Timing": server_timing([
+            ("total_duration", delay + duration, "total request duration"),
+            ("initial_delay", delay, "initial delay"),
+            ("write_duration", duration, "duration of writes after initial delay"),
+            ("pause_per_write", pause, "computed pause between writes"),
+        ]),
+        "Content-Length": str(numbytes),
+    }
+    response = Response(generate_bytes(), headers=headers)
 
     response.status_code = code
 
