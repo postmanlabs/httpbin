@@ -337,6 +337,40 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.post('/post', data=u'оживлённым'.encode('utf-8'))
         self.assertEqual(json.loads(response.data.decode('utf-8'))['data'], u'оживлённым')
 
+    def test_dump_request(self):
+        response = self.app.get('/dump/request?a=1&b=%20x',
+                                headers={'x-custom-thing': 'v1'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get('Content-Type'),
+                         'text/plain; charset=utf-8')
+        self.assertTrue(response.data.startswith(
+            b'GET /dump/request?a=1&b=%20x HTTP/1.1\r\nHost: localhost\r\n'),
+            response.data)
+        self.assertIn(b'\r\nX-Custom-Thing: v1\r\n', response.data)
+        self.assertTrue(response.data.endswith(b'\r\n\r\n'))
+
+    def test_dump_request_takes_any_method(self):
+        for method in ('ARBITRARY-METHOD', 'PROPFIND', 'QUERY'):
+            response = self.app.open('/dump/request', method=method)
+            self.assertEqual(response.status_code, 200, method)
+            self.assertTrue(response.data.startswith(
+                method.encode() + b' /dump/request HTTP/1.1\r\n'), method)
+
+    def test_dump_request_shows_each_part_type(self):
+        data = (
+            '--bound\r\n'
+            'Content-Disposition: form-data; name="f"; filename="a.txt"\r\n'
+            'Content-Type: text/x-foo\r\n\r\nhello\r\n'
+            '--bound--\r\n'
+        )
+        response = self.app.post(
+            '/dump/request', data=data,
+            content_type='multipart/form-data; boundary=bound')
+        self.assertIn(b'\r\nContent-Type: multipart/form-data; boundary=bound\r\n',
+                      response.data)
+        self.assertTrue(response.data.endswith(data.encode()))
+        self.assertIn(b'Content-Type: text/x-foo\r\n\r\nhello', response.data)
+
     def test_query_method_echoes_like_post(self):
         for path in ('/anything', '/anything/x', '/delay/0'):
             response = self.app.open(

@@ -16,7 +16,7 @@ from hashlib import md5, sha256, sha512
 from werkzeug.datastructures import Authorization, WWWAuthenticate
 
 from flask import request, make_response
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import quote, urlparse, urlunparse
 
 
 from .structures import CaseInsensitiveDict
@@ -288,6 +288,58 @@ def status_code(code):
             r.headers.update(m['headers'])
 
     return r
+
+
+def request_uri():
+    """The request-target as the client sent it: the raw path, still
+    percent-encoded, and the raw query."""
+    raw = request.environ.get('RAW_URI') or request.environ.get('REQUEST_URI')
+    if raw and '?' in raw:
+        return raw
+    uri = raw or quote(request.script_root + request.path)
+    query = request.environ.get('QUERY_STRING', '')
+    return uri + '?' + query if query else uri
+
+
+def canonical_header_name(name):
+    """x-custom-thing -> X-Custom-Thing"""
+    return '-'.join(part[:1].upper() + part[1:].lower() for part in name.split('-'))
+
+
+# Written on their own lines before the sorted headers, or left out
+DUMP_SEPARATE_HEADERS = frozenset(['Host', 'Transfer-Encoding', 'Trailer'])
+
+
+def request_dump():
+    """The request in its HTTP/1.x form, as /dump/request returns it: the
+    request line, Host, then the other headers sorted by name, and the body.
+    It is approximate: the WSGI server has already merged repeated headers
+    and lost the original case and order of the header names."""
+    environ = request.environ
+    lines = [
+        '%s %s %s' % (request.method, request_uri(),
+                      environ.get('SERVER_PROTOCOL', 'HTTP/1.1')),
+        'Host: ' + request.host,
+    ]
+    chunked = environ.get('HTTP_TRANSFER_ENCODING', '').lower() == 'chunked'
+    if chunked:
+        lines.append('Transfer-Encoding: chunked')
+    headers = []
+    for key, value in environ.items():
+        if key.startswith('HTTP_'):
+            name = key[5:]
+        elif key in ('CONTENT_TYPE', 'CONTENT_LENGTH') and value:
+            name = key
+        else:
+            continue
+        name = canonical_header_name(name.replace('_', '-'))
+        if name not in DUMP_SEPARATE_HEADERS:
+            headers.append((name, value))
+    lines += ['%s: %s' % header for header in sorted(headers, key=lambda h: h[0])]
+    body = request.get_data()
+    if chunked:
+        body = (b'%x\r\n%s\r\n' % (len(body), body) if body else b'') + b'0\r\n\r\n'
+    return ('\r\n'.join(lines) + '\r\n\r\n').encode('latin-1') + body
 
 
 def check_basic_auth(user, passwd):
