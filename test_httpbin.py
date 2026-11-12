@@ -337,6 +337,21 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.post('/post', data=u'оживлённым'.encode('utf-8'))
         self.assertEqual(json.loads(response.data.decode('utf-8'))['data'], u'оживлённым')
 
+    def test_post_repeated_file_field_echoes_every_file(self):
+        data = (
+            '--bound\r\n'
+            'Content-Disposition: form-data; name="f"; filename="a.txt"\r\n'
+            'Content-Type: text/plain\r\n\r\nfirst\r\n'
+            '--bound\r\n'
+            'Content-Disposition: form-data; name="f"; filename="b.bin"\r\n'
+            'Content-Type: application/x-thing\r\n\r\n\xff\xfe\r\n'
+            '--bound--\r\n'
+        ).encode('latin-1')
+        response = self.app.post(
+            '/post', data=data, content_type='multipart/form-data; boundary=bound')
+        files = json.loads(response.data.decode('utf-8'))['files']
+        self.assertEqual(files['f'], ['first', 'data:application/x-thing;base64,//4='])
+
     def test_post_file_with_missing_content_type_header(self):
         # I built up the form data manually here because I couldn't find a way
         # to convince the werkzeug test client to send files without the
