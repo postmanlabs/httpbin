@@ -76,7 +76,7 @@ def jsonify(*args, **kwargs):
     return response
 
 
-# Prevent WSGI from correcting the casing of the Location header
+# Send Location as given rather than joining it with the request URL
 Response.autocorrect_location_header = False
 
 # Find the correct template folder when running from a different location
@@ -635,16 +635,17 @@ def redirect_to():
     args_dict = request.args.items()
     args = CaseInsensitiveDict(args_dict)
 
-    # We need to build the response manually and send the URL's UTF-8 bytes
-    # unchanged to prevent werkzeug from "fixing" the URL. This endpoint
-    # should set the Location header to the exact string supplied.
+    # Werkzeug sends Location as a URI: non-ASCII characters are
+    # percent-encoded as UTF-8 and a non-ASCII host is IDNA-encoded. ASCII,
+    # including existing %XX escapes, is sent as given, and a relative
+    # target stays relative (autocorrect_location_header is off).
     response = app.make_response("")
     response.status_code = 302
     if "status_code" in args:
         status_code = int(args["status_code"])
         if status_code >= 300 and status_code < 400:
             response.status_code = status_code
-    response.headers["Location"] = args["url"].encode("utf-8").decode("latin-1")
+    response.headers["Location"] = args["url"]
 
     return response
 
