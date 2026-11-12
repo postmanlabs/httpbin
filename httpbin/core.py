@@ -46,8 +46,19 @@ from .helpers import (
     next_stale_after_value,
     digest_challenge_response,
     parse_authorization_header,
-    is_renderable_media_type,
+    content_type_refusal,
     caller_may_not_set,
+    is_inert_media_type,
+    escape_html,
+    error_response,
+    request_cookie_host,
+    set_cookie_error,
+)
+from .redirect_targets import (
+    unsafe_redirect_target,
+    parse_allowed_domains,
+    redirect_allowed,
+    forbidden_redirect_message,
 )
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
@@ -89,6 +100,12 @@ app.json.compact = False
 app.add_template_global("HTTPBIN_TRACKING" in os.environ, name="tracking_enabled")
 
 app.config["SWAGGER"] = {"title": "httpbin.org", "uiversion": 3}
+
+# Comma-separated hosts /redirect-to may send clients to; empty allows any
+# public host.
+app.config["ALLOWED_REDIRECT_DOMAINS"] = parse_allowed_domains(
+    os.environ.get("ALLOWED_REDIRECT_DOMAINS")
+)
 
 template = {
     "swagger": "2.0",
@@ -216,6 +233,14 @@ def before_request():
                 request.environ["wsgi.input_terminated"] = 1
         else:
             abort(501, "Chunked requests are not supported for server %s" % server)
+
+
+@app.after_request
+def set_nosniff_header(response):
+    # Browsers must not guess a type for a body that a caller chose, such
+    # as /base64 output or /response-headers JSON.
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 @app.after_request
@@ -636,6 +661,21 @@ def redirect_to():
     args_dict = request.args.items()
     args = CaseInsensitiveDict(args_dict)
 
+    reason = unsafe_redirect_target(args["url"])
+    if reason:
+        return Response(
+            "Forbidden redirect target: %s\n" % reason,
+            status=403,
+            content_type="text/plain; charset=utf-8",
+        )
+    allowed_domains = app.config["ALLOWED_REDIRECT_DOMAINS"]
+    if not redirect_allowed(args["url"], allowed_domains):
+        return Response(
+            forbidden_redirect_message(allowed_domains),
+            status=403,
+            content_type="text/plain; charset=utf-8",
+        )
+
     # Werkzeug sends Location as a URI: non-ASCII characters are
     # percent-encoded as UTF-8 and a non-ASCII host is IDNA-encoded. ASCII,
     # including existing %XX escapes, is sent as given, and a relative
@@ -808,31 +848,53 @@ def response_headers():
     """
     # Pending swaggerUI update
     # https://github.com/swagger-api/swagger-ui/issues/3850
+    refusal = content_type_refusal([
+        value
+        for key, value in request.args.items(multi=True)
+        if key.lower() == "content-type"
+    ])
+    if refusal:
+        return Response(
+            refusal + "\n", status=400, content_type="text/plain; charset=utf-8"
+        )
     for key, value in request.args.items(multi=True):
-        if key.lower() == "content-type" and is_renderable_media_type(value):
-            return Response(
-                "this Content-Type is not allowed\n",
-                status=400,
-                content_type="text/plain; charset=utf-8",
-            )
+        if key.lower() == "set-cookie":
+            error = set_cookie_error(value, request_cookie_host())
+            if error:
+                return error_response(400, error)
+    # The caller's Content-Type, in any spelling, replaces application/json:
+    # Content-Type is a singleton field.
     headers = MultiDict(
-        (key, value)
+        ("Content-Type" if key.lower() == "content-type" else key, value)
         for key, value in request.args.items(multi=True)
         if not caller_may_not_set(key)
     )
     response = jsonify(list(headers.lists()))
+    # The echo repeats the caller's text, so escape it unless the body's
+    # Content-Type is one a browser never renders as markup.
+    escape = not all(
+        is_inert_media_type(value)
+        for key, value in headers.items(multi=True)
+        if key.lower() == "content-type"
+    )
 
     while True:
         original_data = response.data
         d = {}
         for key in response.headers.keys():
             value = response.headers.get_all(key)
+            if escape:
+                key = escape_html(key)
+                value = [escape_html(v) for v in value]
             if len(value) == 1:
                 value = value[0]
             d[key] = value
         response = jsonify(d)
         for key, value in headers.items(multi=True):
-            response.headers.add(key, value)
+            if key == "Content-Type":
+                response.headers[key] = value
+            else:
+                response.headers.add(key, value)
         response_has_changed = response.data != original_data
         if not response_has_changed:
             break
@@ -1327,8 +1389,9 @@ def decode_base64(value):
         decoded = base64.urlsafe_b64decode(encoded).decode("utf-8")
     except:
         decoded = "Incorrect Base64 data try: SFRUUEJJTiBpcyBhd2Vzb21l"
-    # Plain text, so decoded markup is never rendered as HTML (reflected XSS).
-    return Response(decoded, content_type="text/plain")
+    # Plain text, so decoded markup is shown as text, and UTF-8, which is how
+    # the decoded text is encoded.
+    return Response(decoded, content_type="text/plain; charset=utf-8")
 
 
 @app.route("/cache", methods=("GET",))
