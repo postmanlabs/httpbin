@@ -48,6 +48,10 @@ from .helpers import (
     parse_authorization_header,
     is_renderable_media_type,
     caller_may_not_set,
+    STATUS_PHRASES,
+    is_true_param,
+    prefers_json,
+    accepts_any_type,
 )
 from .utils import weighted_choice
 from .structures import CaseInsensitiveDict
@@ -736,7 +740,12 @@ def stream_n_messages(n):
 @app.route(
     "/status/<codes>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
 )
-def view_status_code(codes):
+@app.route(
+    # a client that appends a path to the URL still gets the status
+    "/status/<codes>/<path:rest>",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"],
+)
+def view_status_code(codes, rest=None):
     """Return status code or random status code if more than one are given
     ---
     tags:
@@ -764,7 +773,7 @@ def view_status_code(codes):
             code = int(codes)
         except ValueError:
             return Response("Invalid status code", status=400)
-        return status_code(code)
+        return status_with_optional_body(code)
 
     choices = []
     for choice in codes.split(","):
@@ -781,7 +790,32 @@ def view_status_code(codes):
 
     code = weighted_choice(choices)
 
-    return status_code(code)
+    return status_with_optional_body(code)
+
+
+def status_with_optional_body(code):
+    """status_code(code), plus, with ?body=1 or true, the code's reason phrase:
+    JSON when Accept prefers application/json, plain text otherwise. The body
+    is only ever the standard phrase, never anything the caller sends. Codes
+    without a body (1xx, 204, 205, 304) and those with their own (402, 406,
+    418) are unchanged."""
+    response = status_code(code)
+    if (
+        not is_true_param(request.args.get("body", ""))
+        or code < 200
+        or code in (204, 205, 304, 402, 406, 418)
+    ):
+        return response
+    description = STATUS_PHRASES.get(code, "Unknown Status")
+    response.headers.add("Vary", "Accept")
+    if prefers_json(request.headers.getlist("Accept")):
+        body = json.dumps({"code": code, "description": description}, indent=2)
+        response.headers["Content-Type"] = "application/json"
+    else:
+        body = "%d %s" % (code, description)
+        response.headers["Content-Type"] = "text/plain"
+    response.set_data(body + "\n")
+    return response
 
 
 @app.route("/response-headers", methods=["GET", "POST"])
@@ -1673,7 +1707,7 @@ def image():
         return image_svg()
     elif "image/jpeg" in accept:
         return image_jpeg()
-    elif "image/png" in accept or "image/*" in accept:
+    elif "image/png" in accept or "image/*" in accept or accepts_any_type(accept):
         return image_png()
     else:
         return status_code(406)  # Unsupported media type
