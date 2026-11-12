@@ -1251,6 +1251,50 @@ class HttpbinTestCase(unittest.TestCase):
         finally:
             httpbin.app.config['ALLOWED_REDIRECT_DOMAINS'] = frozenset()
 
+    def test_redirect_to_reads_a_posted_form(self):
+        for method in ('POST', 'PUT', 'PATCH', 'DELETE'):
+            response = self.app.open(
+                '/redirect-to', method=method,
+                data={'url': '/get', 'status_code': '307'})
+            self.assertEqual(response.status_code, 307, method)
+            self.assertEqual(response.headers.get('Location'), '/get', method)
+        data = (
+            '--bound\r\n'
+            'Content-Disposition: form-data; name="f"; filename="url.txt"\r\n\r\n/x\r\n'
+            '--bound\r\n'
+            'Content-Disposition: form-data; name="URL"\r\n\r\n/anything\r\n'
+            '--bound--\r\n'
+        )
+        response = self.app.post(
+            '/redirect-to', data=data,
+            content_type='multipart/form-data; boundary=bound')
+        self.assertEqual(response.headers.get('Location'), '/anything')
+        response = self.app.post('/redirect-to?url=/get', data={'url': '/anything'})
+        self.assertEqual(response.headers.get('Location'), '/get')
+        response = self.app.post('/redirect-to', data='{"url": "/get"}',
+                                 content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_redirect_to_without_a_url_is_a_400(self):
+        for path in ('/redirect-to', '/redirect-to?url=', '/redirect-to?status_code=307'):
+            response = self.app.get(path)
+            self.assertEqual(response.status_code, 400, path)
+            error = json.loads(response.data.decode('utf-8'))
+            self.assertEqual(error['detail'], 'missing required query parameter: url')
+        response = self.app.post('/redirect-to', data={'other': '1'})
+        self.assertEqual(response.status_code, 400)
+
+    def test_redirect_to_with_an_invalid_status_code_is_a_400(self):
+        for value in ('abc', '3.0', '1_0', '99999999999999999999'):
+            response = self.app.get(
+                '/redirect-to?' + urlencode({'url': '/get', 'status_code': value}))
+            self.assertEqual(response.status_code, 400, value)
+            self.assertIsNone(response.headers.get('Location'))
+        for value, status in (('', 302), ('200', 302), ('+307', 307)):
+            response = self.app.get(
+                '/redirect-to?' + urlencode({'url': '/get', 'status_code': value}))
+            self.assertEqual(response.status_code, status, value)
+
     def test_redirect_to_post(self):
         response = self.app.post('/redirect-to?url=/post&status_code=307',
                                  data=b'\x01\x02\x03\x81\x82\x83',

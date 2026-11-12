@@ -61,6 +61,8 @@ from .helpers import (
     cookie_domain_error,
     prefers_json,
     accepts_any_type,
+    parse_integer,
+    redirect_to_arg,
 )
 from .redirect_targets import (
     unsafe_redirect_target,
@@ -725,10 +727,11 @@ def redirect_to():
         description: A redirection.
     """
 
-    args_dict = request.args.items()
-    args = CaseInsensitiveDict(args_dict)
+    target = redirect_to_arg("url")
+    if not target:
+        return error_response(400, "missing required query parameter: url")
 
-    reason = unsafe_redirect_target(args["url"])
+    reason = unsafe_redirect_target(target)
     if reason:
         return Response(
             "Forbidden redirect target: %s\n" % reason,
@@ -736,7 +739,7 @@ def redirect_to():
             content_type="text/plain; charset=utf-8",
         )
     allowed_domains = app.config["ALLOWED_REDIRECT_DOMAINS"]
-    if not redirect_allowed(args["url"], allowed_domains):
+    if not redirect_allowed(target, allowed_domains):
         return Response(
             forbidden_redirect_message(allowed_domains),
             status=403,
@@ -749,11 +752,15 @@ def redirect_to():
     # target stays relative (autocorrect_location_header is off).
     response = app.make_response("")
     response.status_code = 302
-    if "status_code" in args:
-        status_code = int(args["status_code"])
+    status = redirect_to_arg("status_code")
+    if status:
+        try:
+            status_code = parse_integer(status)
+        except ValueError as error:
+            return error_response(400, "invalid status code: %s" % error)
         if status_code >= 300 and status_code < 400:
             response.status_code = status_code
-    response.headers["Location"] = args["url"]
+    response.headers["Location"] = target
 
     return response
 

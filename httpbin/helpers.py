@@ -17,7 +17,7 @@ from werkzeug.datastructures import Authorization, WWWAuthenticate
 from werkzeug.http import HTTP_STATUS_CODES
 
 from flask import request, make_response, Response
-from urllib.parse import quote, urlparse, urlunparse
+from urllib.parse import parse_qsl, quote, urlparse, urlunparse
 
 
 from .structures import CaseInsensitiveDict
@@ -348,6 +348,41 @@ def set_cookie_error(value, host):
             return 'Set-Cookie Domain must be the request host "%s", got "%s"' % (
                 host, domain)
     return None
+def parse_integer(text):
+    """Parse a signed 64-bit decimal integer strictly, or raise ValueError."""
+    if not re.fullmatch(r'[+-]?[0-9]+', text):
+        raise ValueError('parsing %s: invalid syntax' % json.dumps(text))
+    value = int(text)
+    if not -2 ** 63 <= value < 2 ** 63:
+        raise ValueError('parsing %s: value out of range' % json.dumps(text))
+    return value
+
+
+FORM_MEDIA_TYPES = frozenset([
+    'application/x-www-form-urlencoded', 'application/x-url-encoded',
+    'multipart/form-data',
+])
+
+
+def redirect_to_arg(name):
+    """A /redirect-to parameter. A name the query has, in any case and even
+    empty, is the query's (its first value, and the first of names that differ
+    only in case). Otherwise it comes from a urlencoded or multipart form
+    body, files skipped."""
+    name = name.lower()
+    for key, value in request.args.items():
+        if key.lower() == name:
+            return value
+    if request.method in ('GET', 'HEAD') or request.mimetype not in FORM_MEDIA_TYPES:
+        return ''
+    if request.mimetype == 'application/x-url-encoded':
+        fields = parse_qsl(request.get_data(as_text=True), keep_blank_values=True)
+    else:
+        fields = request.form.items(multi=True)
+    for key, value in fields:
+        if key.lower() == name:
+            return value
+    return ''
 
 
 def is_renderable_media_type(content_type):
