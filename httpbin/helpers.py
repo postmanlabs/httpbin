@@ -850,8 +850,14 @@ def check_digest_auth(user, passwd):
     return False
 
 def secure_cookie():
-    """Return true if cookie should have secure attribute"""
-    return request.environ['wsgi.url_scheme'] == 'https'
+    """Return true if cookie should have secure attribute: the original
+    request was HTTPS, judged as get_url() judges it, so a TLS-terminating
+    proxy in front of httpbin counts."""
+    protocol = (request.headers.get('X-Forwarded-Proto')
+                or request.headers.get('X-Forwarded-Protocol'))
+    if not protocol and request.headers.get('X-Forwarded-Ssl') == 'on':
+        protocol = 'https'
+    return (protocol or request.environ['wsgi.url_scheme']) == 'https'
 
 def __parse_request_range(range_header_text):
     """ Return a tuple describing the byte range requested in a GET request
