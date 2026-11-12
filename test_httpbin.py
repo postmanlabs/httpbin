@@ -489,6 +489,15 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertTrue({'Accept', 'Host', 'User-Agent'}.issubset(set(response.json['headers'].keys())))
         self.assertNotIn('Via', response.json)
 
+    def test_show_env_is_documented(self):
+        home = self.app.get('/').data.decode('utf-8')
+        self.assertIn('<h2>Proxy headers</h2>', home)
+        self.assertIn('/headers?show_env=1', home)
+        spec = json.loads(self.app.get('/spec.json').data.decode('utf-8'))
+        for path in ('/get', '/headers'):
+            names = [p['name'] for p in spec['paths'][path]['get'].get('parameters', [])]
+            self.assertIn('show_env', names, path)
+
     def test_headers_show_env(self):
         headers = {
             "Accept": "*/*",
@@ -514,6 +523,28 @@ class HttpbinTestCase(unittest.TestCase):
     def test_brotli(self):
         response = self.app.get('/brotli')
         self.assertEqual(response.status_code, 200)
+
+    def test_zstd(self):
+        from httpbin import filters
+        if filters._zstd is None:
+            self.skipTest('no zstd support in this Python')
+        response = self.app.get('/zstd', headers={'User-Agent': 'test'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers['Content-Encoding'], 'zstd')
+        self.assertEqual(response.headers['Content-Length'], str(len(response.data)))
+        body = json.loads(filters._zstd.decompress(response.data))
+        self.assertTrue(body['zstd'])
+        self.assertEqual(body['headers']['User-Agent'], 'test')
+        self.assertEqual(body['method'], 'GET')
+
+    def test_zstd_without_support_says_so(self):
+        from httpbin import filters
+        saved, filters._zstd = filters._zstd, None
+        try:
+            response = self.app.get('/zstd')
+        finally:
+            filters._zstd = saved
+        self.assertEqual(response.status_code, 501)
 
     def test_bearer_auth(self):
         token = 'abcd1234'
@@ -681,6 +712,41 @@ class HttpbinTestCase(unittest.TestCase):
             },
             data=body
         ), nonce
+
+    def test_auth_routes_take_every_method(self):
+        """Basic, hidden basic, bearer and digest auth answer GET, POST, PUT,
+        DELETE, PATCH and TRACE alike; other methods are refused."""
+        basic = 'Basic ' + base64.b64encode(b'user:passwd').decode()
+        wrong = 'Basic ' + base64.b64encode(b'user:wrong').decode()
+        for method in ('GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'TRACE'):
+            def call(path, auth=None, body=None):
+                headers = {'Authorization': auth} if auth else {}
+                return self.app.open(
+                    path, method=method, headers=headers, data=body,
+                    environ_base={'REMOTE_ADDR': '127.0.0.1'})
+
+            self.assertEqual(call('/basic-auth/user/passwd', basic).status_code, 200, method)
+            self.assertEqual(call('/basic-auth/user/passwd', wrong).status_code, 401, method)
+            self.assertEqual(call('/hidden-basic-auth/user/passwd', basic).status_code, 200, method)
+            self.assertEqual(call('/hidden-basic-auth/user/passwd', wrong).status_code, 404, method)
+            self.assertEqual(call('/bearer', 'Bearer token').status_code, 200, method)
+            self.assertEqual(call('/bearer').status_code, 401, method)
+
+            for qop, body in (('auth', None), ('auth-int', b'payload'), ('none', None)):
+                uri = '/digest-auth/%s/user/passwd' % qop
+                challenge = call(uri)
+                self.assertEqual(challenge.status_code, 401, (method, qop))
+                header = challenge.headers['WWW-Authenticate']
+                d = parse_dict_header(header.split(None, 1)[1])
+                real_qop = None if qop == 'none' else qop
+                cnonce, nc = (('abcdef', '00000001') if real_qop else (None, None))
+                auth = _make_digest_auth_header(
+                    'user', 'passwd', method, uri, d['nonce'], d['realm'],
+                    d['opaque'], d['algorithm'], real_qop, cnonce, nc, body)
+                self.assertEqual(call(uri, auth, body).status_code, 200, (method, qop))
+
+        for path in ('/basic-auth/user/passwd', '/bearer', '/digest-auth/auth/user/passwd'):
+            self.assertEqual(self.app.open(path, method='PROPFIND').status_code, 405)
 
     def test_digest_auth_none_sends_an_rfc_2069_challenge(self):
         uri = '/digest-auth/none/user/passwd'

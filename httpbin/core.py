@@ -91,6 +91,10 @@ Response.autocorrect_location_header = False
 # Find the correct template folder when running from a different location
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
 
+# The methods the authentication routes take: httpbin.org answers a challenge
+# or a success whatever the method, so clients can test auth on any request.
+AUTH_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
+
 app = Flask(__name__, template_folder=tmpl_dir)
 app.debug = bool(os.environ.get("DEBUG"))
 app.json.compact = False
@@ -350,6 +354,12 @@ def view_headers():
     ---
     tags:
       - Request inspection
+    parameters:
+      - in: query
+        name: show_env
+        type: string
+        allowEmptyValue: true
+        description: Any value, even empty, also shows the proxy headers hidden by default, such as X-Forwarded-For and X-Real-Ip.
     produces:
       - application/json
     responses:
@@ -384,6 +394,12 @@ def view_get():
     ---
     tags:
       - HTTP Methods
+    parameters:
+      - in: query
+        name: show_env
+        type: string
+        allowEmptyValue: true
+        description: Any value, even empty, also shows the proxy headers hidden by default, such as X-Forwarded-For and X-Real-Ip.
     produces:
       - application/json
     responses:
@@ -571,6 +587,25 @@ def view_brotli_encoded_content():
     """
 
     return jsonify(get_dict("origin", "headers", method=request.method, brotli=True))
+
+
+@app.route("/zstd")
+@filters.zstd
+def view_zstd_encoded_content():
+    """Returns Zstandard-encoded data.
+    ---
+    tags:
+      - Response formats
+    produces:
+      - application/json
+    responses:
+      200:
+        description: Zstandard-encoded data.
+      501:
+        description: This Python has no zstd support (3.14 or backports.zstd needed).
+    """
+
+    return jsonify(get_dict("origin", "headers", method=request.method, zstd=True))
 
 
 @app.route("/redirect/<int:n>")
@@ -1032,7 +1067,7 @@ def delete_cookies():
     return r
 
 
-@app.route("/basic-auth/<user>/<passwd>")
+@app.route("/basic-auth/<user>/<passwd>", methods=AUTH_METHODS)
 def basic_auth(user="user", passwd="passwd"):
     """Prompts the user for authorization using HTTP Basic Auth.
     ---
@@ -1060,7 +1095,7 @@ def basic_auth(user="user", passwd="passwd"):
     return jsonify(authenticated=True, user=user)
 
 
-@app.route("/hidden-basic-auth/<user>/<passwd>")
+@app.route("/hidden-basic-auth/<user>/<passwd>", methods=AUTH_METHODS)
 def hidden_basic_auth(user="user", passwd="passwd"):
     """Prompts the user for authorization using HTTP Basic Auth.
     ---
@@ -1087,7 +1122,7 @@ def hidden_basic_auth(user="user", passwd="passwd"):
     return jsonify(authenticated=True, user=user)
 
 
-@app.route("/bearer")
+@app.route("/bearer", methods=AUTH_METHODS)
 def bearer_auth():
     """Prompts the user for authorization using bearer authentication.
     ---
@@ -1118,7 +1153,7 @@ def bearer_auth():
     return jsonify(authenticated=True, token=token)
 
 
-@app.route("/digest-auth/<qop>/<user>/<passwd>")
+@app.route("/digest-auth/<qop>/<user>/<passwd>", methods=AUTH_METHODS)
 def digest_auth_md5(qop=None, user="user", passwd="passwd"):
     """Prompts the user for authorization using Digest Auth.
     ---
@@ -1146,7 +1181,7 @@ def digest_auth_md5(qop=None, user="user", passwd="passwd"):
     return digest_auth(qop, user, passwd, "MD5", "never")
 
 
-@app.route("/digest-auth/<qop>/<user>/<passwd>/<algorithm>")
+@app.route("/digest-auth/<qop>/<user>/<passwd>/<algorithm>", methods=AUTH_METHODS)
 def digest_auth_nostale(qop=None, user="user", passwd="passwd", algorithm="MD5"):
     """Prompts the user for authorization using Digest Auth + Algorithm.
     ---
@@ -1179,7 +1214,7 @@ def digest_auth_nostale(qop=None, user="user", passwd="passwd", algorithm="MD5")
     return digest_auth(qop, user, passwd, algorithm, "never")
 
 
-@app.route("/digest-auth/<qop>/<user>/<passwd>/<algorithm>/<stale_after>")
+@app.route("/digest-auth/<qop>/<user>/<passwd>/<algorithm>/<stale_after>", methods=AUTH_METHODS)
 def digest_auth(
     qop=None, user="user", passwd="passwd", algorithm="MD5", stale_after="never"
 ):

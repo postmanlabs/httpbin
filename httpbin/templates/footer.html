@@ -10,6 +10,10 @@
                         <a href="{{url_for('view_forms_post')}}">HTML form</a> that posts to /post /forms/post</li>
                 </ul>
 
+                <h2>Proxy headers</h2>
+
+                <p>httpbin.org sits behind proxies, so <code>/headers</code> and the <code>headers</code> field of every response hide the headers they add (<code>X-Forwarded-For</code>, <code>X-Real-Ip</code>, <code>Via</code> and similar). Add the query parameter <code>show_env</code> (<code>?show_env=1</code>, any value) to see them: <a href="/headers?show_env=1">/headers?show_env=1</a>. It also shows cookies that are hidden by default.</p>
+
                 <br />
                 <br />
             </div>

@@ -13,6 +13,14 @@ import zlib
 
 import brotli as _brotli
 
+try:  # Python 3.14 and later
+    from compression import zstd as _zstd
+except ImportError:  # older Pythons, with the backports.zstd package installed
+    try:
+        from backports import zstd as _zstd
+    except ImportError:
+        _zstd = None
+
 from decimal import Decimal
 from time import time as now
 
@@ -113,3 +121,32 @@ def brotli(f, *args, **kwargs):
         return data
 
     return deflated_data
+
+
+@decorator
+def zstd(f, *args, **kwargs):
+    """Zstandard Flask Response Decorator"""
+
+    if _zstd is None:
+        return Response(
+            'zstd compression is not available: use Python 3.14 or newer, or '
+            'install backports.zstd\n',
+            status=501, content_type='text/plain')
+
+    data = f(*args, **kwargs)
+
+    if isinstance(data, Response):
+        content = data.data
+    else:
+        content = data
+
+    compressed_data = _zstd.compress(content)
+
+    if isinstance(data, Response):
+        data.data = compressed_data
+        data.headers['Content-Encoding'] = 'zstd'
+        data.headers['Content-Length'] = str(len(data.data))
+
+        return data
+
+    return compressed_data

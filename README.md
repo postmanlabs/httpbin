@@ -5,6 +5,12 @@ A [Kenneth Reitz](http://kennethreitz.org/bitcoin) Project.
 
 ![ice cream](http://farm1.staticflickr.com/572/32514669683_4daf2ab7bc_k_d.jpg)
 
+httpbin is a small web service for testing HTTP clients. It echoes back what
+you send (headers, query, body, files, cookies, your IP) and answers on demand
+with the status code, delay, redirect, compression, auth challenge or data you
+ask for, so you can check how your code behaves against each of them. It is
+what runs at http://httpbin.org.
+
 This project does not publish releases or Docker images. To run your own
 copy, build it from this repository:
 ```sh
