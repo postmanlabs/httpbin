@@ -765,6 +765,7 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertEqual(body['headers']['User-Agent'], 'test')
         self.assertEqual(body['method'], 'GET')
 
+    @local_only('simulates a Python without zstd in the in-process app')
     def test_zstd_without_support_says_so(self):
         from httpbin import filters
         saved, filters._zstd = filters._zstd, None
