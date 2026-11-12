@@ -53,6 +53,14 @@ from .helpers import (
     error_response,
     request_cookie_host,
     set_cookie_error,
+    request_dump,
+    STATUS_PHRASES,
+    is_true_param,
+    cookie_attribute_name,
+    cookie_attributes,
+    cookie_domain_error,
+    prefers_json,
+    accepts_any_type,
 )
 from .redirect_targets import (
     unsafe_redirect_target,
@@ -92,6 +100,10 @@ Response.autocorrect_location_header = False
 
 # Find the correct template folder when running from a different location
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+
+# The methods the authentication routes take: httpbin.org answers a challenge
+# or a success whatever the method, so clients can test auth on any request.
+AUTH_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
 
 app = Flask(__name__, template_folder=tmpl_dir)
 app.debug = bool(os.environ.get("DEBUG"))
@@ -366,6 +378,12 @@ def view_headers():
     ---
     tags:
       - Request inspection
+    parameters:
+      - in: query
+        name: show_env
+        type: string
+        allowEmptyValue: true
+        description: Any value, even empty, also shows the proxy headers hidden by default, such as X-Forwarded-For and X-Real-Ip.
     produces:
       - application/json
     responses:
@@ -400,6 +418,12 @@ def view_get():
     ---
     tags:
       - HTTP Methods
+    parameters:
+      - in: query
+        name: show_env
+        type: string
+        allowEmptyValue: true
+        description: Any value, even empty, also shows the proxy headers hidden by default, such as X-Forwarded-For and X-Real-Ip.
     produces:
       - application/json
     responses:
@@ -410,11 +434,35 @@ def view_get():
     return jsonify(get_dict("url", "args", "headers", "origin"))
 
 
-@app.route("/anything", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
-@app.route(
-    "/anything/<path:anything>",
-    methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"],
-)
+# QUERY is a safe method that carries a body, so it is accepted where a body
+# is echoed.
+BODY_ECHO_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE", "QUERY"]
+
+
+@app.before_request
+def dump_request_for_any_method():
+    # /dump/request answers every method, even ones no route lists
+    if request.path == "/dump/request":
+        return view_dump_request()
+
+
+@app.route("/dump/request", methods=BODY_ECHO_METHODS)
+def view_dump_request():
+    """Returns the request in its HTTP/1.x form, for any method.
+    ---
+    tags:
+      - Request inspection
+    produces:
+      - text/plain
+    responses:
+      200:
+        description: The request line, headers and body (approximate, as repeated headers are merged).
+    """
+    return Response(request_dump(), content_type="text/plain; charset=utf-8")
+
+
+@app.route("/anything", methods=BODY_ECHO_METHODS)
+@app.route("/anything/<path:anything>", methods=BODY_ECHO_METHODS)
 def view_anything(anything=None):
     """Returns anything passed in request data.
     ---
@@ -563,6 +611,25 @@ def view_brotli_encoded_content():
     """
 
     return jsonify(get_dict("origin", "headers", method=request.method, brotli=True))
+
+
+@app.route("/zstd")
+@filters.zstd
+def view_zstd_encoded_content():
+    """Returns Zstandard-encoded data.
+    ---
+    tags:
+      - Response formats
+    produces:
+      - application/json
+    responses:
+      200:
+        description: Zstandard-encoded data.
+      501:
+        description: This Python has no zstd support (3.14 or backports.zstd needed).
+    """
+
+    return jsonify(get_dict("origin", "headers", method=request.method, zstd=True))
 
 
 @app.route("/redirect/<int:n>")
@@ -776,7 +843,12 @@ def stream_n_messages(n):
 @app.route(
     "/status/<codes>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"]
 )
-def view_status_code(codes):
+@app.route(
+    # a client that appends a path to the URL still gets the status
+    "/status/<codes>/<path:rest>",
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"],
+)
+def view_status_code(codes, rest=None):
     """Return status code or random status code if more than one are given
     ---
     tags:
@@ -804,7 +876,7 @@ def view_status_code(codes):
             code = int(codes)
         except ValueError:
             return Response("Invalid status code", status=400)
-        return status_code(code)
+        return status_with_optional_body(code)
 
     choices = []
     for choice in codes.split(","):
@@ -821,7 +893,32 @@ def view_status_code(codes):
 
     code = weighted_choice(choices)
 
-    return status_code(code)
+    return status_with_optional_body(code)
+
+
+def status_with_optional_body(code):
+    """status_code(code), plus, with ?body=1 or true, the code's reason phrase:
+    JSON when Accept prefers application/json, plain text otherwise. The body
+    is only ever the standard phrase, never anything the caller sends. Codes
+    without a body (1xx, 204, 205, 304) and those with their own (402, 406,
+    418) are unchanged."""
+    response = status_code(code)
+    if (
+        not is_true_param(request.args.get("body", ""))
+        or code < 200
+        or code in (204, 205, 304, 402, 406, 418)
+    ):
+        return response
+    description = STATUS_PHRASES.get(code, "Unknown Status")
+    response.headers.add("Vary", "Accept")
+    if prefers_json(request.headers.getlist("Accept")):
+        body = json.dumps({"code": code, "description": description}, indent=2)
+        response.headers["Content-Type"] = "application/json"
+    else:
+        body = "%d %s" % (code, description)
+        response.headers["Content-Type"] = "text/plain"
+    response.set_data(body + "\n")
+    return response
 
 
 @app.route("/response-headers", methods=["GET", "POST"])
@@ -982,10 +1079,15 @@ def set_cookies():
         description: Redirect to cookie list
     """
 
+    error = cookie_domain_error()
+    if error:
+        return error_response(400, error)
+    attributes = cookie_attributes()
     cookies = dict(request.args.items())
     r = app.make_response(redirect(url_for("view_cookies")))
     for key, value in cookies.items():
-        r.set_cookie(key=key, value=value, secure=secure_cookie())
+        if cookie_attribute_name(key) is None:
+            r.set_cookie(key=key, value=value, **attributes)
 
     return r
 
@@ -1013,15 +1115,20 @@ def delete_cookies():
         description: Redirect to cookie list
     """
 
+    error = cookie_domain_error()
+    if error:
+        return error_response(400, error)
+    attributes = cookie_attributes()
     cookies = dict(request.args.items())
     r = app.make_response(redirect(url_for("view_cookies")))
     for key, value in cookies.items():
-        r.delete_cookie(key=key)
+        if cookie_attribute_name(key) is None:
+            r.delete_cookie(key=key, **attributes)
 
     return r
 
 
-@app.route("/basic-auth/<user>/<passwd>")
+@app.route("/basic-auth/<user>/<passwd>", methods=AUTH_METHODS)
 def basic_auth(user="user", passwd="passwd"):
     """Prompts the user for authorization using HTTP Basic Auth.
     ---
@@ -1049,7 +1156,7 @@ def basic_auth(user="user", passwd="passwd"):
     return jsonify(authenticated=True, user=user)
 
 
-@app.route("/hidden-basic-auth/<user>/<passwd>")
+@app.route("/hidden-basic-auth/<user>/<passwd>", methods=AUTH_METHODS)
 def hidden_basic_auth(user="user", passwd="passwd"):
     """Prompts the user for authorization using HTTP Basic Auth.
     ---
@@ -1076,7 +1183,7 @@ def hidden_basic_auth(user="user", passwd="passwd"):
     return jsonify(authenticated=True, user=user)
 
 
-@app.route("/bearer")
+@app.route("/bearer", methods=AUTH_METHODS)
 def bearer_auth():
     """Prompts the user for authorization using bearer authentication.
     ---
@@ -1107,7 +1214,7 @@ def bearer_auth():
     return jsonify(authenticated=True, token=token)
 
 
-@app.route("/digest-auth/<qop>/<user>/<passwd>")
+@app.route("/digest-auth/<qop>/<user>/<passwd>", methods=AUTH_METHODS)
 def digest_auth_md5(qop=None, user="user", passwd="passwd"):
     """Prompts the user for authorization using Digest Auth.
     ---
@@ -1117,7 +1224,7 @@ def digest_auth_md5(qop=None, user="user", passwd="passwd"):
       - in: path
         name: qop
         type: string
-        description: auth or auth-int
+        description: auth, auth-int, or none for an RFC 2069 challenge
       - in: path
         name: user
         type: string
@@ -1135,7 +1242,7 @@ def digest_auth_md5(qop=None, user="user", passwd="passwd"):
     return digest_auth(qop, user, passwd, "MD5", "never")
 
 
-@app.route("/digest-auth/<qop>/<user>/<passwd>/<algorithm>")
+@app.route("/digest-auth/<qop>/<user>/<passwd>/<algorithm>", methods=AUTH_METHODS)
 def digest_auth_nostale(qop=None, user="user", passwd="passwd", algorithm="MD5"):
     """Prompts the user for authorization using Digest Auth + Algorithm.
     ---
@@ -1145,7 +1252,7 @@ def digest_auth_nostale(qop=None, user="user", passwd="passwd", algorithm="MD5")
       - in: path
         name: qop
         type: string
-        description: auth or auth-int
+        description: auth, auth-int, or none for an RFC 2069 challenge
       - in: path
         name: user
         type: string
@@ -1168,7 +1275,7 @@ def digest_auth_nostale(qop=None, user="user", passwd="passwd", algorithm="MD5")
     return digest_auth(qop, user, passwd, algorithm, "never")
 
 
-@app.route("/digest-auth/<qop>/<user>/<passwd>/<algorithm>/<stale_after>")
+@app.route("/digest-auth/<qop>/<user>/<passwd>/<algorithm>/<stale_after>", methods=AUTH_METHODS)
 def digest_auth(
     qop=None, user="user", passwd="passwd", algorithm="MD5", stale_after="never"
 ):
@@ -1181,7 +1288,7 @@ def digest_auth(
       - in: path
         name: qop
         type: string
-        description: auth or auth-int
+        description: auth, auth-int, or none for an RFC 2069 challenge
       - in: path
         name: user
         type: string
@@ -1213,7 +1320,9 @@ def digest_auth(
     if algorithm not in ("MD5", "SHA-256", "SHA-512"):
         algorithm = "MD5"
 
-    if qop not in ("auth", "auth-int"):
+    if qop == "none":
+        qop = ""
+    elif qop not in ("auth", "auth-int"):
         qop = None
 
     authorization = request.headers.get("Authorization")
@@ -1272,7 +1381,7 @@ def digest_auth(
     return response
 
 
-@app.route("/delay/<delay>", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "TRACE"])
+@app.route("/delay/<delay>", methods=BODY_ECHO_METHODS)
 def delay_response(delay):
     """Returns a delayed response (max of 10 seconds).
     ---
@@ -1736,7 +1845,7 @@ def image():
         return image_svg()
     elif "image/jpeg" in accept:
         return image_jpeg()
-    elif "image/png" in accept or "image/*" in accept:
+    elif "image/png" in accept or "image/*" in accept or accepts_any_type(accept):
         return image_png()
     else:
         return status_code(406)  # Unsupported media type

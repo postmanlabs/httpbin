@@ -17,7 +17,7 @@ from werkzeug.datastructures import Authorization, WWWAuthenticate
 from werkzeug.http import HTTP_STATUS_CODES
 
 from flask import request, make_response, Response
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import quote, urlparse, urlunparse
 
 
 from .structures import CaseInsensitiveDict
@@ -124,8 +124,8 @@ def get_files():
 
     files = dict()
 
-    for k, v in request.files.items():
-        content_type = request.files[k].content_type or 'application/octet-stream'
+    for k, v in request.files.items(multi=True):
+        content_type = v.content_type or 'application/octet-stream'
         val = json_safe(v.read(), content_type)
         if files.get(k):
             if not isinstance(files[k], list):
@@ -356,6 +356,133 @@ def is_renderable_media_type(content_type):
     return media_type in RENDERABLE_MEDIA_TYPES or media_type.endswith('+xml')
 
 
+# Reason phrases as httpbin.org sends them: Werkzeug's, with the five that differ
+STATUS_PHRASES = dict(HTTP_STATUS_CODES)
+STATUS_PHRASES.update({
+    203: 'Non-Authoritative Information',
+    207: 'Multi-Status',
+    511: 'Network Authentication Required',
+})
+for unlisted in (306, 449):
+    del STATUS_PHRASES[unlisted]
+
+
+def is_true_param(value):
+    """An opt-in query flag: "1" or "true" in any case."""
+    return value == '1' or value.lower() == 'true'
+
+
+def cookie_attribute_name(key):
+    """The lower-cased Name of an attr[Name] query parameter, or None."""
+    if key.startswith('attr[') and key.endswith(']'):
+        # U+0130 lower-cases to "i" in a simple case mapping, as httpbin.org
+        # reads it.
+        return key[5:-1].replace(u'\u0130', 'i').lower()
+    return None
+
+
+def cookie_attributes():
+    """set_cookie() keyword arguments from the attr[Name] query parameters:
+    Domain, HttpOnly, Path, SameSite and Secure, names in any case."""
+    attributes = {'path': '/', 'secure': secure_cookie()}
+    for key in request.args:
+        name, value = cookie_attribute_name(key), request.args[key]
+        if name in ('domain', 'path'):
+            attributes[name] = value or None
+        elif name in ('httponly', 'secure'):
+            attributes[name] = is_true_param(value)
+        elif name == 'samesite' and value.lower() in ('strict', 'lax', 'none'):
+            attributes[name] = value.title()
+    return attributes
+
+
+def cookie_domain_error():
+    """Why /cookies/set or /cookies/delete must refuse the request, or None:
+    an attr[Domain] must be the request host, less one leading dot."""
+    host = request_cookie_host()
+    for key in request.args:
+        if cookie_attribute_name(key) != 'domain':
+            continue
+        for domain in request.args.getlist(key):
+            bare = domain.lower()
+            if bare.startswith('.'):
+                bare = bare[1:]
+            if not host or bare != host:
+                return 'attr[Domain] must be the request host "%s", got "%s"' % (
+                    host, domain)
+    return None
+
+
+def split_outside_quotes(text, separator):
+    """Split a header value on separator, except inside quoted strings."""
+    parts, start, quoted, i = [], 0, False, 0
+    while i < len(text):
+        if quoted and text[i] == '\\':
+            i += 1
+        elif text[i] == '"':
+            quoted = not quoted
+        elif text[i] == separator and not quoted:
+            parts.append(text[start:i])
+            start = i + 1
+        i += 1
+    parts.append(text[start:])
+    return parts
+
+
+def _quality(value, has_value=True):
+    try:
+        q = float(value.strip())
+    except ValueError:
+        return None
+    return q if has_value and q == q else None
+
+
+def accept_quality(params):
+    """The q of an Accept entry: 1 without one, 0 if it can't be read."""
+    for param in params:
+        name, _, value = param.partition('=')
+        if name.strip().lower() != 'q':
+            continue
+        q = _quality(value)
+        return q if q is not None and 0 <= q <= 1 else 0
+    return 1
+
+
+def prefers_json(accept_values):
+    """Return true if Accept ranks application/json above text/plain."""
+    json_q = text_q = 0.0
+    json_pos = text_pos = -1
+    position = 0
+    for field in accept_values:
+        for entry in split_outside_quotes(field, ','):
+            position += 1
+            parts = split_outside_quotes(entry, ';')
+            q = accept_quality(parts[1:])
+            media_type = parts[0].strip().lower()
+            if media_type == 'application/json' and (q > json_q or json_pos < 0):
+                json_q, json_pos = q, position
+            elif media_type == 'text/plain' and (q > text_q or text_pos < 0):
+                text_q, text_pos = q, position
+    return json_q > 0 and (json_q > text_q or (json_q == text_q and json_pos < text_pos))
+
+
+def accepts_any_type(accept):
+    """Return true if Accept has a */* range that is not refused (q above 0)."""
+    for media_range in split_outside_quotes(accept, ','):
+        parts = split_outside_quotes(media_range, ';')
+        if parts[0].strip() != '*/*':
+            continue
+        quality = 1.0
+        for param in parts[1:]:
+            name, has_value, value = param.partition('=')
+            if name.strip().lower() == 'q':
+                q = _quality(value, bool(has_value))
+                quality = 0 if q is None or q > 1 else q
+        if quality > 0:
+            return True
+    return False
+
+
 def status_code(code):
     """Returns response object of given status code."""
 
@@ -405,6 +532,58 @@ def status_code(code):
             r.headers.update(m['headers'])
 
     return r
+
+
+def request_uri():
+    """The request-target as the client sent it: the raw path, still
+    percent-encoded, and the raw query."""
+    raw = request.environ.get('RAW_URI') or request.environ.get('REQUEST_URI')
+    if raw and '?' in raw:
+        return raw
+    uri = raw or quote(request.script_root + request.path)
+    query = request.environ.get('QUERY_STRING', '')
+    return uri + '?' + query if query else uri
+
+
+def canonical_header_name(name):
+    """x-custom-thing -> X-Custom-Thing"""
+    return '-'.join(part[:1].upper() + part[1:].lower() for part in name.split('-'))
+
+
+# Written on their own lines before the sorted headers, or left out
+DUMP_SEPARATE_HEADERS = frozenset(['Host', 'Transfer-Encoding', 'Trailer'])
+
+
+def request_dump():
+    """The request in its HTTP/1.x form, as /dump/request returns it: the
+    request line, Host, then the other headers sorted by name, and the body.
+    It is approximate: the WSGI server has already merged repeated headers
+    and lost the original case and order of the header names."""
+    environ = request.environ
+    lines = [
+        '%s %s %s' % (request.method, request_uri(),
+                      environ.get('SERVER_PROTOCOL', 'HTTP/1.1')),
+        'Host: ' + request.host,
+    ]
+    chunked = environ.get('HTTP_TRANSFER_ENCODING', '').lower() == 'chunked'
+    if chunked:
+        lines.append('Transfer-Encoding: chunked')
+    headers = []
+    for key, value in environ.items():
+        if key.startswith('HTTP_'):
+            name = key[5:]
+        elif key in ('CONTENT_TYPE', 'CONTENT_LENGTH') and value:
+            name = key
+        else:
+            continue
+        name = canonical_header_name(name.replace('_', '-'))
+        if name not in DUMP_SEPARATE_HEADERS:
+            headers.append((name, value))
+    lines += ['%s: %s' % header for header in sorted(headers, key=lambda h: h[0])]
+    body = request.get_data()
+    if chunked:
+        body = (b'%x\r\n%s\r\n' % (len(body), body) if body else b'') + b'0\r\n\r\n'
+    return ('\r\n'.join(lines) + '\r\n\r\n').encode('latin-1') + body
 
 
 def check_basic_auth(user, passwd):
@@ -634,13 +813,17 @@ def digest_challenge_response(app, qop, algorithm, stale = False):
     ]), algorithm)
     opaque = H(os.urandom(10), algorithm)
 
-    auth = WWWAuthenticate("digest", {
+    parameters = {
         'realm': 'me@kennethreitz.com',
         'nonce': nonce,
         'qop': 'auth, auth-int' if qop is None else qop,
         'opaque': opaque,
         'algorithm': algorithm,
         'stale': 'TRUE' if stale else 'FALSE',
-    })
+    }
+    if qop == '':
+        # An RFC 2069 challenge, for testing a client's fallback
+        del parameters['qop']
+    auth = WWWAuthenticate("digest", parameters)
     response.headers['WWW-Authenticate'] = auth.to_header()
     return response
