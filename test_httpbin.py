@@ -246,7 +246,7 @@ class HttpbinTestCase(unittest.TestCase):
     def test_response_headers_allows_inert_content_types(self):
         response = self.app.get('/response-headers?Content-Type=text/plain')
         self.assertEqual(response.status_code, 200)
-        self.assertIn('text/plain', response.headers.get_all('Content-Type'))
+        self.assertEqual(response.headers.get_all('Content-Type'), ['text/plain'])
 
     def test_response_headers_drops_reserved_headers(self):
         reserved = (
@@ -268,6 +268,134 @@ class HttpbinTestCase(unittest.TestCase):
         for name in reserved:
             if name != 'Content-Length':
                 self.assertNotIn(name, echoed, name)
+
+    def test_response_headers_refuses_content_type_lists(self):
+        # A comma-separated list is not a single valid media type.
+        for value in ('text/plain,text/html', 'text/plain, text/html',
+                      'text/html,text/plain', 'application/json,text/html'):
+            response = self.app.get(
+                '/response-headers?' + urlencode({'Content-Type': value, 'x': '<b>'}))
+            self.assertEqual(response.status_code, 400, value)
+            self.assertEqual(
+                response.data, b'the Content-Type is not a valid media type\n')
+            self.assertEqual(response.headers.get_all('Content-Type'),
+                             ['text/plain; charset=utf-8'])
+
+    def test_response_headers_content_type_validation_cases(self):
+        for query, message in (
+            ('Content-Type=text/plain,text/html&x=%3Cb%3E1%3C/b%3E',
+             b'the Content-Type is not a valid media type\n'),
+            ('Content-Type=text/plain&Content-Type=text/html',
+             b'only one Content-Type is allowed\n'),
+            ('content-type=TEXT/HTML', b'this Content-Type is not allowed\n'),
+            ('Content-Type=text/plain;x=,text/html',
+             b'the Content-Type is not a valid media type\n'),
+        ):
+            response = self.app.get('/response-headers?' + query)
+            self.assertEqual(response.status_code, 400, query)
+            self.assertEqual(response.headers.get_all('Content-Type'),
+                             ['text/plain; charset=utf-8'], query)
+            self.assertEqual(response.data, message, query)
+
+    def test_response_headers_refuses_repeated_content_types(self):
+        for pairs in (
+            [('Content-Type', 'text/plain'), ('Content-Type', 'text/plain')],
+            [('Content-Type', 'text/plain'), ('content-type', 'text/html')],
+            [('content-type', 'text/plain'), ('CONTENT-TYPE', 'text/csv')],
+        ):
+            response = self.app.get('/response-headers?' + urlencode(pairs))
+            self.assertEqual(response.status_code, 400, pairs)
+            self.assertEqual(response.data, b'only one Content-Type is allowed\n')
+
+    def test_response_headers_content_type_replaces_json(self):
+        for key in ('Content-Type', 'content-type', 'CONTENT-TYPE'):
+            response = self.app.get(
+                '/response-headers?' + urlencode({key: 'text/csv; header=present'}))
+            self.assertEqual(response.status_code, 200, key)
+            self.assertEqual(response.headers.get_all('Content-Type'),
+                             ['text/csv; header=present'])
+            echoed = json.loads(response.data.decode('utf-8'))
+            self.assertEqual(echoed['Content-Type'], 'text/csv; header=present')
+
+    def test_response_headers_refuses_invalid_content_types(self):
+        for value in ('textplain', 'text/', '/plain', 'a/b/c', 'text /plain',
+                      'text/plain extra', 'text/plain; =x', 'text/plain; a=',
+                      'text/plain; a=1; A=2', 'text/plain; ;',
+                      'text/plain\x01', u't\xebxt/plain'):
+            response = self.app.get(
+                '/response-headers?' + urlencode({'Content-Type': value}))
+            self.assertEqual(response.status_code, 400, value)
+            self.assertEqual(
+                response.data, b'the Content-Type is not a valid media type\n')
+
+    def test_response_headers_escapes_echo_for_other_types(self):
+        response = self.app.get(
+            '/response-headers?Content-Type=text/csv&x=%3Cb%3E%22%27%26')
+        self.assertEqual(response.status_code, 200)
+        echoed = json.loads(response.data.decode('utf-8'))
+        self.assertEqual(echoed['x'], '&lt;b&gt;&#34;&#39;&amp;')
+        self.assertEqual(response.headers.get('x'), '<b>"\'&')
+
+    def test_response_headers_does_not_escape_inert_types(self):
+        for content_type in ('text/plain', 'application/json'):
+            response = self.app.get(
+                '/response-headers?Content-Type=%s&x=%%3Cb%%3E' % content_type)
+            echoed = json.loads(response.data.decode('utf-8'))
+            self.assertEqual(echoed['x'], '<b>', content_type)
+        response = self.app.get('/response-headers?x=%3Cb%3E')
+        self.assertEqual(json.loads(response.data.decode('utf-8'))['x'], '<b>')
+
+    def test_response_headers_set_cookie_domain(self):
+        allowed = (
+            ('Set-Cookie', ['x=1; Path=/; HttpOnly']),
+            ('Set-Cookie', ['x=1; Domain=localhost']),
+            ('Set-Cookie', ['x=1; Domain=.localhost']),
+            ('Set-Cookie', ['x=1; DOMAIN=LOCALHOST']),
+            ('set-cookie', ['x=1; Domain=localhost']),
+            ('Set-Cookie', ['x="q"', 'y=1; Path=/x']),
+        )
+        refused = (
+            ('Set-Cookie', ['x=1; Domain=.example.com']),
+            ('set-cookie', ['x=1; Domain=.example.com']),
+            ('SET-COOKIE', ['x=1; Domain=.example.com']),
+            ('Set-Cookie', ['x=1; dOmAiN=.example.com']),
+            ('Set-Cookie', ['x=1;    Domain =  .example.com']),
+            ('Set-Cookie', [u'x=1; Doma\u0130n=.example.com']),
+            ('Set-Cookie', ['x=1; Domain=sub.localhost']),
+            ('Set-Cookie', ['x=1; Domain=..localhost']),
+            ('Set-Cookie', ['x=1; Domain=localhost:8080']),
+            ('Set-Cookie', ['x=1; Domain=']),
+            ('Set-Cookie', ['x=1; Domain']),
+            ('Set-Cookie', ['x=1; Domain=localhost; Domain=.example.com']),
+            ('Set-Cookie', ['x=1; Domain=.example.com; Domain=localhost']),
+            ('Set-Cookie', ['a=1', 'b=2; Domain=localhost', 'c=3; Domain=.example.com']),
+            ('Set-Cookie', ['no-equals-sign']),
+            ('Set-Cookie', ['; Domain=localhost']),
+            ('Set-Cookie', ['x y=1']),
+            ('Set-Cookie', ['x=a\\b']),
+        )
+        for method in ('GET', 'POST'):
+            for key, values in allowed + refused:
+                query = urlencode([(key, v) for v in values] + [('Foo', 'bar')])
+                response = self.app.open(
+                    '/response-headers?' + query, method=method,
+                    headers={'X-Forwarded-Host': 'other.example'})
+                if (key, values) in allowed:
+                    self.assertEqual(response.status_code, 200, values)
+                    self.assertEqual(response.headers.get_all(key), values)
+                else:
+                    self.assertEqual(response.status_code, 400, values)
+                    self.assertEqual(response.headers.get_all('Set-Cookie'), [])
+                    self.assertIsNone(response.headers.get('Foo'))
+                    error = json.loads(response.data.decode('utf-8'))
+                    self.assertEqual(error['status_code'], 400)
+                    self.assertEqual(error['error'], 'Bad Request')
+
+    def test_response_headers_set_cookie_domain_ignores_port(self):
+        response = self.app.get(
+            '/response-headers?Set-Cookie=x%3D1%3B%20Domain%3Dlocalhost',
+            headers={'Host': 'localhost:8080'})
+        self.assertEqual(response.status_code, 200)
 
     def test_response_headers_multi(self):
         supported_verbs = ['get', 'post']
@@ -307,15 +435,25 @@ class HttpbinTestCase(unittest.TestCase):
         response = self.app.get('/base64/' + b64_encoded.decode('ascii'))
         content = response.data.decode('utf-8')
         self.assertEqual(greeting, content)
-        self.assertEqual(response.headers.get('Content-Type'), 'text/plain')
+        self.assertEqual(
+            response.headers.get('Content-Type'), 'text/plain; charset=utf-8')
+
+    def test_base64_text_decodes_as_declared(self):
+        # A client decodes with the declared charset, as requests does
+        greeting = u'\u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439'
+        response = self.app.get(
+            '/base64/' + _string_to_base64(greeting).decode('ascii'))
+        charset = response.headers.get('Content-Type').partition('charset=')[2]
+        self.assertEqual(response.data.decode(charset), greeting)
 
     def test_base64_markup_is_plain_text(self):
-        markup = _string_to_base64(u'<script>alert(document.domain)</script>')
+        markup = _string_to_base64(u'<b>bold</b>')
         response = self.app.get('/base64/' + markup.decode('ascii'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.headers.get('Content-Type'), 'text/plain')
         self.assertEqual(
-            response.data, b'<script>alert(document.domain)</script>')
+            response.headers.get('Content-Type'), 'text/plain; charset=utf-8')
+        self.assertEqual(
+            response.data, b'<b>bold</b>')
 
     def test_post_binary(self):
         response = self.app.post('/post',
@@ -370,6 +508,14 @@ class HttpbinTestCase(unittest.TestCase):
         #self.assertEqual(response.status_code, 200)
         #self.assertEqual(json.loads(response.data.decode('utf-8'))['data'], '{"animal":"dog"}')
         #self.assertEqual(json.loads(response.data.decode('utf-8'))['json'], {"animal": "dog"})
+
+    def test_nosniff_on_every_response(self):
+        for path in ('/get', '/html', '/base64/SFRUUEJJTiBpcyBhd2Vzb21l',
+                     '/status/404', '/nope'):
+            response = self.app.get(path)
+            self.assertEqual(
+                response.headers.get_all('X-Content-Type-Options'), ['nosniff'],
+                path)
 
     def test_set_cors_headers_after_request(self):
         response = self.app.get('/get')
@@ -619,6 +765,16 @@ class HttpbinTestCase(unittest.TestCase):
             data=body
         ), nonce
 
+    def test_digest_auth_wrong_user(self):
+        """The right password under another username must not authenticate."""
+        for qop in None, 'auth', 'auth-int':
+            uri = self._digest_auth_create_uri('user', 'passwd', qop, 'MD5', None)
+            header = self._test_digest_auth_first_challenge(uri).headers.get(
+                'WWW-Authenticate')
+            response, _ = self._test_digest_response_for_auth_request(
+                header, 'someone-else', 'passwd', qop, uri, None)
+            self.assertEqual(response.status_code, 401, qop)
+
     def test_digest_auth_wrong_pass(self):
         """Test different combinations of digest auth parameters"""
         username = 'user'
@@ -784,15 +940,111 @@ class HttpbinTestCase(unittest.TestCase):
         for target, location in (
             (u'/\u5c71', '/%E5%B1%B1'),
             ('/%E5%B1%B1', '/%E5%B1%B1'),
-            ('/a b', '/a%20b'),
             (u'/x?q=\u5c71', '/x?q=%E5%B1%B1'),
-            (u'http://b\xfccher.example/\u5c71',
-             'http://xn--bcher-kva.example/%E5%B1%B1'),
         ):
             response = self.app.get(
                 '/redirect-to?' + urlencode({'url': target.encode('utf-8')}))
             self.assertEqual(response.status_code, 302, target)
             self.assertEqual(response.headers.get('Location'), location)
+
+    def test_redirect_to_refuses_internal_targets(self):
+        blocked = (
+            'http://169.254.1.1/path',
+            'http://169.254.1.2/path',
+            'http://2852039166/',
+            'http://0xa9fea9fe/',
+            'http://0251.0376.0251.0376/',
+            'http://127.1/',
+            'http://127.0x.0.1/',
+            'http://127.0X.0.1/',
+            'http://0x7f.0x.0x.1/',
+            'http://[::ffff:a9fe:a9fe]/',
+            'http://[::1]:8080/',
+            'http://[fd00:ec2::254]/',
+            'http://[64:ff9b::a9fe:a9fe]/',
+            'http://[::127.0.0.1]/',
+            'http://[::a9fe:a9fe]/',
+            'http://[fec0::1]/',
+            'http://[64:ff9b:1::a9fe:a9fe]/',
+            'http://localhost:6379/',
+            'http://LOCALHOST./',
+            'http://foo.localhost/',
+            'http://service.internal/',
+            'http://ip-10-0-0-1.ec2.internal/',
+            'http://10.0.0.1.nip.io/',
+            '//10.0.0.1/admin',
+            'http://100.64.0.1/',
+            'http://0.0.0.0/',
+            'file:///etc/passwd',
+            'gopher://other.example/',
+            'javascript:alert(1)',
+            'data:text/html,hello',
+            'https:other.example',
+            '/\\other.example',
+            'http://other.example/\r\nX-Test: 1',
+            'http://other.example/ x',
+            '/a b',
+            u'http://b\xfccher.example/\u5c71',
+            u'http://\uff11\uff12\uff17.\uff10.\uff10.\uff11/',
+            'http://%31%32%37.0.0.1/',
+            'http:///169.254.1.1/path',
+            '///127.0.0.1/admin',
+            'http:/169.254.1.1/',
+            'https:/other.example/',
+        )
+        for target in blocked:
+            response = self.app.get('/redirect-to?' + urlencode({'url': target}))
+            self.assertIn(response.status_code, (400, 403), target)
+            self.assertIsNone(response.headers.get('Location'), target)
+
+    def test_redirect_to_refusal_format(self):
+        response = self.app.get(
+            '/redirect-to?url=http%3A%2F%2F169.254.1.1%2F')
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.headers.get('Content-Type'), 'text/plain; charset=utf-8')
+        self.assertEqual(
+            response.data,
+            b'Forbidden redirect target: redirect target is an internal address\n')
+
+    def test_redirect_to_allows_public_targets(self):
+        for target in (
+            'http://example.com/',
+            'https://example.com/path?q=1',
+            '//example.com/',
+            '/get',
+            'http://8.8.8.8/',
+            'http://[2001:4860:4860::8888]/',
+        ):
+            response = self.app.get('/redirect-to?' + urlencode({'url': target}))
+            self.assertEqual(response.status_code, 302, target)
+            self.assertEqual(response.headers.get('Location'), target)
+
+    def test_redirect_to_needs_an_absolute_or_root_relative_target(self):
+        for target in ('get', '?x=1', '#frag'):
+            response = self.app.get('/redirect-to?' + urlencode({'url': target}))
+            self.assertEqual(response.status_code, 403, target)
+            self.assertIsNone(response.headers.get('Location'), target)
+
+    @local_only('changes the in-process app configuration')
+    def test_redirect_to_allowlist(self):
+        httpbin.app.config['ALLOWED_REDIRECT_DOMAINS'] = frozenset(
+            ['example.com', 'example.org'])
+        try:
+            for target in ('http://example.com/x', '//example.org/', '/get'):
+                response = self.app.get(
+                    '/redirect-to?' + urlencode({'url': target}))
+                self.assertEqual(response.status_code, 302, target)
+            for target in ('http://other.example/', 'http://EXAMPLE.com/', 'get'):
+                response = self.app.get(
+                    '/redirect-to?' + urlencode({'url': target}))
+                self.assertEqual(response.status_code, 403, target)
+                self.assertIsNone(response.headers.get('Location'), target)
+            self.assertEqual(
+                response.data,
+                b'Forbidden redirect URL. Please be careful with this link.\n\n'
+                b'Allowed redirect destinations:\n- example.com\n- example.org')
+        finally:
+            httpbin.app.config['ALLOWED_REDIRECT_DOMAINS'] = frozenset()
 
     def test_redirect_to_post(self):
         response = self.app.post('/redirect-to?url=/post&status_code=307',

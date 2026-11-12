@@ -14,8 +14,9 @@ import time
 import os
 from hashlib import md5, sha256, sha512
 from werkzeug.datastructures import Authorization, WWWAuthenticate
+from werkzeug.http import HTTP_STATUS_CODES
 
-from flask import request, make_response
+from flask import request, make_response, Response
 from urllib.parse import urlparse, urlunparse
 
 
@@ -233,6 +234,122 @@ def caller_may_not_set(header):
     return header in RESERVED_RESPONSE_HEADERS or header.startswith('proxy-')
 
 
+TOKEN_CHARS = frozenset(
+    "!#$%&'*+-.^_`|~0123456789"
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+)
+
+MEDIA_PARAMETER = re.compile(
+    r'[ \t]*;[ \t]*([%s]+)[ \t]*=[ \t]*([%s]+|"(?:[^"\\]|\\.)*")'
+    % ((re.escape(''.join(sorted(TOKEN_CHARS))),) * 2)
+)
+
+
+def is_media_type(value):
+    """Return true if value is one type/subtype with well-formed parameters.
+    A comma-separated list is not: browsers would use its last valid type."""
+    media_type, semicolon, rest = value.partition(';')
+    kind, slash, subtype = media_type.strip().partition('/')
+    if not (slash and kind and subtype
+            and all(c in TOKEN_CHARS for c in kind + subtype)):
+        return False
+    rest = semicolon + rest
+    seen = set()
+    while rest.strip(' \t'):
+        match = MEDIA_PARAMETER.match(rest)
+        if not match:
+            return rest.strip() == ';'
+        name = match.group(1).lower()
+        if name in seen:
+            return False
+        seen.add(name)
+        rest = rest[match.end():]
+    return True
+
+
+def content_type_refusal(values):
+    """Return why /response-headers must refuse the caller's Content-Type
+    values, or None. One is allowed, and it must be a single valid media type
+    that a browser does not render."""
+    if len(values) > 1:
+        return 'only one Content-Type is allowed'
+    if not values:
+        return None
+    value = values[0]
+    if (any((c < ' ' and c != '\t') or c >= '\x7f' for c in value)
+            or not is_media_type(value)):
+        return 'the Content-Type is not a valid media type'
+    if is_renderable_media_type(value):
+        return 'this Content-Type is not allowed'
+    return None
+
+
+# Media types whose body a browser never renders as markup. A /response-headers
+# echo under any other type is HTML-escaped.
+INERT_MEDIA_TYPES = frozenset([
+    'text/plain', 'application/json', 'application/octet-stream',
+])
+
+
+def is_inert_media_type(content_type):
+    """Return true if a body of this Content-Type needs no HTML escaping."""
+    return content_type.split(';', 1)[0].strip().lower() in INERT_MEDIA_TYPES
+
+
+def escape_html(text):
+    """Escape the five HTML-special characters, as httpbin.org does."""
+    return (text.replace('&', '&amp;').replace("'", '&#39;')
+            .replace('<', '&lt;').replace('>', '&gt;').replace('"', '&#34;'))
+
+
+def error_response(status_code, detail):
+    """A JSON error in httpbin.org's format."""
+    body = json.dumps({
+        'status_code': status_code,
+        'error': HTTP_STATUS_CODES[status_code],
+        'detail': detail,
+    }, indent=2)
+    return Response(body + '\n', status=status_code,
+                    content_type='application/json')
+
+
+def request_cookie_host():
+    """The request's host name, lower-cased and without its port."""
+    host = request.host.lower()
+    if host.startswith('['):
+        return host[1:].split(']', 1)[0]
+    return host.split(':', 1)[0]
+
+
+def set_cookie_error(value, host):
+    """Return why /response-headers must refuse this Set-Cookie value, or
+    None. Every Domain attribute must name the request host; a value that is
+    not a valid cookie is refused too."""
+    pair, _, attributes = value.partition(';')
+    name, has_equals, cookie_value = pair.partition('=')
+    cookie_value = cookie_value.strip()
+    if len(cookie_value) > 1 and cookie_value[0] == cookie_value[-1] == '"':
+        cookie_value = cookie_value[1:-1]
+    name = name.strip()
+    if (not has_equals or not name or any(c not in TOKEN_CHARS for c in name)
+            or any(not ' ' <= c <= '~' or c in '"\\' for c in cookie_value)):
+        return 'invalid Set-Cookie "%s"' % value
+    for attribute in attributes.split(';'):
+        attribute_name, _, domain = attribute.partition('=')
+        # U+0130 lower-cases to "i" in a simple case mapping, so "Domaİn" is
+        # read as Domain, not skipped.
+        if attribute_name.strip().replace(u'\u0130', 'i').lower() != 'domain':
+            continue
+        domain = domain.strip()
+        bare = domain.lower()
+        if bare.startswith('.'):
+            bare = bare[1:]
+        if not host or bare != host:
+            return 'Set-Cookie Domain must be the request host "%s", got "%s"' % (
+                host, domain)
+    return None
+
+
 def is_renderable_media_type(content_type):
     """Return true if a browser would render or run this Content-Type."""
     media_type = content_type.split(';', 1)[0].strip().lower()
@@ -408,8 +525,8 @@ def check_digest_auth(user, passwd):
 
     if request.headers.get('Authorization'):
         credentials = parse_authorization_header(request.headers.get('Authorization'))
-        if not credentials:
-            return
+        if not credentials or credentials.get('username') != user:
+            return False
         request_uri = request.script_root + request.path
         if request.query_string:
             request_uri +=  '?' + str(request.query_string, 'utf-8')

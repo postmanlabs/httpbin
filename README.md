@@ -15,6 +15,10 @@ docker build -t httpbin . && docker run -p 80:8080 httpbin
 
 See http://httpbin.org for more information.
 
+To limit where `/redirect-to` may send clients, set `ALLOWED_REDIRECT_DOMAINS`
+to a comma-separated list of hosts, for example
+`docker run -p 80:8080 -e ALLOWED_REDIRECT_DOMAINS=example.com,example.org httpbin`.
+
 ## Running the tests
 
 ```sh
