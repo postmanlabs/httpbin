@@ -220,7 +220,7 @@ if os.environ.get("BUGSNAG_API_KEY") is not None:
             ignore_classes=["werkzeug.exceptions.NotFound"],
         )
         bugsnag.flask.handle_exceptions(app)
-    except:
+    except Exception:
         app.logger.warning("Unable to initialize Bugsnag exception handling.")
 
 # -----------
@@ -1575,7 +1575,7 @@ def decode_base64(value):
     encoded = value.encode("utf-8")  # base64 expects binary string as input
     try:
         decoded = base64.urlsafe_b64decode(encoded).decode("utf-8")
-    except:
+    except Exception:
         decoded = "Incorrect Base64 data try: SFRUUEJJTiBpcyBhd2Vzb21l"
     # Plain text, so decoded markup is shown as text, and UTF-8, which is how
     # the decoded text is encoded.
