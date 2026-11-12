@@ -14,6 +14,7 @@ import time
 import os
 from hashlib import md5, sha256, sha512
 from werkzeug.datastructures import Authorization, WWWAuthenticate
+from werkzeug.http import HTTP_STATUS_CODES
 
 from flask import request, make_response
 from urllib.parse import urlparse, urlunparse
@@ -239,6 +240,22 @@ def is_renderable_media_type(content_type):
     return media_type in RENDERABLE_MEDIA_TYPES or media_type.endswith('+xml')
 
 
+# Reason phrases as httpbin.org sends them: Werkzeug's, with the five that differ
+STATUS_PHRASES = dict(HTTP_STATUS_CODES)
+STATUS_PHRASES.update({
+    203: 'Non-Authoritative Information',
+    207: 'Multi-Status',
+    511: 'Network Authentication Required',
+})
+for unlisted in (306, 449):
+    del STATUS_PHRASES[unlisted]
+
+
+def is_true_param(value):
+    """An opt-in query flag: "1" or "true" in any case."""
+    return value == '1' or value.lower() == 'true'
+
+
 def split_outside_quotes(text, separator):
     """Split a header value on separator, except inside quoted strings."""
     parts, start, quoted, i = [], 0, False, 0
@@ -261,6 +278,35 @@ def _quality(value, has_value=True):
     except ValueError:
         return None
     return q if has_value and q == q else None
+
+
+def accept_quality(params):
+    """The q of an Accept entry: 1 without one, 0 if it can't be read."""
+    for param in params:
+        name, _, value = param.partition('=')
+        if name.strip().lower() != 'q':
+            continue
+        q = _quality(value)
+        return q if q is not None and 0 <= q <= 1 else 0
+    return 1
+
+
+def prefers_json(accept_values):
+    """Return true if Accept ranks application/json above text/plain."""
+    json_q = text_q = 0.0
+    json_pos = text_pos = -1
+    position = 0
+    for field in accept_values:
+        for entry in split_outside_quotes(field, ','):
+            position += 1
+            parts = split_outside_quotes(entry, ';')
+            q = accept_quality(parts[1:])
+            media_type = parts[0].strip().lower()
+            if media_type == 'application/json' and (q > json_q or json_pos < 0):
+                json_q, json_pos = q, position
+            elif media_type == 'text/plain' and (q > text_q or text_pos < 0):
+                text_q, text_pos = q, position
+    return json_q > 0 and (json_q > text_q or (json_q == text_q and json_pos < text_pos))
 
 
 def accepts_any_type(accept):

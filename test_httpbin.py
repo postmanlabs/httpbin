@@ -724,6 +724,30 @@ class HttpbinTestCase(unittest.TestCase):
             response.headers.get('x-more-info'), 'http://tools.ietf.org/html/rfc2324'
         )
 
+    def test_status_body_is_opt_in(self):
+        response = self.app.get('/status/500?body=1')
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.headers.get('Content-Type'), 'text/plain')
+        self.assertEqual(response.data, b'500 Internal Server Error\n')
+        self.assertIn('Accept', response.headers.get_all('Vary'))
+        response = self.app.get('/status/404?body=true',
+                                headers={'Accept': 'application/json'})
+        self.assertEqual(response.headers.get('Content-Type'), 'application/json')
+        self.assertEqual(json.loads(response.data.decode('utf-8')),
+                         {'code': 404, 'description': 'Not Found'})
+        response = self.app.get('/status/401?body=1')
+        self.assertEqual(response.headers.get('WWW-Authenticate'),
+                         'Basic realm="Fake Realm"')
+        self.assertEqual(response.data, b'401 Unauthorized\n')
+        for value in ('0', 'false', 'yes', ''):
+            response = self.app.get('/status/500?body=' + value)
+            self.assertEqual(response.data, b'', value)
+        for code in (204, 304):
+            response = self.app.get('/status/%d?body=1' % code)
+            self.assertEqual(response.data, b'', code)
+        response = self.app.get('/status/418?body=1')
+        self.assertIn(b'teapot', response.data)
+
     def test_status_ignores_a_trailing_path(self):
         for method in ('GET', 'POST'):
             response = self.app.open('/status/201/foo/bar', method=method)
