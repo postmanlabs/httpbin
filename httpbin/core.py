@@ -516,7 +516,7 @@ def view_deflate_encoded_content():
       - application/json
     responses:
       200:
-        description: Defalte-encoded data.
+        description: Deflate-encoded data.
     """
 
     return jsonify(get_dict("origin", "headers", method=request.method, deflated=True))
