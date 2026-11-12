@@ -1007,6 +1007,14 @@ class HttpbinTestCase(unittest.TestCase):
         self.assertIn('pause_per_write;dur=0.00;',
                       response.headers['Server-Timing'])
 
+    def test_drip_chunked_has_no_content_length(self):
+        for flag in ('1', 'true', 'TRUE'):
+            response = self.app.get('/drip?numbytes=5&duration=0&chunked=' + flag)
+            self.assertNotIn('Content-Length', response.headers, flag)
+            self.assertEqual(self.get_data(response), b'*****')
+        response = self.app.get('/drip?numbytes=5&duration=0&chunked=yes')
+        self.assertEqual(response.headers['Content-Length'], '5')
+
     def test_drip_with_invalid_numbytes(self):
         for bad_num in -1, 0:
             uri = '/drip?numbytes={0}&duration=2&delay=1'.format(bad_num)

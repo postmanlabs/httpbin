@@ -64,6 +64,7 @@ from .helpers import (
     parse_integer,
     redirect_to_arg,
     parse_seconds,
+    is_true_param,
     whole_milliseconds,
     server_timing,
 )
@@ -1459,6 +1460,12 @@ def drip():
         description: The amount of time (in seconds) to delay before responding
         default: 2
         required: false
+      - in: query
+        name: chunked
+        type: boolean
+        description: Send the body chunked, without a Content-Length
+        default: false
+        required: false
     produces:
       - application/octet-stream
     responses:
@@ -1502,8 +1509,9 @@ def drip():
             ("write_duration", duration, "duration of writes after initial delay"),
             ("pause_per_write", pause, "computed pause between writes"),
         ]),
-        "Content-Length": str(numbytes),
     }
+    if not is_true_param(args.get("chunked", "")):
+        headers["Content-Length"] = str(numbytes)
     response = Response(generate_bytes(), headers=headers)
 
     response.status_code = code

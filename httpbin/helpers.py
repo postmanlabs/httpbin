@@ -389,6 +389,11 @@ def parse_seconds(text):
     return value
 
 
+def is_true_param(value):
+    """An opt-in query flag: "1" or "true" in any case."""
+    return value == '1' or value.lower() == 'true'
+
+
 def whole_milliseconds(seconds):
     """Seconds truncated to whole milliseconds, as httpbin.org reads them."""
     return int(seconds * 1000) / 1000
