@@ -682,6 +682,14 @@ class HttpbinTestCase(unittest.TestCase):
             data=body
         ), nonce
 
+    def test_digest_auth_none_sends_an_rfc_2069_challenge(self):
+        uri = '/digest-auth/none/user/passwd'
+        header = self._test_digest_auth_first_challenge(uri).headers['WWW-Authenticate']
+        self.assertNotIn('qop', header)
+        response, _ = self._test_digest_response_for_auth_request(
+            header, 'user', 'passwd', None, uri, None)
+        self.assertEqual(response.status_code, 200)
+
     def test_digest_auth_wrong_pass(self):
         """Test different combinations of digest auth parameters"""
         username = 'user'

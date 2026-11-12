@@ -1114,7 +1114,7 @@ def digest_auth_md5(qop=None, user="user", passwd="passwd"):
       - in: path
         name: qop
         type: string
-        description: auth or auth-int
+        description: auth, auth-int, or none for an RFC 2069 challenge
       - in: path
         name: user
         type: string
@@ -1142,7 +1142,7 @@ def digest_auth_nostale(qop=None, user="user", passwd="passwd", algorithm="MD5")
       - in: path
         name: qop
         type: string
-        description: auth or auth-int
+        description: auth, auth-int, or none for an RFC 2069 challenge
       - in: path
         name: user
         type: string
@@ -1178,7 +1178,7 @@ def digest_auth(
       - in: path
         name: qop
         type: string
-        description: auth or auth-int
+        description: auth, auth-int, or none for an RFC 2069 challenge
       - in: path
         name: user
         type: string
@@ -1210,7 +1210,9 @@ def digest_auth(
     if algorithm not in ("MD5", "SHA-256", "SHA-512"):
         algorithm = "MD5"
 
-    if qop not in ("auth", "auth-int"):
+    if qop == "none":
+        qop = ""
+    elif qop not in ("auth", "auth-int"):
         qop = None
 
     authorization = request.headers.get("Authorization")

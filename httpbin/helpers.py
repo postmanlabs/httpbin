@@ -656,13 +656,17 @@ def digest_challenge_response(app, qop, algorithm, stale = False):
     ]), algorithm)
     opaque = H(os.urandom(10), algorithm)
 
-    auth = WWWAuthenticate("digest", {
+    parameters = {
         'realm': 'me@kennethreitz.com',
         'nonce': nonce,
         'qop': 'auth, auth-int' if qop is None else qop,
         'opaque': opaque,
         'algorithm': algorithm,
         'stale': 'TRUE' if stale else 'FALSE',
-    })
+    }
+    if qop == '':
+        # An RFC 2069 challenge, for testing a client's fallback
+        del parameters['qop']
+    auth = WWWAuthenticate("digest", parameters)
     response.headers['WWW-Authenticate'] = auth.to_header()
     return response
