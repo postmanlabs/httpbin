@@ -1160,6 +1160,35 @@ class HttpbinTestCase(unittest.TestCase):
             response.data, b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
         )
 
+    @local_only("interleaves in-process response iterators")
+    def test_seeded_stream_survives_another_byte_request(self):
+        with contextlib.closing(self.app.get(
+                '/stream-bytes/10?seed=0&chunk_size=2',
+                buffered=False)) as response:
+            chunks = iter(response.response)
+            first = next(chunks)
+            self.app.get('/bytes/10?seed=1').close()
+            self.assertEqual(
+                first + b''.join(chunks),
+                b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o')
+
+    @local_only("interleaves in-process response iterators")
+    def test_seeded_streams_are_independent(self):
+        with contextlib.closing(self.app.get(
+                '/stream-bytes/10?seed=0&chunk_size=2',
+                buffered=False)) as first_response:
+            first_chunks = iter(first_response.response)
+            first = next(first_chunks)
+            with contextlib.closing(self.app.get(
+                    '/stream-bytes/10?seed=0&chunk_size=3',
+                    buffered=False)) as second_response:
+                second_chunks = iter(second_response.response)
+                second = next(second_chunks)
+                first += b''.join(first_chunks)
+                second += b''.join(second_chunks)
+        expected = b'\xc5\xd7\x14\x84\xf8\xcf\x9b\xf4\xb7o'
+        self.assertEqual((first, second), (expected, expected))
+
     def test_delete_endpoint_returns_body(self):
         response = self.app.delete(
             '/delete',
