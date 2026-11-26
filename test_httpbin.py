@@ -1528,6 +1528,12 @@ class HttpbinTestCase(unittest.TestCase):
             response.headers.get('Location'), 'http://localhost/get'
         )
 
+    def test_redirect_n_equals_to_0_is_a_client_error(self):
+        for path in ('/redirect/0', '/relative-redirect/0',
+                     '/absolute-redirect/0'):
+            response = self.app.get(path)
+            self.assertEqual(response.status_code, 400, path)
+
     def test_request_range(self):
         response1 = self.app.get('/range/1234')
         self.assertEqual(response1.status_code, 200)

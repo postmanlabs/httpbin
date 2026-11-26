@@ -674,7 +674,8 @@ def redirect_n_times(n):
       302:
         description: A redirection.
     """
-    assert n > 0
+    if n < 1:
+        return error_response(400, "n must be greater than 0")
 
     absolute = request.args.get("absolute", "false").lower() == "true"
 
@@ -806,7 +807,8 @@ def relative_redirect_n_times(n):
         description: A redirection.
     """
 
-    assert n > 0
+    if n < 1:
+        return error_response(400, "n must be greater than 0")
 
     response = app.make_response("")
     response.status_code = 302
@@ -836,7 +838,8 @@ def absolute_redirect_n_times(n):
         description: A redirection.
     """
 
-    assert n > 0
+    if n < 1:
+        return error_response(400, "n must be greater than 0")
 
     if n == 1:
         return redirect(url_for("view_get", _external=True))
